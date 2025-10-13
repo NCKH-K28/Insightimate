@@ -1,0 +1,153 @@
+import { IssuePriority, IssueResolution, IssueStatus, IssueType } from '@/contracts/issues/issue';
+import { TemplateConfig } from './types';
+
+export const templateConfigs: Record<'SCRUM' | 'KANBAN', TemplateConfig> = {
+  SCRUM: {
+    boardType: 'SCRUM',
+    statuses: [
+      {
+        name: 'To Do',
+        color: '#F5A623',
+        category: 'TODO',
+        description: null,
+        iconURL: null,
+        sequence: 0,
+      },
+      {
+        name: 'In Progress',
+        color: '#4A90E2',
+        category: 'IN_PROGRESS',
+        description: null,
+        iconURL: null,
+        sequence: 1,
+      },
+      {
+        name: 'Done',
+        color: '#7ED321',
+        category: 'DONE',
+        description: null,
+        iconURL: null,
+        sequence: 2,
+      },
+    ],
+    types: [
+      {
+        name: 'Epic',
+        color: '#FF5733',
+        // category: 'EPIC',
+        iconURL: '/icons/issue-type/epic.svg',
+        description: null,
+        sequence: 0,
+      },
+      {
+        name: 'Story',
+        // category: 'STORY',
+        color: '#33FF57',
+        iconURL: '/icons/issue-type/story.svg',
+        description: null,
+        sequence: 1,
+      },
+      {
+        name: 'Bug',
+        // category: 'BUG',
+        color: '#FF33A1',
+        iconURL: '/icons/issue-type/bug.svg',
+        description: null,
+        sequence: 2,
+      },
+      {
+        name: 'Task',
+        // category: 'TASK',
+        color: '#3357FF',
+        iconURL: '/icons/issue-type/task.svg',
+        description: null,
+        sequence: 3,
+      },
+      {
+        name: 'Sub-task',
+        // category: 'SUB_TASK',
+        color: '#FF8C33',
+        iconURL: '/icons/issue-type/sub-task.svg',
+        description: null,
+        sequence: 4,
+      },
+    ],
+    priorities: [
+      {
+        name: 'Lowest',
+        color: '#7ED321',
+        iconURL: '/icons/priority/lowest.svg',
+        description: null,
+        sequence: 0,
+      },
+      {
+        name: 'Low',
+        color: '#7ED321',
+        iconURL: '/icons/priority/low.svg',
+        description: null,
+        sequence: 1,
+      },
+      {
+        name: 'Medium',
+        color: '#F5A623',
+        iconURL: '/icons/priority/medium.svg',
+        description: null,
+        sequence: 2,
+      },
+      {
+        name: 'High',
+        color: '#D0021B',
+        iconURL: '/icons/priority/high.svg',
+        description: null,
+        sequence: 3,
+      },
+      {
+        name: 'Highest',
+        color: '#D0021B',
+        iconURL: '/icons/priority/highest.svg',
+        description: null,
+        sequence: 4,
+      },
+    ],
+    resolutions: [
+      {
+        name: 'Fixed',
+        iconURL: '/icons/resolution/fixed.svg',
+        description: null,
+        color: null,
+        sequence: 0,
+      },
+      {
+        name: "Won't Fix",
+        iconURL: '/icons/resolution/wont-fix.svg',
+        description: null,
+        color: null,
+        sequence: 1,
+      },
+      {
+        name: 'Duplicate',
+        iconURL: '/icons/resolution/duplicate.svg',
+        description: null,
+        color: null,
+        sequence: 2,
+      },
+      {
+        name: 'Incomplete',
+        iconURL: '/icons/resolution/incomplete.svg',
+        description: null,
+        color: null,
+        sequence: 3,
+      },
+      {
+        name: 'Cannot Reproduce',
+        iconURL: '/icons/resolution/cannot-reproduce.svg',
+        description: null,
+        color: null,
+        sequence: 4,
+      },
+    ],
+  },
+  KANBAN: {
+    boardType: 'KANBAN',
+  },
+};

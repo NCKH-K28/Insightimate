@@ -1,0 +1,79 @@
+// prisma/schema/project.prisma
+// Project related schema
+
+enum ProjectType {
+    SOFTWARE
+}
+
+model Project {
+    id          String      @id
+    workspaceId String
+    leadId      String
+    key         String
+    name        String
+    type        ProjectType
+    description String?
+    avatar      String?
+
+    // === internal ===
+    issueCounter  Int @default(0)
+    sprintCounter Int @default(0)
+    // ===
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    workspace Workspace      @relation("WorkspaceProjects", fields: [workspaceId], references: [id], onDelete: Cascade)
+    lead      User           @relation("ProjectLead", fields: [leadId], references: [id], onDelete: Cascade)
+    roles     ProjectRole[]  @relation("ProjectRoles")
+    actors    ProjectActor[] @relation("ProjectActors")
+
+    issues      Issue[]           @relation("ProjectIssues")
+    statuses    IssueStatus[]     @relation("ProjectIssueStatus")
+    types       IssueType[]       @relation("ProjectIssueType")
+    resolutions IssueResolution[] @relation("ProjectIssueResolution")
+    priorities  IssuePriority[]   @relation("ProjectIssuePriority")
+    board       Board?            @relation("ProjectBoard")
+
+    @@unique([workspaceId, key])
+    @@map("projects")
+}
+
+model ProjectRole {
+    id          String  @id
+    name        String
+    description String?
+    permissions Json
+
+    projectId String
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    project Project        @relation("ProjectRoles", fields: [projectId], references: [id], onDelete: Cascade)
+    actors  ProjectActor[] @relation("ProjectActors")
+
+    @@map("project_roles")
+}
+
+enum ActorType {
+    USER
+    TEAM
+}
+
+model ProjectActor {
+    id        String    @id
+    projectId String
+    actorType ActorType
+    actorId   String
+    roleId    String
+
+    project Project     @relation("ProjectActors", fields: [projectId], references: [id], onDelete: Cascade)
+    role    ProjectRole @relation("ProjectActors", fields: [roleId], references: [id], onDelete: Cascade)
+
+    // user User? @relation("UserProjectActors", fields: [actorId], references: [id], onDelete: Cascade, map: "project_actor_userId_fkey")
+    // team Team? @relation("TeamProjectActors", fields: [actorId], references: [id], onDelete: Cascade, map: "project_actor_teamId_fkey")
+
+    @@map("project_actors")
+}

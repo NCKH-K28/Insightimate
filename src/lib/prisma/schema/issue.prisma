@@ -1,0 +1,150 @@
+// schema/issue.prisma
+
+model Issue {
+    // ============ Core Fields ============
+    id           String  @id
+    key          String
+    summary      String
+    description  String?
+    typeId       String
+    statusId     String
+    priorityId   String
+    projectId    String
+    resolutionId String?
+    reporterId   String?
+    assigneeId   String?
+
+    dueDate    DateTime?
+    startDate  DateTime?
+    resolvedAt DateTime?
+    archived   Boolean   @default(false)
+    archivedAt DateTime?
+    archivedBy String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // ====== Custom Fields ======
+    storyPoints Float? // Story points for Agile estimation
+
+    originalEstimate Float? // thời gian ước lượng ban đầu: tính bằng cách
+    timeSpent        Float? // Total time spent on the issue in hours or points
+
+    // ===========================
+
+    // Relations
+    boards       BoardIssue[]     @relation("IssueBoards")
+    project      Project          @relation("ProjectIssues", fields: [projectId], references: [id], onDelete: Cascade)
+    reporter     User?            @relation("IssueReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+    assignee     User?            @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
+    archivedUser User?            @relation("IssueArchivedBy", fields: [archivedBy], references: [id], onDelete: Cascade)
+    type         IssueType        @relation("IssueType", fields: [typeId], references: [id], onDelete: Cascade)
+    status       IssueStatus      @relation("IssueStatus", fields: [statusId], references: [id], onDelete: Cascade)
+    priority     IssuePriority    @relation("IssuePriority", fields: [priorityId], references: [id], onDelete: Cascade)
+    resolution   IssueResolution? @relation("IssueResolution", fields: [resolutionId], references: [id], onDelete: Cascade)
+    links        IssueLink[]      @relation("IssueLinkSource")
+    linkedBy     IssueLink[]      @relation("IssueLinkTarget")
+    sprint       SprintIssue[]    @relation("SprintIssue")
+
+    @@unique([projectId, key])
+    @@map("issues")
+}
+
+// enum IssueTypeCategory {
+//     EPIC
+//     STORY
+//     BUG
+//     TASK
+//     SUB_TASK
+// }
+
+enum IssueStatusCategory {
+    TODO
+    IN_PROGRESS
+    DONE
+}
+
+enum IssueLinkType {
+    BLOCKS
+    RELATES_TO
+    DUPLICATES
+}
+
+model IssueLink {
+    id          String        @id
+    sourceId    String
+    targetId    String
+    linkType    IssueLinkType
+    description String?
+
+    source Issue @relation("IssueLinkSource", fields: [sourceId], references: [id], onDelete: Cascade)
+    target Issue @relation("IssueLinkTarget", fields: [targetId], references: [id], onDelete: Cascade)
+
+    @@map("issue_links")
+}
+
+model IssueType {
+    id          String  @id
+    sequence    Int     @default(0)
+    // category    IssueTypeCategory
+    name        String
+    description String?
+    iconURL     String?
+    color       String?
+
+    projectId String // optimize in the future
+
+    issue   Issue[] @relation("IssueType")
+    project Project @relation("ProjectIssueType", fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@map("issue_types")
+}
+
+model IssueStatus {
+    id          String              @id
+    sequence    Int                 @default(0)
+    name        String
+    description String?
+    iconURL     String?
+    color       String?
+    category    IssueStatusCategory
+
+    projectId String // optimize in the future
+
+    issue        Issue[]        @relation("IssueStatus")
+    project      Project        @relation("ProjectIssueStatus", fields: [projectId], references: [id], onDelete: Cascade)
+    columnStatus ColumnStatus[]
+
+    @@map("issue_statuses")
+}
+
+model IssuePriority {
+    id          String  @id
+    sequence    Int     @default(0)
+    name        String
+    description String?
+    iconURL     String?
+    color       String?
+
+    projectId String // optimize in the future
+
+    issue   Issue[] @relation("IssuePriority")
+    project Project @relation("ProjectIssuePriority", fields: [projectId], references: [id], onDelete: Cascade)
+
+    @@map("priorities")
+}
+
+model IssueResolution {
+    id          String  @id
+    sequence    Int     @default(0)
+    name        String
+    description String?
+    iconURL     String?
+    color       String?
+    projectId   String
+
+    project Project @relation("ProjectIssueResolution", fields: [projectId], references: [id], onDelete: Cascade)
+    issue   Issue[] @relation("IssueResolution")
+
+    @@map("issue_resolutions")
+}
