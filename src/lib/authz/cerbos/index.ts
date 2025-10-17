@@ -1,9 +1,26 @@
-// lib/cerbos
-// import cerboes http
+import z from 'zod';
 import { HTTP } from '@cerbos/http';
 
-const cerbosUrl = process.env.CERBOS_URL || 'http://localhost:3592';
-export const cerbosEdge = new HTTP(cerbosUrl);
+const ZCerbosConfig = z.object({ CERBOS_API_URL: z.url() });
+const cerbosConfig = ZCerbosConfig.parse(process.env);
+
+// == Cerbos Client
+export const cerbosEdge = new HTTP(cerbosConfig.CERBOS_API_URL);
+
+const healthCheck = async () => {
+  try {
+    const resp = await cerbosEdge.checkHealth();
+    console.log('Cerbos Health Check:', resp);
+  } catch (error) {
+    const err = {
+      error: 'Cerbos health check failed',
+      details: error instanceof Error ? error.message : String(error),
+      config: cerbosConfig,
+    };
+    console.error(err);
+  }
+};
+await healthCheck();
 
 export type CerbosPrincipal = Parameters<typeof cerbosEdge.checkResource>[0]['principal'];
 export type CerbosResource = Parameters<typeof cerbosEdge.checkResource>[0]['resource'];
