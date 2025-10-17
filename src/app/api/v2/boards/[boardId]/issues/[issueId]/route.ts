@@ -12,6 +12,17 @@ const ZBoardIssueParams = z.object({
 });
 type BoardIssueParams = z.infer<typeof ZBoardIssueParams>;
 
+export const GET = middlewareHandler<BoardIssueParams>([authenticated], async (req) => {
+  const auth = await getAuthFromRequest(req);
+  const params = req.params;
+  const context = { actorId: auth.user.id };
+
+  const validParams = ZBoardIssueParams.parse(params);
+
+  const result = await boardsService.getIssue(validParams, context);
+  return NextResponse.json(result);
+});
+
 export const PATCH = middlewareHandler<BoardIssueParams>(
   [authenticated],
   async (req, { params }) => {

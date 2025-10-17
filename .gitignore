@@ -43,3 +43,6 @@ next-env.d.ts
 # temp folders
 /.temp
 /.tmp
+
+# specific files
+/src/lib/authz/openfga/index.ts

@@ -23,6 +23,14 @@ export const listBoardIssuesQueryOptions = (
     select: (res) => res.data,
   });
 
+export const getBoardIssueQueryOptions = (context: BoardIssueContext) => {
+  return queryOptions({
+    queryKey: ['boards', context.boardId, 'issues', context.issueId],
+    queryFn: () => boardApi.issues.get(context, {}),
+    staleTime: 1000 * 60 * 5,
+  });
+}
+
 export const getBoardIssueFacetsQueryOptions = (boardId: string) => {
   return queryOptions({
     queryKey: ['boards', boardId, 'issues', 'facets'],
@@ -77,7 +85,8 @@ export const moveBoardIssueMutationOptions = (contex: { boardId: string; issueId
       queryClient.invalidateQueries({ queryKey: ['boards', contex.boardId, 'issues'] });
     },
   });
-};
+};  
+
 
 // ========= BOARD SPRINTS ==========
 export const createBoardSprintMutationOptions = (boardId: string) => {

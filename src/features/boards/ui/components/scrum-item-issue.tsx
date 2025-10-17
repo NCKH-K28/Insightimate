@@ -21,6 +21,8 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSortable } from '@dnd-kit/sortable';
 import { BoardIssueActions } from './board-issue-actionts';
+import Link from 'next/link';
+import { useParams, usePathname } from 'next/navigation';
 
 export type IssueItemProps = {
   id: string;
@@ -34,6 +36,28 @@ export type IssueItemProps = {
 };
 
 export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
+
+  // FIXME: use workspace root path from context or hook
+  const pathname = usePathname();
+  const p = useParams<{
+    workspaceId: string;
+  }>();
+
+  const wspRoot = useMemo(
+    () => {
+      // p: wps/{workspaceId}/...
+      const reg = new RegExp(`/wps/${p.workspaceId}(/|$)`);
+      const match = pathname.match(reg);
+      if (match) {
+        return match[0].replace(/\/$/, ''); // remove trailing slash
+      }
+      return `/wps/${p.workspaceId}`;
+    },
+    [pathname, p.workspaceId],
+  );
+  //============
+
+
   const params = useMemo(
     () => ({ boardId: issue.boardId, issueId: issue.id, projectId: issue.projectId }),
     [issue],
@@ -95,6 +119,13 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
           onChange={(option) => option.value && handleUpdate({ typeId: option.value })}
         />
       </div>
+
+      <Link
+        href={`${wspRoot}/projects/${issue.projectId}/issues/${issue.id}`}
+        className="text-xs font-medium text-muted-foreground opacity-90"
+      >
+        {issue.key}
+      </Link>
 
       {/* Issue Summary - Flexible width */}
       <div className='min-w-0 flex-1'>

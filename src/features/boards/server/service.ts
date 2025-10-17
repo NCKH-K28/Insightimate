@@ -33,6 +33,26 @@ const getById = async (id: string) => {
   return ZBoardItem.parse(board);
 };
 
+const getIssue = async (params: { boardId: string; issueId: string }, context: { actorId: string }) => {
+  const boardIssue = await prisma.boardIssue.findFirst({
+    where: { boardId: params.boardId, issueId: params.issueId },
+    include: {
+      issue: {
+        include: {
+          type: true,
+          priority: true,
+          status: true,
+          reporter: true,
+          resolution: true,
+          assignee: true,
+        },
+      },
+    },
+  });
+  if (!boardIssue) throw new Error('Board issue not found');
+  return ZBoardIssueList.parse({ data: [{ ...boardIssue.issue, ...boardIssue }] }).data[0];
+}
+
 const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
   const board = await prisma.board.findUnique({ where: { id: boardId } });
   if (!board) throw new Error('Board not found');
@@ -225,6 +245,7 @@ const issueFacets = async (boardId: string, context: { actorId: string }) => {
 export const boardsService = {
   getById,
   // == Issues
+  getIssue,
   addIssue,
   listIssues,
   updateIssue,
