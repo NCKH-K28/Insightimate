@@ -25,6 +25,9 @@ import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import RichTextDescription from "@/features/boards/ui/components/richtext-description";
 import { UserSelectors, userToOption, unassignedUser } from '@/features/users/ui/user-selector';
 import { toast } from 'sonner';
+import CommentInput from "@/features/boards/ui/components/CommentInput";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CommentList from "@/features/boards/ui/components/CommentList";
 
 
 
@@ -201,7 +204,17 @@ export default function Page() {
 
           <div>
             <h3 className="font-semibold text-lg mb-1">Activity</h3>
+            <Tabs defaultValue="checklist" className="w-full ">
+              <TabsList>
+                <TabsTrigger value="checklist">Checklist</TabsTrigger>
+                <TabsTrigger value="comments">Comments</TabsTrigger>
+              </TabsList>
+              <TabsContent value="checklist"></TabsContent>
+              <TabsContent value="comments"><CommentInput issueId={params.issueId} /><CommentList projectId={params.issueId} /></TabsContent>
+            </Tabs>
           </div>
+
+
         </div>
       </div>
 
@@ -216,7 +229,7 @@ export default function Page() {
               }}
             />
 
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 className="p-2 rounded-md border hover:bg-gray-50 text-gray-600"
