@@ -7,7 +7,7 @@ export function ProjectLayout({ children }: PropsWithChildren) {
   return (
     <div className='size-full grid grid-rows-[auto_1fr] gap-2'>
       <ProjectHeader />
-      <div className='min-h-0 min-w-0'>{children}</div>
+      <div className='min-h-0 mi n-w-0'>{children}</div>
     </div>
   );
 }

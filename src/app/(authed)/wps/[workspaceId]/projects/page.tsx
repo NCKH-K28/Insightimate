@@ -22,6 +22,7 @@ import {
 import { useProjectsQueryParams } from '@/hooks/use-projects-params';
 import { projectColumns } from '@/features/projects/ui/table/project-column';
 import { Separator } from '@/components/ui/separator';
+import { DottedSeparator } from '@/components/dotted-separator';
 
 const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<ProjectItem>> }) => {
   const params = useParams<{ workspaceId: string }>();
@@ -111,7 +112,7 @@ const ProjectsHeader = () => {
       className={cn('w-full', 'px-4 sm:px-6 lg:px-8', 'py-4', 'flex flex-col space-y-2')}
     >
       <div className={cn('text-2xl font-bold')}>Projects</div>
-      <Separator orientation='horizontal' className='w-full' />
+      <DottedSeparator/> 
     </div>
   );
 };

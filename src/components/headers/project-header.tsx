@@ -4,6 +4,7 @@ import { useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
 import { fetchProjectQueryOptions } from '@/features/projects/api/actions';
 import { ProjectActions } from '@/features/projects/ui/components/project-actions';
+import { DottedSeparator } from '../dotted-separator';
 
 const ProjectHeader = () => {
   const params = useParams<{ projectId: string }>();

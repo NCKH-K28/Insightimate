@@ -32,6 +32,7 @@ import { NavMain } from './nav-main';
 import { useQuery } from '@tanstack/react-query';
 import WorkspaceSwitcher from './workspace-switcher';
 import NavUser from './nav-user';
+import { DottedSeparator } from '@/components/dotted-separator';
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { workspaceId } = useParams<{ workspaceId: string }>();
@@ -54,7 +55,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
         <WorkspaceSwitcher />
-
+        <DottedSeparator/>
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
@@ -102,6 +103,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+      <DottedSeparator/>
       <SidebarContent>
         <NavMain
           label='Recent'
