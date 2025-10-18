@@ -288,13 +288,28 @@ export default function Page() {
                     <DatePickerInput
                       label="Start Date"
                       initialDate={issue?.startDate ?? undefined}
-                      onChange={(d) => handleUpdate({ startDate: d ? d.toISOString() : null } as any)}
+                      onChange={(d) => {
+                        // server expects date-only ISO (yyyy-MM-dd) for z.iso.date()
+                        if (!d) return handleUpdate({ startDate: null } as any);
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const dateOnly = `${yyyy}-${mm}-${dd}`;
+                        handleUpdate({ startDate: dateOnly } as any);
+                      }}
                     />
 
                     <DatePickerInput
                       label="Due Date"
                       initialDate={issue?.dueDate ?? undefined}
-                      onChange={(d) => handleUpdate({ dueDate: d ? d.toISOString() : null } as any)}
+                      onChange={(d) => {
+                        if (!d) return handleUpdate({ dueDate: null } as any);
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const dateOnly = `${yyyy}-${mm}-${dd}`;
+                        handleUpdate({ dueDate: dateOnly } as any);
+                      }}
                     />
                     <div className="mt-4 flex gap-4">
                       {/* Sprint */}
