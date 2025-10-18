@@ -91,7 +91,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
+'group relative flex items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
         'hover:border-border hover:bg-accent/50 hover:shadow-sm',
         updateIssue.isPending && 'opacity-60 pointer-events-none',
       )}
@@ -172,8 +172,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
             onChange={(option) => option.value && handleUpdate({ priorityId: option.value })}
           />
         </div>
-
-        <Separator orientation='vertical' className='h-5' />
+<Separator orientation='vertical' className='h-5' />
 
         {/* Assignee */}
         <div className='w-40'>
