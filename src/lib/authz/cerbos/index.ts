@@ -2,7 +2,7 @@
 // import cerboes http
 import { HTTP } from '@cerbos/http';
 
-const cerbosUrl = process.env.CERBOS_URL || 'http://localhost:3592';
+const cerbosUrl = process.env.CERBOS_URL || 'http://103.141.177.146:3592';
 export const cerbosEdge = new HTTP(cerbosUrl);
 
 export type CerbosPrincipal = Parameters<typeof cerbosEdge.checkResource>[0]['principal'];
