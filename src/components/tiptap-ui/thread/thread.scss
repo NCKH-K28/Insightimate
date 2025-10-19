@@ -1,0 +1,67 @@
+:root {
+  --tiptap-thread-border-color: var(--tt-gray-light-a-100);
+  --tiptap-thread-title-color: var(--tt-gray-light-a-500);
+  --tiptap-thread-bg-color: var(--white);
+  --tiptap-thread-shadow: var(--tt-shadow-elevated-md);
+}
+
+.dark {
+  --tiptap-thread-border-color: var(--tt-gray-dark-a-100);
+  --tiptap-thread-title-color: var(--tt-gray-dark-500);
+  --tiptap-thread-bg-color: var(--tt-gray-dark-50);
+  --tiptap-thread-shadow: var(--tt-shadow-elevated-md);
+}
+
+.tiptap-thread-wrapper {
+  --border-width: 1px;
+  --padding: 0.25rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 22.5rem;
+  max-height: 80dvh;
+  position: relative;
+  border-radius: calc(
+    var(--padding) + var(--tt-radius-lg) + var(--border-width)
+  );
+  border: var(--border-width) solid var(--tiptap-thread-border-color);
+  box-shadow: var(--tiptap-thread-shadow);
+  background-color: var(--tiptap-thread-bg-color);
+}
+
+.tiptap-thread-header {
+  flex: none;
+  height: 2.75rem;
+  display: flex;
+  align-items: center;
+  padding: 0.375rem;
+  border-bottom: 1px solid var(--tiptap-thread-border-color);
+
+  &-title {
+    flex: 1;
+    font-size: 0.75rem;
+    line-height: 1.2;
+    padding: 0 0.625rem;
+    color: var(--tiptap-thread-title-color);
+    font-weight: 600;
+    user-select: none;
+  }
+}
+
+.tiptap-thread-content {
+  padding: 0 0.375rem;
+}
+
+.tiptap-thread-comments {
+  padding: 0 0.375rem;
+  max-height: 300px;
+  overflow-y: auto;
+  word-break: break-word;
+  overscroll-behavior: contain;
+}
+
+.tiptap-thread-footer {
+  padding: 0.375rem;
+  padding-top: 0;
+}

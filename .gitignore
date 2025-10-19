@@ -44,3 +44,6 @@ next-env.d.ts
 # temp folders
 /.temp
 /.tmp
+
+# Authentication tokens
+.npmrc

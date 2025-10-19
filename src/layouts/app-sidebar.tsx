@@ -14,6 +14,7 @@ import {
   GalleryVerticalEnd,
   HomeIcon,
   Users2Icon,
+  BotIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -61,6 +62,15 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               <Link href={`/wps/${workspaceId}/foryou`}>
                 <HomeIcon />
                 <span>For You</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem>
+            <SidebarMenuButton asChild>
+              <Link href={`/wps/${workspaceId}/ai`}>
+                <BotIcon />
+                <span>AI Hub</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

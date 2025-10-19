@@ -1,0 +1,98 @@
+:root {
+  --comment-text-primary: var(--tt-gray-light-a-800);
+  --comment-text-secondary: var(--tt-gray-light-a-400);
+  --comment-separator: var(--tt-gray-light-a-100);
+}
+
+.dark {
+  --comment-text-primary: var(--tt-gray-dark-a-800);
+  --comment-text-secondary: var(--tt-gray-dark-a-400);
+  --comment-separator: var(--tt-gray-dark-a-100);
+}
+
+.tiptap-comment {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--comment-separator);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  &:last-child {
+    border-bottom: 0;
+  }
+}
+
+.tiptap-comment-panel {
+  $padding-y: 0.25rem;
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  min-width: 0;
+  gap: 0.5rem;
+  min-height: calc((1.5rem * 2) + ($padding-y * 2));
+  padding: $padding-y 0;
+}
+
+.tiptap-comment-details {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  gap: 0.5rem;
+}
+
+.tiptap-comment-content {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+.tiptap-comment-information {
+  flex: 1;
+}
+
+.tiptap-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.tiptap-comment-author {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--comment-text-primary);
+  white-space: nowrap;
+}
+
+.tiptap-comment-date {
+  font-size: 0.75rem;
+  line-height: 1.2;
+  font-weight: 600;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+
+  &-created,
+  &-edited {
+    color: var(--comment-text-secondary);
+  }
+}
+
+.deleted-message {
+  font-size: 0.875rem;
+  color: var(--comment-text-secondary);
+}
+
+// Reactions
+.tiptap-comment-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem;
+}
