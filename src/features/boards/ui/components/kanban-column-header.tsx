@@ -1,6 +1,22 @@
+import React from 'react';
 import { CircleCheckIcon, CircleDashedIcon, CircleDotDashedIcon, CircleDotIcon, PlusIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { CreateIssueButton } from '../buttons/create-issue-btn';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { CreateIssueForm } from '../forms/create-issue-form';
+import { mutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
+import { boardApi } from '@/features/boards/api/http';
+import { toast } from 'sonner';
+import z from 'zod';
+import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
+
+type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 
 type CreateParams = { projectId: string; boardId: string; sprintId?: string };
 
@@ -32,6 +48,18 @@ const formatLabel = (s: string) =>
 export const KanbanColumnHeader = ({ label, taskCount, createParams, onCreate }: KanbanColumnHeaderProps) => {
     const key = (label || '').toString().toLowerCase();
     const icon = labelIconMap[key] ?? null;
+    const [open, setOpen] = React.useState(false);
+
+    const queryClient = useQueryClient();
+    const createMutationOptions = mutationOptions({
+        mutationFn: (data: FormData) => boardApi.issues.create(createParams!, { ...data, ...createParams }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['boards', createParams?.boardId, 'issues'] });
+            setOpen(false);
+        },
+    });
+
+    const createIssue = useMutation(createMutationOptions);
 
     return (
         <div className="px-2 py-1.5 flex items-center justify-between">
@@ -43,10 +71,36 @@ export const KanbanColumnHeader = ({ label, taskCount, createParams, onCreate }:
                 </div>
             </div>
             {createParams ? (
-                <CreateIssueButton params={createParams} />
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="size-5">
+                            <PlusIcon className="size-4 text-neutral-500" />
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
+                        <DialogHeader className='space-y-3'>
+                            <DialogTitle className='text-2xl font-bold'>Create New Issue</DialogTitle>
+                            <DialogDescription className='text-base'>
+                                Fill in the details below to create a new issue for your project.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <CreateIssueForm
+                            params={createParams}
+                            onCancel={() => setOpen(false)}
+                            onSubmit={async (data) => {
+                                const fetching = toast.promise(createIssue.mutateAsync(data), {
+                                    loading: 'Creating issue...',
+                                    success: 'Issue created successfully!',
+                                    error: (e) => `Error creating issue: ${e.message || e}`,
+                                });
+                                await fetching.unwrap();
+                            }}
+                        />
+                    </DialogContent>
+                </Dialog>
             ) : (
-                <Button onClick={onCreate} variant="ghost" size="icon" className="size-5">
-                    <PlusIcon className="size-4 text-neutral-500" />
+                <Button variant="ghost" size="icon" className="size-5" disabled>
+                    <PlusIcon className="size-4 text-neutral-300" />
                 </Button>
             )}
         </div>

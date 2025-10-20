@@ -1,4 +1,3 @@
-
 import {
     DragDropContext,
     Draggable,
@@ -21,12 +20,14 @@ interface DataKanbanProps {
     data: BoardIssueItem[];
     columns?: KanbanColumnDef[]; // optional board-defined columns
     onChange?: (next: BoardIssueItem[]) => void;
+    projectId: string;
+    boardId: string;
 }
 
 // For this view we only want three columns
 const FIXED_COLUMNS: ColumnKey[] = ['todo', 'in_progress', 'done'];
 
-export const DataKanban = ({ data, columns: propsColumns, onChange }: DataKanbanProps) => {
+export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, boardId }: DataKanbanProps) => {
     // Always show only the three fixed columns
     const columns = useMemo(() => FIXED_COLUMNS, []);
 
@@ -93,7 +94,11 @@ export const DataKanban = ({ data, columns: propsColumns, onChange }: DataKanban
             <div className="flex overflow-x-auto p-4">
                 {columns.map((colId) => (
                     <div key={colId} className="flex-1 mx-2 bg-muted p-1.5 rounded-md min-w-[240px]">
-                        <KanbanColumnHeader label={colId} taskCount={(state[colId] || []).length} />
+                        <KanbanColumnHeader
+                            label={colId}
+                            taskCount={(state[colId] || []).length}
+                            createParams={{ projectId, boardId }}
+                        />
                         <Droppable droppableId={colId}>
                             {(provided) => (
                                 <div

@@ -15,8 +15,7 @@ import {
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
 import { DottedSeparator } from '@/components/dotted-separator';
 import { DataKanban } from '@/features/boards/ui/components/data-kanban';
-import { Button } from '@/components/ui/button';
-import { PlusIcon } from 'lucide-react';
+import { CreateStatusButton } from '@/features/projects/ui/buttons/create-status-btn';
 
 type KanbanTabProps = {
   params: { boardId: string; projectId: string; workspaceId: string };
@@ -73,13 +72,10 @@ export const KanbanTab = ({ params }: KanbanTabProps) => {
       </div>
       <DottedSeparator />
       <div className="flex justify-end px-4 pt-4 pb-2">
-        <Button variant='default' size='sm'>
-          <PlusIcon className='h-4 w-4' />
-          <span className='ml-1.5'>New Status</span>
-        </Button>
+        <CreateStatusButton projectId={params.projectId} variant='default' size='sm' />
       </div>
       <div className="px-4 pb-4">
-        <DataKanban data={issues ?? []} />
+        <DataKanban data={issues ?? []} projectId={params.projectId} boardId={params.boardId} />
       </div>
     </div>
   );

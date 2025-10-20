@@ -23,6 +23,8 @@ import {
   ensureCan,
 } from '@/features/authz/server/pip';
 import { listStatuses } from './cqrs/project-field.service';
+import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues/issues.status';
+import z from 'zod';
 
 class ProjectError extends Error {
   constructor(message: string) {
@@ -483,6 +485,44 @@ const listMembers = async (params: { projectId: string }, context: ProjectContex
   return result;
 };
 
+const addStatus = async (
+  projectId: string,
+  input: z.infer<typeof ZIssueStatusCreateInput>,
+  context: { actorId: string },
+) => {
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) throw new ProjectError('Project not found');
+
+  const canEdit = await openfgaClient.check({
+    user: `user:${context.actorId}`,
+    relation: 'can_edit',
+    object: `project:${projectId}`,
+  });
+  if (!canEdit.allowed) throw new ProjectError('Permission denied to add status');
+
+  const maxSeq = await prisma.issueStatus.aggregate({
+    where: { projectId },
+    _max: { sequence: true },
+  });
+  const nextSeq = (maxSeq._max.sequence ?? 0) + 1;
+
+  const status = await prisma.issueStatus.create({
+    data: {
+      id: `status_${createId()}`,
+      projectId,
+      name: input.name,
+      description: input.description,
+      color: input.color,
+      iconURL: input.iconURL,
+      category: input.category as IssueStatusCategory,
+      sequence: input.sequence ?? nextSeq,
+    },
+  });
+
+  return status;
+};
+
+
 export const projectsService = {
   list: listProjects,
   create: createProject,
@@ -511,4 +551,5 @@ export const projectsService = {
 
   // -- field
   listStatuses,
+  addStatus
 };
