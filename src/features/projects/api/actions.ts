@@ -177,7 +177,7 @@ export const listProjectStatusesQueryOptions = (params: { projectId: string }) =
   return queryOptions({
     queryKey: ['projects', params.projectId, 'fields', 'statuses'],
     queryFn: async () => projectApi.fields.statuses.list(params),
-    select: (res) => res.data,
+    select: (res) => res.items, // Updated: changed from res.data to res.items
     staleTime: 1000 * 60 * 5,
   });
 };

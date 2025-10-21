@@ -35,7 +35,7 @@ export const CreateStatusButton = ({
   const queryClient = useQueryClient();
   const createMutationOptions = mutationOptions({
     mutationFn: async (data: FormData) => {
-      const response = await fetch(`/api/v1/projects/${projectId}/issue-statuses`, {
+      const response = await fetch(`/api/v2/projects/${projectId}/issue-statuses`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
