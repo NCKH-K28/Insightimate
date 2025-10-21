@@ -14,6 +14,7 @@ import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ZIssueStatusCreateInput } from '@/contracts/issues/issues.input';
 import { CreateStatusForm } from '@/features/projects/ui/forms/create-status-form';
+import { projectApi } from '@/features/projects/api/http';
 
 type FormData = z.infer<typeof ZIssueStatusCreateInput>;
 
@@ -34,20 +35,9 @@ export const CreateStatusButton = ({
 
   const queryClient = useQueryClient();
   const createMutationOptions = mutationOptions({
-    mutationFn: async (data: FormData) => {
-      const response = await fetch(`/api/v2/projects/${projectId}/issue-statuses`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create status');
-      }
-      return response.json();
-    },
+    mutationFn: (data: FormData) => projectApi.issueStatuses.create({ projectId }, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'statuses'] });
+      queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'fields', 'statuses'] });
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] });
       setOpen(false);
     },
