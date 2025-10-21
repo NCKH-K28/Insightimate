@@ -7,6 +7,8 @@ import {
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { KanbanColumnHeader } from './kanban-column-header';
 import type { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { useQuery } from '@tanstack/react-query';
+import { listProjectStatusesQueryOptions } from '@/features/projects/api/actions';
 
 type ColumnKey = string;
 
@@ -18,44 +20,50 @@ interface KanbanColumnDef {
 
 interface DataKanbanProps {
     data: BoardIssueItem[];
-    columns?: KanbanColumnDef[]; // optional board-defined columns
+    columns?: KanbanColumnDef[]; 
     onChange?: (next: BoardIssueItem[]) => void;
     projectId: string;
     boardId: string;
 }
 
-// For this view we only want three columns
-const FIXED_COLUMNS: ColumnKey[] = ['todo', 'in_progress', 'done'];
-
 export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, boardId }: DataKanbanProps) => {
-    // Always show only the three fixed columns
-    const columns = useMemo(() => FIXED_COLUMNS, []);
+    const { data: statusesResponse } = useQuery(listProjectStatusesQueryOptions({ projectId }));
+    
+    const statuses = useMemo(() => {
+        if (!statusesResponse) return [];
+        return (statusesResponse as any).items || [];
+    }, [statusesResponse]);
 
-    const groupKey = (it: BoardIssueItem) => String(it.status?.id ?? it.status?.name ?? 'unknown').toLowerCase();
+    const columns = useMemo(() => {
+        if (!statuses || statuses.length === 0) return [];
+        return [...statuses].sort((a: any, b: any) => (a.sequence ?? 0) - (b.sequence ?? 0));
+    }, [statuses]);
 
     const buildInitial = useCallback(() => {
-        const map: Record<ColumnKey, BoardIssueItem[]> = {};
-        columns.forEach((c: ColumnKey) => (map[c] = []));
-
-        // Assign each issue to one of the fixed columns based on status id or name.
-        // Matching strategy: look for common names/ids that map to todo, in_progress, done.
-        (data || []).forEach((it: BoardIssueItem) => {
-            const statusRaw = String(it.status?.id ?? it.status?.name ?? '').toLowerCase();
-            let colId: ColumnKey = 'todo';
-
-            if (statusRaw.includes('done') || statusRaw.includes('closed') || statusRaw === 'done') colId = 'done';
-            else if (statusRaw.includes('in_progress') || statusRaw.includes('in progress') || statusRaw.includes('progress') || statusRaw === 'in_progress') colId = 'in_progress';
-            else if (statusRaw.includes('todo') || statusRaw.includes('to do') || statusRaw === 'todo' || statusRaw === 'backlog') colId = 'todo';
-
-            if (!map[colId]) map[colId] = [];
-            map[colId].push(it);
+        const map: Record<string, BoardIssueItem[]> = {};
+        
+        columns.forEach((status: any) => {
+            map[status.id] = [];
         });
 
-        Object.keys(map).forEach((k: string) => {
-            map[k].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+        (data || []).forEach((issue: BoardIssueItem) => {
+            const statusId = issue.status?.id;
+            if (statusId && map[statusId]) {
+                map[statusId].push(issue);
+            } else {
+                const firstStatusId = columns[0]?.id;
+                if (firstStatusId && map[firstStatusId]) {
+                    map[firstStatusId].push(issue);
+                }
+            }
         });
+
+        Object.keys(map).forEach((statusId: string) => {
+            map[statusId].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
+        });
+        
         return map;
-    }, [columns, data, propsColumns]);
+    }, [columns, data]);
 
     const [state, setState] = useState<Record<ColumnKey, BoardIssueItem[]>>(buildInitial);
 
@@ -92,21 +100,21 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
     return (
         <DragDropContext onDragEnd={handleDragEnd}>
             <div className="flex overflow-x-auto p-4">
-                {columns.map((colId) => (
-                    <div key={colId} className="flex-1 mx-2 bg-muted p-1.5 rounded-md min-w-[240px]">
+                {columns.map((status: any) => (
+                    <div key={status.id} className="flex-1 mx-2 bg-muted p-1.5 rounded-md min-w-[240px]">
                         <KanbanColumnHeader
-                            label={colId}
-                            taskCount={(state[colId] || []).length}
+                            label={status.name}
+                            taskCount={(state[status.id] || []).length}
                             createParams={{ projectId, boardId }}
                         />
-                        <Droppable droppableId={colId}>
+                        <Droppable droppableId={status.id}>
                             {(provided) => (
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
                                     className="min-h-[200px] py-1.5 space-y-2"
                                 >
-                                    {(state[colId] || []).map((issue, idx) => (
+                                    {(state[status.id] || []).map((issue, idx) => (
                                         <Draggable key={issue.id} draggableId={String(issue.id)} index={idx}>
                                             {(prov) => (
                                                 <div
