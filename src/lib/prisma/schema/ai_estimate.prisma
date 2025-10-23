@@ -1,0 +1,69 @@
+// ai_estimate model represents AI-generated estimates for project tasks.
+
+enum RunStatus {
+    PENDING
+    RUNNING
+    SUCCEEDED
+    PARTIAL_FAILED
+    FAILED
+    CANCELED
+}
+
+model AIAnalysisRun {
+    id           String    @id
+    taskId       String
+    status       RunStatus @default(PENDING)
+    resultFileId String?
+    errorMessage String?
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime  @updatedAt
+
+    /// Tóm tắt input/scope (nên để Json để linh hoạt)
+    sourceSummary Json? // danh sách nguồn, trọng số, citations_required...
+    inputSummary  Json? // file names, text length, ngôn ngữ...
+    files         Json? // metadata file đính kèm (id, name, bytes)
+
+    @@index([taskId])
+}
+
+// enum EstimateSource {
+//     AI_MODEL_V1
+//     AI_MODEL_V2
+//     HUMAN_EXPERT
+// }
+
+// file reference to s3 or other storage
+model FileReference {
+    id        String   @id
+    url       String // url or key to access the file
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model AIEstimate {
+    id             String   @id
+    taskId         String
+    estimatedHours Float
+    confidence     Float
+    sourceFileId   String
+    createdAt      DateTime @default(now())
+    updatedAt      DateTime @updatedAt
+
+    @@index([taskId])
+}
+
+model AIEmbedding {
+    id           String                       @id
+    resourceType String
+    resourceId   String
+    vector       Unsupported("vector(1536)")?
+    text         String
+
+    url       String
+    ownerId   String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@unique([resourceType, resourceId], name: "unique_resource_embedding")
+    @@index([resourceType, resourceId])
+}

@@ -1,16 +1,20 @@
 // pnpm prisma db push --schema=src/lib/prisma/schema --force-reset
+// pnpm prisma migrate dev --name add-pgvector --create-only --schema=src/lib/prisma/schema 
 
+// rest: pnpm prisma migrate dev --schema=src/lib/prisma/schema
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["postgresqlExtensions"]
 }
 
 //   - OPENFGA_DATASTORE_URI=postgres://postgres:password@postgres:5432/postgres?sslmode=disable
 // migrate to http://localhost:5432
 
 datasource db {
-    provider = "postgresql"
+    provider   = "postgresql"
     // url      = "postgresql://postgres:password@localhost:5432/postgres?schema=public"
-    url      = "postgres://avnadmin:AVNS_9RN-e5v5pglX_B8YSAY@cmu-cs-447-dangnhatminh09032002-e210.b.aivencloud.com:20746/defaultdb?sslmode=require"
+    url        = "postgres://avnadmin:AVNS_9RN-e5v5pglX_B8YSAY@cmu-cs-447-dangnhatminh09032002-e210.b.aivencloud.com:20746/defaultdb?sslmode=require"
+    extensions = [vector]
 }
 
 // -- ======================================================
