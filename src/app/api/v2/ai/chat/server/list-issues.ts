@@ -95,10 +95,10 @@ export const listIssues = async (input: ListIssuesInput) => {
 
   const total = await prisma.issue.count({ where });
 
-  const markedData = data.map((issue) => `[[issue:${issue.key}|${issue.summary}]]`);
+  // const markedData = data.map((issue) => `[[issue:${issue.key}|${issue.summary}]]`);
 
   return {
-    data: markedData,
+    data,
     nextCursor,
     total,
     applied: { where, take, orderBy, cursor: parsed.pagination?.cursor ?? null },

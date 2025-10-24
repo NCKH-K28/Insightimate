@@ -1,5 +1,47 @@
 // ai_estimate model represents AI-generated estimates for project tasks.
 
+model Agent {
+    id          String  @id
+    name        String
+    leadId      String
+    workspaceId String
+    description String?
+
+    sources AgentSource[]
+}
+
+enum AgentSourceType {
+    PROJECT
+    DOCUMENT // tài liệu upload
+}
+
+enum AgentSourceStatus {
+    PENDING
+    PROCESSING
+    READY
+    FAILED
+}
+
+model AgentSource {
+    id         String          @id
+    agentId    String
+    sourceType AgentSourceType
+    sourceId   String
+
+    status AgentSourceStatus @default(PENDING)
+
+    summary Json? // metadata tóm tắt nguồn (tên, mô tả ngắn, loại nguồn, v.v.)
+
+    agent Agent @relation(fields: [agentId], references: [id])
+
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    removedAt   DateTime?
+    processedAt DateTime?
+
+    @@unique([agentId, sourceType, sourceId])
+}
+
 enum RunStatus {
     PENDING
     RUNNING

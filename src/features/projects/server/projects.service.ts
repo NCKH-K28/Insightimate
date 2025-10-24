@@ -10,11 +10,11 @@ import {
 import { addSeconds } from 'date-fns';
 import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
-import { templateConfigs } from './cqrs/template';
+import { templateConfigs } from './configs/template';
 import { prisma } from '@/lib/prisma';
 import { checkResourcesMapped } from '@/lib/authz/cerbos';
 import { openfgaClient } from '@/lib/authz/openfga';
-import { genProjectId } from './cqrs/id-generators';
+import { genProjectId } from './configs/id-generators';
 import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
 import {
   projectResourceFactory,
@@ -22,7 +22,7 @@ import {
   workspaceResourceFactory,
   ensureCan,
 } from '@/features/authz/server/pip';
-import { listStatuses } from './cqrs/project-field.service';
+import { listStatuses } from './project-field.service';
 
 class ProjectError extends Error {
   constructor(message: string) {

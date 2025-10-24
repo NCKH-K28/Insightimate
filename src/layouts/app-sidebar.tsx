@@ -68,9 +68,9 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href={`/wps/${workspaceId}/ai`}>
+              <Link href={`/wps/${workspaceId}/agents`}>
                 <BotIcon />
-                <span>AI Hub</span>
+                <span>Agents</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

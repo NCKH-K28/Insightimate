@@ -1,51 +1,3 @@
-// import axiosInstance, { buildURL } from './_client';
-
-// import {
-//   Project,
-//   ProjectCreateInput,
-//   ProjectUpdateInput,
-//   ProjectQueryParams,
-//   ProjectList,
-// } from '@/lib/schemas/project';
-// import { projectMemberApi } from './project-member';
-// import { projectPermissionApi } from './project-permission';
-// import { issuePriorityApi } from './issue-priority';
-// import { issueStatusApi } from './issue-status';
-// import { issueTypeApi } from './issue-type';
-
-// const ProjectURLs = {
-//   get: 'projects/{projectId}',
-//   list: 'projects',
-//   create: 'projects',
-//   delete: 'projects/{projectId}',
-//   update: 'projects/{projectId}',
-// };
-
-// export const projectApi = {
-//   get: (ctx: { projectId: string }) => {
-//     return axiosInstance.get<Project>(buildURL(ProjectURLs.get, ctx));
-//   },
-//   list: (params?: ProjectQueryParams) => {
-//     return axiosInstance.get<ProjectList>(ProjectURLs.list, { params });
-//   },
-//   create: (data: ProjectCreateInput) => {
-//     return axiosInstance.post<Project>(ProjectURLs.create, data);
-//   },
-//   delete: (ctx: { projectId: string }) => {
-//     return axiosInstance.delete<void>(buildURL(ProjectURLs.delete, ctx));
-//   },
-//   update: (ctx: { projectId: string }, data: ProjectUpdateInput) => {
-//     return axiosInstance.patch<Project>(buildURL(ProjectURLs.update, ctx), data);
-//   },
-
-//   member: projectMemberApi,
-//   permission: projectPermissionApi,
-//   issueStatus: issueStatusApi,
-//   issuePriority: issuePriorityApi,
-//   issueType: issueTypeApi,
-// };
-
-// export default projectApi;
 import {
   ProjectActorAddInput,
   ProjectCreateInput,
@@ -59,6 +11,7 @@ import {
   ProjectRole,
 } from '@/contracts/projects';
 import { PathParams, baseApi } from '@/lib/api/_client';
+import { type ProjectListOutput, type ProjectListInput } from '../server/cqrs/search-projects'; // FIXME: remove circular dependency
 
 const BasePrj = `v2/projects` as const;
 const PrjItem = `${BasePrj}/{projectId}` as const;
@@ -122,6 +75,10 @@ const PrjEndpoints = {
 } as const;
 
 export const projectApi = {
+  search: (input?: ProjectListInput) => {
+    const url = `v3/projects`;
+    return baseApi.get<ProjectListOutput>(url, undefined, { params: input });
+  },
   list: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectListRes>(PrjEndpoints.list, undefined, { params }),
   create: (data: ProjectCreateInput) => baseApi.post<ProjectItem>(PrjEndpoints.create, data),

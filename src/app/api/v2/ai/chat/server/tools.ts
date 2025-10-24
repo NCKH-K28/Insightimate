@@ -1,6 +1,6 @@
 import { tool } from 'ai';
 import { listIssues, ZListIssuesInput } from './list-issues';
-import z, { email } from 'zod';
+import z from 'zod';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 import { getAuthFromRequest } from '@/lib/auth';
@@ -11,11 +11,7 @@ export const listIssuesTool = tool({
     'List issues with optional filters (assignee, status, due dates, createdAt, keyword), pagination, and sorting.',
   inputSchema: ZListIssuesInput,
   outputSchema: z.object({
-    data: z
-      .array(z.any())
-      .describe(
-        'Array of issue objects with mardkown wiki links ex: [[issue:ISSUE-1|Issue summary]], return only this format.',
-      ),
+    data: z.array(z.any()),
     // meta: z.object({}).describe('Pagination metadata.'),
   }),
   execute: (input: z.infer<typeof ZListIssuesInput>) => listIssues(input),

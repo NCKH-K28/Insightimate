@@ -5,26 +5,30 @@ import { cn } from '@/lib/utils';
 import { Loader2Icon, PanelRightIcon } from 'lucide-react';
 import React from 'react';
 import { AddSourceButton } from '../buttons/add-source';
-import { SourceRef } from '../../types';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useQuery } from '@tanstack/react-query';
+import { SourceActions } from './source-actions';
 
-const sources: SourceRef[] = [
-  {
-    id: 'source-1',
-    srcType: 'file',
-    srcId: 'file-123',
-    status: 'ready',
-    src: { name: 'Document 1', avatar: '📄' },
-  },
-  {
-    id: 'source-2',
-    srcType: 'project',
-    srcId: 'project-456',
-    status: 'processing',
-    src: { name: 'Project Alpha', avatar: '📁' },
-  },
-];
-const SourcesList = () => {
+type SourceRef = {
+  id: string;
+  sourceType: string;
+  sourceId: string;
+  source?: { name: string; iconURL: string };
+  status: string;
+  selected: boolean;
+};
+
+type SourcesListProps = { params: { agentId: string } };
+const SourcesList = ({ params }: SourcesListProps) => {
+  const { data: sources } = useQuery({
+    queryKey: ['agent-sources', params.agentId],
+    queryFn: async () => {
+      const response = await fetch(`/api/v2/ai/agents/${params.agentId}/sources`);
+      const data = await response.json();
+      return data.data as SourceRef[];
+    },
+  });
+
   return (
     <div className='flex flex-col'>
       <div
@@ -35,7 +39,7 @@ const SourcesList = () => {
       </div>
 
       <ul className={cn('space-y-2')}>
-        {sources.map((source) => (
+        {sources?.map((source) => (
           <li
             key={source.id}
             className={cn(
@@ -48,22 +52,17 @@ const SourcesList = () => {
           >
             <Checkbox checked={source.selected} />
             <div className={cn('flex items-center gap-2')}>
-              <span className={cn('text-xl')}>{source.src?.avatar}</span>
-              <span className={cn('font-medium')}>{source.src?.name}</span>
+              {source.source?.iconURL ? (
+                <img
+                  src={source.source.iconURL}
+                  alt={source.source.name}
+                  className={cn('h-6 w-6 rounded')}
+                />
+              ) : null}
             </div>
-            <span className={cn('text-sm')}>
-              {source.status === 'processing' ? (
-                <Loader2Icon className={cn('animate-spin')} size={14} />
-              ) : source.status === 'ready' ? (
-                '✅ Ready'
-              ) : (
-                '❌ Error'
-              )}
-            </span>
+            <span className={cn('text-sm')}>{source.status}</span>
             <div className={cn('ml-auto')}>
-              <Button variant='ghost' size='icon'>
-                <PanelRightIcon size={16} />
-              </Button>
+              <SourceActions id={source.id} />
             </div>
           </li>
         ))}
@@ -72,7 +71,8 @@ const SourcesList = () => {
   );
 };
 
-export const SourcesPanel = () => {
+type SourcesPanelProps = { params: { agentId: string } };
+export const SourcesPanel = ({ params }: SourcesPanelProps) => {
   return (
     <div className={cn('flex h-full w-80 flex-col', 'border')}>
       <div
@@ -82,10 +82,10 @@ export const SourcesPanel = () => {
         <h2 className={cn('text-sm font-medium')}>Sources</h2>
       </div>
       <div className={cn('flex-1 p-4')}>
-        <AddSourceButton />
+        <AddSourceButton params={params} />
 
         <div className={cn('mt-4')}>
-          <SourcesList />
+          <SourcesList params={params} />
         </div>
       </div>
     </div>

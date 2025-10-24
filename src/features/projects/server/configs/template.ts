@@ -1,5 +1,5 @@
 import { IssuePriority, IssueResolution, IssueStatus, IssueType } from '@/contracts/issues/issue';
-import { TemplateConfig } from './types';
+import { TemplateConfig } from '../types';
 
 export const templateConfigs: Record<'SCRUM' | 'KANBAN', TemplateConfig> = {
   SCRUM: {

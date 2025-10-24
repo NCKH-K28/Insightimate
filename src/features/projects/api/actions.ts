@@ -1,6 +1,7 @@
 import { mutationOptions, queryOptions, useQueryClient } from '@tanstack/react-query';
 import { ProjectQueryParams } from '@/contracts/projects';
 import { projectApi } from './http';
+import { ProjectListInput } from '../server/cqrs/search-projects';
 
 export const getProjectQueryOptions = (params: { projectId: string }) => {
   return queryOptions({
@@ -20,6 +21,14 @@ export const fetchProjectsQueryOptions = (params?: ProjectQueryParams) => {
 };
 
 export const listProjectsQueryOptions = fetchProjectsQueryOptions;
+
+export const searchProjectsQueryOptions = (input?: ProjectListInput) => {
+  return queryOptions({
+    queryKey: ['projects', 'search', input],
+    queryFn: () => projectApi.search(input),
+    select: (res) => res.data,
+  });
+};
 
 export const fetchProjectFacetsQueryOptions = (params?: ProjectQueryParams) => {
   const _params = { ...params };

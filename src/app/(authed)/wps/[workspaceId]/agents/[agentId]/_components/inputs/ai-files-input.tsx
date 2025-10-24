@@ -18,6 +18,9 @@ import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as axios from 'axios';
 
+type AIFilesInputProps = {
+  onAddFiles?: (files: File[]) => void;
+};
 export const AIFilesInput = () => {
   const [uploadedFiles, setUploadedFiles] = React.useState<
     { value: string; label: string; progress?: number }[]

@@ -18,13 +18,17 @@ const getHeaderMarkdown = () => {
 This is a chat interface where you can interact with an AI assistant.
 You can ask questions, get help, and explore various topics!
 * Your issue: [[issue:PROJ1-1|Issue One]]
-  `;
+`;
 };
 
-function Chat() {
+type ChatPanelProps = { params: { agentId: string } };
+export function ChatPanel({ params }: ChatPanelProps) {
   const extsRef = useRef(extensions);
   const { messages, sendMessage } = useChat({
-    transport: new DefaultChatTransport({ api: '/api/v2/ai/chat' }),
+    transport: new DefaultChatTransport({
+      api: '/api/v2/ai/chat',
+      body: { agentId: params.agentId },
+    }),
   });
 
   const editor = useEditor({
@@ -141,4 +145,4 @@ function Chat() {
   );
 }
 
-export default Chat;
+export default ChatPanel;
