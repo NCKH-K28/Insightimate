@@ -2,6 +2,9 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { Client as PgClient, Notification as PgNotification } from 'pg';
 
+const LOG_PREFIX = '[prisma-notify-trigger]';
+const getMsg = (msg: string) => `${LOG_PREFIX} ${msg}`;
+
 /** ---------- Utils ---------- */
 const sanitizeIdentifier = (s: string) => s.replace(/[^a-zA-Z0-9_]/g, '_');
 
@@ -28,7 +31,7 @@ CREATE OR REPLACE FUNCTION ${fnName}() RETURNS trigger AS $$
 DECLARE payload json;
 BEGIN
   IF (TG_OP = 'DELETE') THEN
-    payload := json_build_object('op', TG_OP, 'id', OLD.id);
+    payload := json_build_object('op', TG_OP, 'record', row_to_json(OLD));
   ELSE
     payload := json_build_object('op', TG_OP, 'record', row_to_json(NEW));
   END IF;
@@ -44,19 +47,45 @@ FOR EACH ROW EXECUTE FUNCTION ${fnName}();
 `;
 };
 
+export const checkTableExists = (
+  tableName: string,
+  prisma: { $queryRaw: PrismaClient['$queryRaw'] },
+): Promise<boolean> => {
+  return prisma.$queryRaw<Array<{ exists: boolean }>>`SELECT EXISTS (
+      SELECT 1
+      FROM information_schema.tables
+      WHERE table_name = ${tableName}
+    ) AS "exists";`.then((res) => res.length > 0 && res[0].exists);
+};
+
 /** ---------- PG client (singleton) ---------- */
-let globalPg: PgClient | null = null;
+const parseDbUrl = (connectionString: string) => {
+  const regex = /^postgres(?:ql)?:\/\/([^:]+):([^@]+)@([^:\/]+):(\d+)\/([^\s?]+)(?:\?(.+))?$/;
+  const match = connectionString.match(regex);
+  if (!match) throw new Error('Invalid PostgreSQL connection string format');
+  return {
+    user: match[1],
+    password: match[2],
+    host: match[3],
+    port: parseInt(match[4]),
+    database: match[5],
+  };
+};
 
 const getPgClient = async (connectionString: string): Promise<PgClient> => {
+  const globalForPg = globalThis as unknown as any;
+  let { globalPg } = globalForPg;
   if (globalPg) return globalPg;
-  const client = new PgClient({ connectionString });
+  const parsed = parseDbUrl(connectionString);
+  const client = new PgClient({ ...parsed, ssl: { rejectUnauthorized: false } });
   await client.connect();
-  globalPg = client;
+  globalForPg.globalPg = client;
   return client;
 };
 
 /** ---------- Types ---------- */
-export type OnMessageFn = (payload: { op: string; record?: any; id?: string }) => void;
+type Operation = 'INSERT' | 'UPDATE' | 'DELETE';
+export type OnMessageFn = (payload: { op: Operation; record?: any; id?: string }) => void;
 
 export type ListenerOptions = {
   /** Ví dụ: 'post_changes' */
@@ -68,8 +97,9 @@ export type ListenerOptions = {
 
 export type WithTriggerOptions = {
   connectionString: string;
-  /** Map từ Prisma.ModelName -> cấu hình lắng nghe */
-  models: Record<Prisma.ModelName, ListenerOptions>;
+  models: {
+    [K in Prisma.ModelName]?: ListenerOptions;
+  };
 };
 
 /** ---------- Extension factory ---------- */
@@ -82,7 +112,6 @@ export function withTrigger(opts: WithTriggerOptions) {
   const ensureListenOnChannel = async (pg: PgClient, channel: string) => {
     if (listenedChannels.has(channel)) return;
 
-    // Đăng ký handler riêng cho kênh này
     const handler = (msg: PgNotification) => {
       if (msg.channel !== channel) return;
       const set = listenersByChannel.get(channel);
@@ -92,7 +121,7 @@ export function withTrigger(opts: WithTriggerOptions) {
         const payload = JSON.parse(msg.payload);
         for (const fn of set) fn(payload);
       } catch {
-        // payload không phải JSON -> bỏ qua
+        console.error(getMsg(`Không thể phân tích payload từ kênh "${channel}": ${msg.payload}`));
       }
     };
 
@@ -121,40 +150,34 @@ export function withTrigger(opts: WithTriggerOptions) {
   return Prisma.defineExtension((prisma) =>
     prisma.$extends({
       name: 'prisma-notify-trigger',
-
       client: {
-        /**
-         * Lắng nghe thay đổi cho một model của Prisma.
-         * - Tạo/đặt lại trigger ở Postgres cho bảng tương ứng.
-         * - LISTEN trên channel cấu hình.
-         * - Trả về hàm hủy đăng ký.
-         */
-        async $listen(
+        async listen(
           model: Prisma.ModelName,
           onMessage: OnMessageFn,
         ): Promise<() => Promise<void>> {
           const cfg = opts.models[model];
           if (!cfg) {
-            throw new Error(
-              `[notify-extension] Chưa cấu hình listener cho model "${String(model)}"`,
-            );
+            throw new Error(getMsg(`Model "${model}" không được cấu hình để lắng nghe`));
           }
 
           const tableName = cfg.model ?? `"${String(model)}"`; // bảng mặc định = tên model, được quote
+          const tableExists = await checkTableExists(tableName, prisma);
+          if (!tableExists) {
+            throw new Error(getMsg(`Bảng "${tableName}" không tồn tại trong cơ sở dữ liệu`));
+          }
+
           const pg = await getPgClient(opts.connectionString);
 
-          // Đảm bảo trigger tồn tại/được làm mới
           const triggerSQL = createPubTriggerSQL({
             channel: cfg.channel,
             op: cfg.operations,
             model: tableName,
           });
+
           await pg.query(triggerSQL);
 
-          // Đảm bảo LISTEN đúng kênh
           await ensureListenOnChannel(pg, cfg.channel);
 
-          // Đăng ký callback
           const set = listenersByChannel.get(cfg.channel) ?? new Set<OnMessageFn>();
           set.add(onMessage);
           listenersByChannel.set(cfg.channel, set);
@@ -167,7 +190,6 @@ export function withTrigger(opts: WithTriggerOptions) {
               if (cur.size === 0) listenersByChannel.delete(cfg.channel);
             }
             await maybeUnlistenChannel(pg, cfg.channel);
-            // Không drop trigger để tái sử dụng; nếu muốn có thể thêm tùy chọn cleanup
           };
         },
       },

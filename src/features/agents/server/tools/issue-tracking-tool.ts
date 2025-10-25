@@ -9,7 +9,7 @@ import {
 import { google } from '@ai-sdk/google';
 import { middlewareHandler } from '@/lib/http/api-handler.v2';
 import { authenticated, getAuthFromRequest } from '@/lib/auth';
-import { ZSourceListInput } from '@/features/agents/server/source.service';
+import { ZSourceListInput } from '@/features/agents/server/services/source.service';
 import { listBoards, ZBoardListInput } from '@/features/agents/server/cqrs/q-board-list';
 import { listSprints, ZSprintListInput } from '@/features/agents/server/cqrs/q-sprint-list';
 import { prisma } from '@/lib/prisma';
@@ -24,7 +24,7 @@ import {
   ZStatusListInput,
 } from '@/features/agents/server/cqrs';
 import { listProjectRoles, ZRoleListInput } from '@/features/agents/server/cqrs/q-role-list';
-import { IssueGenTool } from '@/features/agents/server/issue-gen-tool';
+import { IssueGenTool } from '@/features/agents/server/tools/issue-gen-tool';
 
 // ==== Route ====
 export const POST = middlewareHandler([authenticated], async (req) => {

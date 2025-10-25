@@ -4,7 +4,7 @@ import z from 'zod';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 import { getAuthFromRequest } from '@/lib/auth';
-import { sourceService, ZSourceListInput } from '@/features/agents/server/source.service';
+import { sourceService, ZSourceListInput } from '@/features/agents/server/services/source.service';
 
 export const getTimeTool = tool({
   name: 'getTime',

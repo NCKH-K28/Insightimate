@@ -8,27 +8,27 @@ import z from 'zod';
 const ZParams = z.object({ agentId: z.string().min(1) });
 
 export const GET = async () => {
-  const analysis = await prisma.aIAnalysis.findMany();
+  const analysis = await prisma.aIAnalysis.findMany({});
   const result = { data: analysis };
 
   return NextResponse.json(result);
 };
 
-const ZAnalysisCreateInput = z.object({ id: z.string().min(1) });
+const ZAnalysisCreateInput = z.object({ sourceId: z.string().min(1) });
 
 export const POST = compose(authenticatedV2, async (req, res) => {
   const params = ZParams.parse(req.params);
   const body = await req.json();
   const input = ZAnalysisCreateInput.parse(body);
 
-  const s = await prisma.agentSource.findUnique({ where: { id: input.id } });
+  const s = await prisma.agentSource.findUnique({ where: { id: input.sourceId } });
   if (!s) return NextResponse.json({ error: 'Source not found' }, { status: 404 });
 
   // Create a new analysis record
   const newAnalysis = await prisma.aIAnalysis.create({
     data: {
       id: `analysis_${Math.random().toString(36).substring(2, 15)}`,
-      aSourceId: input.id,
+      aSourceId: input.sourceId,
       agentId: params.agentId,
       status: 'PENDING',
     },
@@ -36,7 +36,7 @@ export const POST = compose(authenticatedV2, async (req, res) => {
 
   await inngest.send({
     name: 'agents/analysis.created',
-    data: { analysisId: newAnalysis.id, sourceId: input.id, agentId: params.agentId },
+    data: { analysisId: newAnalysis.id, sourceId: input.sourceId, agentId: params.agentId },
   });
 
   return NextResponse.json(newAnalysis);

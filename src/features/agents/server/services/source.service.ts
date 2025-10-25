@@ -1,8 +1,10 @@
 import { openfgaClient } from '@/lib/authz/openfga';
-import { prisma } from '@/lib/prisma';
+import { executeTransaction, prisma } from '@/lib/prisma';
+import { s3 } from '@/lib/s3';
+import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
-import z from 'zod';
+import z, { file } from 'zod';
 
 const ZSourceType = z.enum(['PROJECT', 'FILE']);
 
@@ -22,6 +24,11 @@ export type SourceCreateInput = z.infer<typeof ZSourceCreateInput>;
 export type SourceUpdateInput = z.infer<typeof ZSourceUpdateInput>;
 
 // ========================== Service Methods ==========================
+export const projectToSource = (project: { id: string; name: string; avatar?: string | null }) => ({
+  label: project.name,
+  value: project.id,
+  iconURL: project.avatar,
+});
 
 const genAgentSourceId = () => `as_${createId()}`;
 
@@ -49,18 +56,27 @@ export const createSource = async (input: SourceCreateInput, context: SourceCont
       agentId: input.agentId,
       sourceType: input.sourceType,
       sourceId: input.sourceId,
-      source: { label: p.name, value: p.id, iconURL: p.avatar },
+      source: projectToSource(p),
     },
   });
 };
 
 export const removeSource = async (sourceId: string, context: SourceContext) => {
-  const source = await prisma.agentSource.findUnique({ where: { id: sourceId } });
-  if (!source) throw new Error('Source not found');
-  const hasAccess = await checkProjectAccess(context.actorId, source.sourceId);
-  if (!hasAccess) throw new Error('Permission denied to remove this source');
+  return executeTransaction(prisma, async (tx) => {
+    const source = await tx.agentSource.findUnique({ where: { id: sourceId } });
+    if (!source) throw new Error('Source not found');
 
-  return await prisma.agentSource.delete({ where: { id: sourceId } });
+    await tx.agentSource.delete({ where: { id: sourceId } });
+
+    if (source.sourceType === 'FILE') {
+      const file = await tx.aIFileRef.findUnique({ where: { id: source.sourceId } });
+      if (!file) return;
+      await tx.aIFileRef.delete({ where: { id: source.sourceId } });
+      await s3.send(new DeleteObjectCommand({ Bucket: 'ai-files', Key: file.url }));
+    }
+
+    return source;
+  });
 };
 
 export const ZSourceListInput = z.object({

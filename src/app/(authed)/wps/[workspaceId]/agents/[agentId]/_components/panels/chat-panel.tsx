@@ -97,7 +97,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
   };
 
   return (
-    <div className={cn('max-w-2xl mx-auto h-full flex flex-col', 'p-2 border')}>
+    <div className={cn('mx-auto h-full flex flex-col', 'p-2 border')}>
       <div className='w-full border-b mb-1'>
         <div className='prose prose-sm'>{renderHeader()}</div>
       </div>
