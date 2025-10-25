@@ -4,18 +4,7 @@ import z from 'zod';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 import { getAuthFromRequest } from '@/lib/auth';
-
-export const listIssuesTool = tool({
-  name: 'listIssues',
-  description:
-    'List issues with optional filters (assignee, status, due dates, createdAt, keyword), pagination, and sorting.',
-  inputSchema: ZListIssuesInput,
-  outputSchema: z.object({
-    data: z.array(z.any()),
-    // meta: z.object({}).describe('Pagination metadata.'),
-  }),
-  execute: (input: z.infer<typeof ZListIssuesInput>) => listIssues(input),
-});
+import { sourceService, ZSourceListInput } from '@/features/agents/server/source.service';
 
 export const getTimeTool = tool({
   name: 'getTime',

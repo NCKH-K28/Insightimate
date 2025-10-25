@@ -19,7 +19,7 @@ export default function Page() {
       <main className={cn('flex-1 overflow-auto')}>
         <ChatPanel params={params} />
       </main>
-      <StudioPanel />
+      <StudioPanel params={params} />
     </div>
   );
 }

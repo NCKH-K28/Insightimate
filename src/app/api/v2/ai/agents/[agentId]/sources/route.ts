@@ -1,7 +1,12 @@
-import { sourceService, ZSourceCreateInput } from '@/features/agents/server/source.service';
+import {
+  sourceService,
+  ZSourceCreateInput,
+  ZSourceListInput,
+} from '@/features/agents/server/source.service';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
 import { compose } from '@/lib/http/api-compose';
 import { NextResponse } from 'next/server';
+import merge from 'lodash/merge';
 
 import z from 'zod';
 
@@ -12,7 +17,9 @@ export const GET = compose(authenticatedV2, async (req) => {
   const actorId = auth.user.id;
 
   const params = ZSourceParams.parse(req.params);
-  const result = await sourceService.list({ filter: { agentId: params.agentId } }, { actorId });
+  const input = ZSourceListInput.parse(merge({ filter: { agentId: params.agentId } }, req.query));
+
+  const result = await sourceService.list(input, { actorId });
 
   return NextResponse.json(result);
 });
@@ -21,8 +28,9 @@ export const POST = compose(authenticatedV2, async (req) => {
   const auth = await getAuthFromRequest(req);
   const actorId = auth.user.id;
 
+  const body = await req.json();
   const params = ZSourceParams.parse(req.params);
-  const input = ZSourceCreateInput.parse({ ...req.body, ...params });
+  const input = ZSourceCreateInput.parse({ ...body, ...params });
   const result = await sourceService.create(input, { actorId });
 
   return NextResponse.json(result);

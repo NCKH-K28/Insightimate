@@ -70,10 +70,17 @@ const buildIssueWhere = (filter?: IssueFilter): Prisma.IssueWhereInput => {
 
 export const ZListIssuesInput = z.object({
   filter: ZIssueFilter.optional(),
+  include: z
+    .object({
+      assignee: z.boolean().optional().default(false),
+      status: z.boolean().optional().default(false),
+      project: z.boolean().optional().default(false),
+    })
+    .optional(),
   pagination: ZPagination.optional(),
 });
-type ListIssuesInput = z.infer<typeof ZListIssuesInput>;
-export const listIssues = async (input: ListIssuesInput) => {
+export type ListIssuesInput = z.infer<typeof ZListIssuesInput>;
+export const listIssues = async (input: ListIssuesInput, context: { actorId: string }) => {
   const parsed = ZListIssuesInput.parse(input);
   const where = buildIssueWhere(parsed.filter);
 
@@ -87,6 +94,7 @@ export const listIssues = async (input: ListIssuesInput) => {
     where,
     take: take + 1,
     ...(cursor ? { skip: 1, cursor } : {}),
+    include: parsed.include,
     orderBy,
   });
 

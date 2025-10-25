@@ -1,4 +1,11 @@
-// ai_estimate model represents AI-generated estimates for project tasks.
+model AIFileRef {
+    id        String   @id
+    name      String
+    url       String
+    metadata  Json?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
 
 model Agent {
     id          String  @id
@@ -12,7 +19,8 @@ model Agent {
 
 enum AgentSourceType {
     PROJECT
-    DOCUMENT // tài liệu upload
+    DOCUMENT
+    FILE
 }
 
 enum AgentSourceStatus {
@@ -30,9 +38,10 @@ model AgentSource {
 
     status AgentSourceStatus @default(PENDING)
 
-    summary Json? // metadata tóm tắt nguồn (tên, mô tả ngắn, loại nguồn, v.v.)
+    source Json? // metadata tóm tắt nguồn (tên, mô tả ngắn, loại nguồn, v.v.)
 
-    agent Agent @relation(fields: [agentId], references: [id])
+    agent    Agent        @relation(fields: [agentId], references: [id])
+    analyses AIAnalysis[]
 
     createdAt   DateTime  @default(now())
     updatedAt   DateTime  @updatedAt
@@ -42,70 +51,92 @@ model AgentSource {
     @@unique([agentId, sourceType, sourceId])
 }
 
-enum RunStatus {
+enum AIAnalysisStatus {
     PENDING
-    RUNNING
-    SUCCEEDED
-    PARTIAL_FAILED
+    PROCESSING
+    COMPLETED
     FAILED
-    CANCELED
 }
 
-model AIAnalysisRun {
-    id           String    @id
-    taskId       String
-    status       RunStatus @default(PENDING)
-    resultFileId String?
-    errorMessage String?
-    createdAt    DateTime  @default(now())
-    updatedAt    DateTime  @updatedAt
+model AIAnalysis {
+    id        String @id
+    agentId   String
+    aSourceId String
+    result    Json?
 
-    /// Tóm tắt input/scope (nên để Json để linh hoạt)
-    sourceSummary Json? // danh sách nguồn, trọng số, citations_required...
-    inputSummary  Json? // file names, text length, ngôn ngữ...
-    files         Json? // metadata file đính kèm (id, name, bytes)
+    status      AIAnalysisStatus @default(PENDING)
+    processedAt DateTime?
 
-    @@index([taskId])
+    agentSource AgentSource @relation(fields: [aSourceId], references: [id])
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }
 
-// enum EstimateSource {
-//     AI_MODEL_V1
-//     AI_MODEL_V2
-//     HUMAN_EXPERT
+// enum RunStatus {
+//     PENDING
+//     RUNNING
+//     SUCCEEDED
+//     PARTIAL_FAILED
+//     FAILED
+//     CANCELED
 // }
 
-// file reference to s3 or other storage
-model FileReference {
-    id        String   @id
-    url       String // url or key to access the file
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-}
+// model AIAnalysisRun {
+//     id           String    @id
+//     taskId       String
+//     status       RunStatus @default(PENDING)
+//     resultFileId String?
+//     errorMessage String?
+//     createdAt    DateTime  @default(now())
+//     updatedAt    DateTime  @updatedAt
 
-model AIEstimate {
-    id             String   @id
-    taskId         String
-    estimatedHours Float
-    confidence     Float
-    sourceFileId   String
-    createdAt      DateTime @default(now())
-    updatedAt      DateTime @updatedAt
+//     /// Tóm tắt input/scope (nên để Json để linh hoạt)
+//     sourceSummary Json? // danh sách nguồn, trọng số, citations_required...
+//     inputSummary  Json? // file names, text length, ngôn ngữ...
+//     files         Json? // metadata file đính kèm (id, name, bytes)
 
-    @@index([taskId])
-}
+//     @@index([taskId])
+// }
 
-model AIEmbedding {
-    id           String                       @id
-    resourceType String
-    resourceId   String
-    vector       Unsupported("vector(1536)")?
-    text         String
+// // enum EstimateSource {
+// //     AI_MODEL_V1
+// //     AI_MODEL_V2
+// //     HUMAN_EXPERT
+// // }
 
-    url       String
-    ownerId   String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+// // file reference to s3 or other storage
+// model FileReference {
+//     id        String   @id
+//     url       String // url or key to access the file
+//     createdAt DateTime @default(now())
+//     updatedAt DateTime @updatedAt
+// }
 
-    @@unique([resourceType, resourceId], name: "unique_resource_embedding")
-    @@index([resourceType, resourceId])
-}
+// model AIEstimate {
+//     id             String   @id
+//     taskId         String
+//     estimatedHours Float
+//     confidence     Float
+//     sourceFileId   String
+//     createdAt      DateTime @default(now())
+//     updatedAt      DateTime @updatedAt
+
+//     @@index([taskId])
+// }
+
+// model AIEmbedding {
+//     id           String                       @id
+//     resourceType String
+//     resourceId   String
+//     vector       Unsupported("vector(1536)")?
+//     text         String
+
+//     url       String
+//     ownerId   String
+//     createdAt DateTime @default(now())
+//     updatedAt DateTime @updatedAt
+
+//     @@unique([resourceType, resourceId], name: "unique_resource_embedding")
+//     @@index([resourceType, resourceId])
+// }

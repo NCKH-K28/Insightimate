@@ -19,9 +19,10 @@ import { toast } from 'sonner';
 import * as axios from 'axios';
 
 type AIFilesInputProps = {
-  onAddFiles?: (files: File[]) => void;
+  params: { agentId: string; workspaceId: string };
+  onAdded?: (fileKeys: string[]) => void;
 };
-export const AIFilesInput = () => {
+export const AIFilesInput = (props: AIFilesInputProps) => {
   const [uploadedFiles, setUploadedFiles] = React.useState<
     { value: string; label: string; progress?: number }[]
   >([]);
@@ -30,21 +31,18 @@ export const AIFilesInput = () => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      const res = await axios.default.post(
-        `/api/v2/storage/upload?projectId=demo&requestId=demo`,
-        formData,
-        {
-          headers: { 'Content-Type': 'multipart/form-data' },
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
-            // log
-            console.log(`Upload progress: ${progress}%`);
-            setUploadedFiles((prev) =>
-              prev.map((f) => (f.value === file.name ? { ...f, progress } : f)),
-            );
-          },
+      const url = `/api/v2/ai/agents/${props.params.agentId}/sources/upload`;
+      const res = await axios.default.post(url, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          // log
+          console.log(`Upload progress: ${progress}%`);
+          setUploadedFiles((prev) =>
+            prev.map((f) => (f.value === file.name ? { ...f, progress } : f)),
+          );
         },
-      );
+      });
       return res.data;
     },
   });
@@ -60,7 +58,7 @@ export const AIFilesInput = () => {
   const handleUploadClick = () => {
     const input = document.createElement('input');
     input.type = 'file';
-    input.accept = '.txt,.md,.docx,.pdf';
+    input.accept = '.txt,.md,.docx,.pdf,.png,.jpg,.jpeg,.csv,.json,.xml,.xlsx'; // accept multiple file types
     input.multiple = true;
     input.onchange = (e) => {
       const files = (e.target as HTMLInputElement).files;
