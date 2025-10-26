@@ -7,7 +7,7 @@ export const AgentsList = (props: AgentsListProps) => {
   const { data: agents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {
-      const response = await fetch('/api/v2/ai/agents');
+      const response = await fetch('/api/v2/agents');
       const data = await response.json();
       return data.data;
     },

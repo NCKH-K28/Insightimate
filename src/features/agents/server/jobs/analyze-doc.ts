@@ -15,33 +15,36 @@ export const analyzeDocument = inngest.createFunction(
 
     try {
       const analysis = await step.run('load analysis', () =>
-        prisma.aIAnalysis.findUnique({ where: { id: analysisId } }),
+        prisma.analysis.findUnique({ where: { id: analysisId } }),
       );
       if (!analysis) return;
 
       await step.run('mark processing', () =>
-        prisma.aIAnalysis.update({
+        prisma.analysis.update({
           where: { id: analysisId },
-          data: { status: 'PROCESSING' },
+          data: { runStatus: 'PROCESSING' },
         }),
       );
 
-      const source = await step.run('load source', () =>
-        prisma.agentSource.findUnique({ where: { id: analysis.aSourceId } }),
-      );
+      const sourceId = analysis.dataSourceId;
+      if (!sourceId) return;
+
+      const source = await step.run('load source', () => {
+        return prisma.dataSource.findUnique({ where: { id: sourceId } });
+      });
       if (!source) return;
 
       const fileRef = await step.run('load fileRef', () =>
-        prisma.aIFileRef.findUnique({ where: { id: source.sourceId } }),
+        prisma.fileReference.findUnique({ where: { id: sourceId } }),
       );
       if (!fileRef) return;
 
       const { Body } = await s3.send(
-        new GetObjectCommand({ Bucket: 'ai-files', Key: fileRef.url }),
+        new GetObjectCommand({ Bucket: 'ai-files', Key: fileRef.fileURL }),
       );
       if (!Body) return;
       // get file
-      const bytes = await Body.transformToByteArray();
+      const bytes: Uint8Array<any> = await Body.transformToByteArray();
       const formData = new FormData();
       formData.append('file', new Blob([bytes]), 'document.pdf');
       formData.append('method', 'weighted_average');
@@ -51,21 +54,21 @@ export const analyzeDocument = inngest.createFunction(
       );
 
       await step.run('mark completed', () =>
-        prisma.aIAnalysis.update({
+        prisma.analysis.update({
           where: { id: analysisId },
           data: {
-            result: analysisResult,
-            status: 'COMPLETED',
+            output: analysisResult,
             processedAt: new Date(),
+            runStatus: 'COMPLETED',
           },
         }),
       );
     } catch (err) {
       // Gợi ý: ghi nhận thất bại rõ ràng để tránh kẹt ở PROCESSING
       await step.run('mark failed', () =>
-        prisma.aIAnalysis.update({
+        prisma.analysis.update({
           where: { id: analysisId },
-          data: { status: 'FAILED' },
+          data: { runStatus: 'FAILED' },
         }),
       );
       throw err;

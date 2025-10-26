@@ -10,11 +10,12 @@ type _NextHandler = (
 ) => Promise<_NextResponse> | _NextResponse;
 
 export type HandleRequest<C = any> = _NextRequest & { params: C; query: Record<string, any> };
-export type HandleResponse = _NextResponse;
+export type HandleResponse = _NextResponse | void;
 export type Handler<C = any> = (
   req: HandleRequest<C>,
   res: HandleResponse & { json: (data: any) => HandleResponse },
 ) => Promise<HandleResponse> | HandleResponse;
+export type Middleware<C = any> = Handler<C>;
 
 export type NextHandler<C = any> = (
   req: _NextRequest,

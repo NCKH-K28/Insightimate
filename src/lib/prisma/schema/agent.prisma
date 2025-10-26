@@ -1,0 +1,97 @@
+model AIAgent {
+    id            String  @id
+    name          String
+    description   String?
+    leadId        String
+    workspaceId   String
+    configuration Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    dataSources DataSource[]
+    analyses    Analysis[]
+
+    @@map("analysis_agents")
+}
+
+model FileReference {
+    id        String   @id
+    filename  String
+    fileURL   String
+    metadata  Json?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@map("file_references")
+}
+
+// === DATA SOURCE MANAGEMENT ===
+
+enum DataSourceType {
+    PROJECT
+    FILE
+
+    @@map("data_source_type")
+}
+
+enum DataSourceStatus {
+    READY
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+
+    @@map("data_source_status")
+}
+
+model DataSource {
+    id         String           @id
+    agentId    String
+    sourceType DataSourceType
+    sourceId   String
+    status     DataSourceStatus
+    snapshot   Json?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // -- Internal Use --
+    isHidden Boolean @default(false)
+
+    aiAgent  AIAgent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+    analyses Analysis[]
+
+    @@unique([agentId, sourceType, sourceId])
+    @@map("data_sources")
+}
+
+enum AnalysisStatus {
+    READY
+    PENDING
+    PROCESSING
+    COMPLETED
+    FAILED
+
+    @@map("analysis_status")
+}
+
+model Analysis {
+    id           String         @id
+    agentId      String
+    dataSourceId String?
+    runStatus    AnalysisStatus @default(PENDING)
+
+    output  Json?
+    metrics Json?
+
+    // Timestamps
+    createdAt   DateTime  @default(now())
+    updatedAt   DateTime  @updatedAt
+    processedAt DateTime?
+
+    agent      AIAgent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+    dataSource DataSource? @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)
+
+    @@map("analyses")
+}

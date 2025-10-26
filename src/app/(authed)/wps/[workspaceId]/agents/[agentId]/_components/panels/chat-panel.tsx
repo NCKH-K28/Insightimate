@@ -26,7 +26,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
   const extsRef = useRef(extensions);
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({
-      api: '/api/v2/ai/chat',
+      api: `/api/v2/agents/${params.agentId}/chat`,
       body: { agentId: params.agentId },
     }),
   });

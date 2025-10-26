@@ -13,22 +13,16 @@ import {
   XCircleIcon,
   BarChart3Icon,
 } from 'lucide-react';
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AddSourceButton } from '../buttons/add-source';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useQuery } from '@tanstack/react-query';
 import { SourceActions } from './source-actions';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DataSource } from '@/contracts/agents';
 
-type SourceRef = {
-  id: string;
-  sourceType: 'PROJECT' | 'FILE';
-  sourceId: string;
-  source?: { label: string; value: string; iconURL: string };
-  status: 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED';
-};
-
+type SourceRef = DataSource;
 type SourcesListProps = {
   params: { agentId: string; workspaceId: string };
   selectedSources: string[];
@@ -57,6 +51,7 @@ const StatusIcon = ({ status }: { status: SourceRef['status'] }) => {
 const StatusBadge = ({ status }: { status: SourceRef['status'] }) => {
   const variants = {
     READY: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    COMPLETED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     PROCESSING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
     PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
     FAILED: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
@@ -86,13 +81,12 @@ const SourcesList = ({
 }: SourcesListProps) => {
   const {
     data: sources,
-    isLoading,
+    isPending,
     error,
   } = useQuery({
     queryKey: ['agent-sources', params.agentId],
-    initialData: [],
     queryFn: async () => {
-      const response = await fetch(`/api/v2/ai/agents/${params.agentId}/sources`);
+      const response = await fetch(`/api/v2/agents/${params.agentId}/sources`);
       if (!response.ok) {
         throw new Error('Failed to fetch sources');
       }
@@ -101,11 +95,14 @@ const SourcesList = ({
     },
   });
 
-  const allSelected = sources?.length > 0 && selectedSources.length === sources.length;
+  const allSelected = useMemo(() => {
+    if (!sources) return false;
+    return sources.length > 0 && selectedSources.length === sources.length;
+  }, [selectedSources, sources]);
   const someSelected =
     selectedSources.length > 0 && selectedSources.length < (sources?.length || 0);
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className='flex items-center justify-center py-8'>
         <div className='flex items-center gap-2 text-sm text-muted-foreground'>
@@ -206,10 +203,10 @@ const SourcesList = ({
 
               {/* Source Icon */}
               <div className='flex-shrink-0'>
-                {source.source?.iconURL ? (
+                {source.snapshot?.iconURL ? (
                   <img
-                    src={source.source.iconURL}
-                    alt={source.source.label}
+                    src={source.snapshot.iconURL}
+                    alt={source.snapshot.label}
                     className='h-8 w-8 rounded object-cover border border-gray-200 dark:border-gray-700'
                   />
                 ) : (
@@ -226,11 +223,11 @@ const SourcesList = ({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <p className='text-sm font-medium truncate'>
-                          {source.source?.label || 'Unknown Source'}
+                          {source.snapshot?.label || 'Unknown Source'}
                         </p>
                       </TooltipTrigger>
                       <TooltipContent>
-                        <p>{source.source?.label || 'Unknown Source'}</p>
+                        <p>{source.snapshot?.label || 'Unknown Source'}</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

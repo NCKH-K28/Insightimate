@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   PanelRightIcon,
   BarChart3Icon,
@@ -15,6 +15,7 @@ import {
   ExternalLinkIcon,
   RefreshCwIcon,
   TrendingUpIcon,
+  TrashIcon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
@@ -23,6 +24,18 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { toast } from 'sonner';
 
 type AnalyticsData = {
   id: string;
@@ -82,13 +95,18 @@ const AnalyticsCard = ({
   item,
   workspaceId,
   agentId,
+  onDelete,
+  isDeleting,
 }: {
   item: AnalyticsData;
   workspaceId: string;
   agentId: string;
+  onDelete: (id: string) => void;
+  isDeleting: boolean;
 }) => {
   const reportUrl = `/wps/${workspaceId}/agents/${agentId}/report/${item.id}`;
   const isActionable = item.status === 'COMPLETED';
+  const canDelete = item.status !== 'IN_PROGRESS'; // Không cho phép xóa khi đang xử lý
 
   return (
     <Card
@@ -96,6 +114,7 @@ const AnalyticsCard = ({
         'transition-all duration-200 hover:shadow-md',
         item.status === 'FAILED' && 'border-red-200 dark:border-red-800',
         item.status === 'COMPLETED' && 'border-green-200 dark:border-green-800',
+        isDeleting && 'opacity-50',
       )}
     >
       <CardHeader className='pb-2'>
@@ -108,7 +127,48 @@ const AnalyticsCard = ({
               {item.source?.value || `Source ID: ${item.sourceId}`}
             </CardDescription>
           </div>
-          <StatusBadge status={item.status} />
+          <div className='flex items-center gap-2'>
+            <StatusBadge status={item.status} />
+            {canDelete && (
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button
+                    variant='ghost'
+                    size='sm'
+                    className='h-6 w-6 p-0 text-muted-foreground hover:text-red-500'
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? (
+                      <Loader2Icon size={12} className='animate-spin' />
+                    ) : (
+                      <TrashIcon size={12} />
+                    )}
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Analysis</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this analysis? This action cannot be undone.
+                      <br />
+                      <br />
+                      <strong>Analysis:</strong>{' '}
+                      {item.source?.label || `Analysis ${item.id.slice(0, 8)}`}
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => onDelete(item.id)}
+                      className='bg-red-600 text-white hover:bg-red-700 dark:bg-red-900 dark:text-red-100 dark:hover:bg-red-800'
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            )}
+          </div>
         </div>
       </CardHeader>
 
@@ -160,11 +220,11 @@ const AnalyticsCard = ({
           <Button
             size='sm'
             variant={isActionable ? 'default' : 'outline'}
-            disabled={!isActionable}
-            asChild={isActionable}
+            disabled={!isActionable || isDeleting}
+            asChild={isActionable && !isDeleting}
             className='flex-1'
           >
-            {isActionable ? (
+            {isActionable && !isDeleting ? (
               <Link href={reportUrl} className='flex items-center gap-1'>
                 <BarChart3Icon size={14} />
                 <span>View Report</span>
@@ -182,7 +242,7 @@ const AnalyticsCard = ({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button size='sm' variant='outline' className='px-2'>
+                  <Button size='sm' variant='outline' className='px-2' disabled={isDeleting}>
                     <RefreshCwIcon size={14} />
                   </Button>
                 </TooltipTrigger>
@@ -235,6 +295,8 @@ const StudioStats = ({ analyticsData }: { analyticsData: AnalyticsData[] }) => {
 export const StudioPanel = ({}: StudioPanelProps) => {
   const params = useParams<{ workspaceId: string; agentId: string }>();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
+  const queryClient = useQueryClient();
 
   const {
     data: analyticsData,
@@ -244,7 +306,7 @@ export const StudioPanel = ({}: StudioPanelProps) => {
   } = useQuery({
     queryKey: ['analytics', 'studio-panel', params.agentId],
     queryFn: async () => {
-      const res = await fetch(`/api/v2/ai/agents/${params.agentId}/analysis`);
+      const res = await fetch(`/api/v2/agents/${params.agentId}/analysis`);
       if (!res.ok) {
         throw new Error('Failed to fetch analytics data');
       }
@@ -253,6 +315,82 @@ export const StudioPanel = ({}: StudioPanelProps) => {
     },
     refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
   });
+
+  // Mutation để xóa analysis
+  const deleteAnalysisMutation = useMutation({
+    mutationFn: async (analysisId: string) => {
+      const res = await fetch(`/api/v2/agents/${params.agentId}/analysis/${analysisId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || 'Failed to delete analysis');
+      }
+      return analysisId;
+    },
+    onMutate: async (analysisId) => {
+      // Optimistic update
+      setDeletingIds((prev) => new Set(prev).add(analysisId));
+
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({
+        queryKey: ['analytics', 'studio-panel', params.agentId],
+      });
+
+      // Snapshot the previous value
+      const previousAnalytics = queryClient.getQueryData<AnalyticsData[]>([
+        'analytics',
+        'studio-panel',
+        params.agentId,
+      ]);
+
+      // Optimistically remove the item
+      if (previousAnalytics) {
+        queryClient.setQueryData<AnalyticsData[]>(
+          ['analytics', 'studio-panel', params.agentId],
+          previousAnalytics.filter((item) => item.id !== analysisId),
+        );
+      }
+
+      return { previousAnalytics };
+    },
+    onError: (error, analysisId, context) => {
+      // Rollback on error
+      if (context?.previousAnalytics) {
+        queryClient.setQueryData(
+          ['analytics', 'studio-panel', params.agentId],
+          context.previousAnalytics,
+        );
+      }
+
+      setDeletingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(analysisId);
+        return newSet;
+      });
+
+      toast.error('Failed to delete analysis');
+    },
+    onSuccess: (analysisId) => {
+      setDeletingIds((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(analysisId);
+        return newSet;
+      });
+
+      toast.success('Analysis deleted successfully');
+    },
+    onSettled: () => {
+      // Always refetch to ensure we have the latest data
+      queryClient.invalidateQueries({
+        queryKey: ['analytics', 'studio-panel', params.agentId],
+      });
+    },
+  });
+
+  const handleDelete = (analysisId: string) => {
+    deleteAnalysisMutation.mutate(analysisId);
+  };
 
   return (
     <div
@@ -382,6 +520,8 @@ export const StudioPanel = ({}: StudioPanelProps) => {
                       item={item}
                       workspaceId={params.workspaceId}
                       agentId={params.agentId}
+                      onDelete={handleDelete}
+                      isDeleting={deletingIds.has(item.id)}
                     />
                   ))}
                 </div>

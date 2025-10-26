@@ -15,7 +15,7 @@ export const SourceActions = (props: SourceActionsProps) => {
   const queryClient = useQueryClient();
   const analyzeSource = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/v2/ai/agents/${props.agentId}/analysis`, {
+      const response = await fetch(`/api/v2/agents/${props.agentId}/analysis`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sourceId: props.id }),
@@ -30,7 +30,7 @@ export const SourceActions = (props: SourceActionsProps) => {
 
   const deleteSource = useMutation({
     mutationFn: async () => {
-      const response = await fetch(`/api/v2/ai/agents/${props.agentId}/sources/${props.id}`, {
+      const response = await fetch(`/api/v2/agents/${props.agentId}/sources/${props.id}`, {
         method: 'DELETE',
       });
       if (!response.ok) throw new Error('Failed to delete source');

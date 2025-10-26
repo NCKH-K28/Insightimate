@@ -38,22 +38,23 @@ export const POST = compose(authenticatedV2, async (req, res) => {
   await up.done();
 
   const result = await prisma.$transaction(async (tx) => {
-    await tx.aIFileRef.create({
+    await tx.fileReference.create({
       data: {
         id: fileRefId,
-        name: file.name,
-        url: key,
+        filename: file.name,
+        fileURL: key,
         metadata: { size: file.size, type: file.type },
       },
     });
 
-    return await tx.agentSource.create({
+    return await tx.dataSource.create({
       data: {
         id: `agent_source_${Math.random().toString(36).substring(2, 15)}`,
         agentId: params.agentId,
-        sourceType: 'FILE',
         sourceId: fileRefId,
-        source: { value: fileRefId, label: file.name },
+        sourceType: 'FILE',
+        status: 'READY',
+        snapshot: { value: fileRefId, label: file.name },
       },
     });
   });

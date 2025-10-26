@@ -31,7 +31,7 @@ export const AIFilesInput = (props: AIFilesInputProps) => {
     mutationFn: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      const url = `/api/v2/ai/agents/${props.params.agentId}/sources/upload`;
+      const url = `/api/v2/agents/${props.params.agentId}/sources/upload`;
       const res = await axios.default.post(url, formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (progressEvent) => {

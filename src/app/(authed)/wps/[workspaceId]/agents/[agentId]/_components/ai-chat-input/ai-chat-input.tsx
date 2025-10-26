@@ -8,7 +8,6 @@ import { Editor } from '@tiptap/core';
 import { Button } from '@/components/ui/button';
 import { extensions } from '../extensions';
 import { MentionDropdownMenu } from '../dropdowns/mention-dropdown-menu';
-import { toast } from 'sonner';
 
 type AIChatInputProps = {
   onSubmit?: (p: { editor: Editor }) => void;

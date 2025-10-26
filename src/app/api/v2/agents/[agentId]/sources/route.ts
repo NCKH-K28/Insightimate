@@ -1,14 +1,11 @@
-import {
-  sourceService,
-  ZSourceCreateInput,
-  ZSourceListInput,
-} from '@/features/agents/server/services/source.service';
+import { sourceService, ZSourceListInput } from '@/features/agents/server/services/source.service';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
 import { compose } from '@/lib/http/api-compose';
 import { NextResponse } from 'next/server';
 import merge from 'lodash/merge';
 
 import z from 'zod';
+import { ZSourceCreateInput } from '@/contracts/agents';
 
 const ZSourceParams = z.object({ agentId: z.string() });
 

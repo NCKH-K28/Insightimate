@@ -2,13 +2,13 @@ import { authenticatedV2 } from '@/lib/auth';
 import { compose } from '@/lib/http/api-compose';
 import { inngest } from '@/lib/inngest';
 import { prisma } from '@/lib/prisma';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import z from 'zod';
 
 const ZParams = z.object({ agentId: z.string().min(1) });
 
 export const GET = async () => {
-  const analysis = await prisma.aIAnalysis.findMany({});
+  const analysis = await prisma.analysis.findMany();
   const result = { data: analysis };
 
   return NextResponse.json(result);
@@ -21,16 +21,16 @@ export const POST = compose(authenticatedV2, async (req, res) => {
   const body = await req.json();
   const input = ZAnalysisCreateInput.parse(body);
 
-  const s = await prisma.agentSource.findUnique({ where: { id: input.sourceId } });
+  const s = await prisma.dataSource.findUnique({ where: { id: input.sourceId } });
   if (!s) return NextResponse.json({ error: 'Source not found' }, { status: 404 });
 
   // Create a new analysis record
-  const newAnalysis = await prisma.aIAnalysis.create({
+  const newAnalysis = await prisma.analysis.create({
     data: {
       id: `analysis_${Math.random().toString(36).substring(2, 15)}`,
-      aSourceId: input.sourceId,
+      dataSourceId: input.sourceId,
       agentId: params.agentId,
-      status: 'PENDING',
+      runStatus: 'PENDING',
     },
   });
 

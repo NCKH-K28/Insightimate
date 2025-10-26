@@ -13,7 +13,7 @@ export const addSourceMutationOptions = (params?: { agentId: string }) => {
     mutationFn: async (input: AddSourceInput): Promise<AddSourceOutput> => {
       // log
       console.log('Adding source:', input);
-      const response = await fetch(`/api/v2/ai/agents/${params?.agentId}/sources`, {
+      const response = await fetch(`/api/v2/agents/${params?.agentId}/sources`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(input),

@@ -54,6 +54,9 @@ export const CreateWorkspaceForm = ({ onSuccess, onSubmit }: CreateWorkspaceForm
               <FormControl>
                 <Input
                   placeholder='Enter workspace name'
+                  aria-label='Workspace Name'
+                  id='new-workspace-name'
+                  autoComplete='new-workspace-name'
                   disabled={form.formState.isSubmitting}
                   {...field}
                 />

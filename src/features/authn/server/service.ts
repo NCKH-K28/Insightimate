@@ -50,16 +50,6 @@ const runSeed = async () => {
         password: 'Minh123123',
       }),
       signUp({
-        email: 'danglamoanh@gmail.com',
-        name: 'Dang Lam Oanh',
-        password: 'Minh123123',
-      }),
-      signUp({
-        email: 'dangphuonganh@gmail.com',
-        name: 'Dang Phuong Anh',
-        password: 'Minh123123',
-      }),
-      signUp({
         email: 'tranvanvu@gmail.com',
         name: 'Tran Van Vu',
         password: 'Minh123123',
@@ -67,6 +57,11 @@ const runSeed = async () => {
       signUp({
         email: 'nguyenhuuhung@gmail.com',
         name: 'Nguyen Huu Hung',
+        password: 'Minh123123',
+      }),
+      signUp({
+        email: 'nguyennhathuy@gmail.com',
+        name: 'Nguyen Nhat Huy',
         password: 'Minh123123',
       }),
     ]);

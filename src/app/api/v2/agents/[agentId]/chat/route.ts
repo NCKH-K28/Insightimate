@@ -29,8 +29,6 @@ import { IssueGenTool } from '@/features/agents/server/tools/issue-gen-tool';
 
 // ==== Route ====
 export const POST = middlewareHandler([authenticated], async (req) => {
-  await seed();
-
   const auth = await getAuthFromRequest(req);
   const actorId = auth.user.id;
 

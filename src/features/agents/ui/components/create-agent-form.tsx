@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { searchProjectsQueryOptions } from '@/features/projects/api/actions';
+import get from 'lodash/get';
 
 export const ZCreateAgentForm = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -41,13 +42,15 @@ export const CreateAgentForm = ({ values, onSubmit, onSuccess }: NewPageProps) =
 
   const createAgent = useMutation({
     mutationFn: async (data: CreateAgentFormData) => {
-      const response = await fetch('/api/v2/ai/agents', {
+      const response = await fetch('/api/v2/agents', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!response.ok) {
-        throw new Error('Failed to create agent');
+        const errorRes = await response.json();
+        const mesg = get(errorRes, 'message', 'Failed to create agent');
+        throw new Error(mesg);
       }
       return response.json();
     },
