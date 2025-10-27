@@ -1,5 +1,6 @@
 version: "3.8"
 
+name: insightimate-dev
 services:
   cerbos:
     image: ghcr.io/cerbos/cerbos:latest
@@ -18,7 +19,6 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-  # openfga
 
   postgres:
     image: postgres:17
@@ -36,6 +36,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   migrate:
     depends_on:
@@ -49,6 +50,7 @@ services:
     command: migrate
     networks:
       - default
+    restart: "no"
 
   openfga:
     depends_on:
@@ -73,6 +75,7 @@ services:
       interval: 5s
       timeout: 30s
       retries: 3
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest

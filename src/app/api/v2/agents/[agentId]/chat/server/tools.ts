@@ -1,10 +1,37 @@
-import { tool } from 'ai';
-import { listIssues, ZListIssuesInput } from './list-issues';
+import {
+  convertToModelMessages,
+  stepCountIs,
+  streamText,
+  tool,
+  UIDataTypes,
+  UIMessage,
+  UIMessageStreamWriter,
+  UITools,
+} from 'ai';
 import z from 'zod';
 import { prisma } from '@/lib/prisma';
 import { NextRequest } from 'next/server';
 import { getAuthFromRequest } from '@/lib/auth';
-import { sourceService, ZSourceListInput } from '@/features/agents/server/services/source.service';
+import {
+  listSources,
+  sourceService,
+  ZSourceListInput,
+} from '@/features/agents/server/services/source.service';
+import {
+  ZProjectListInput,
+  listProjects,
+  ZBoardListInput,
+  listBoards,
+  ZSprintListInput,
+  listSprints,
+  ZStatusListInput,
+  listStatuses,
+  ZRoleListInput,
+  listProjectRoles,
+  listIssues,
+  ZListIssuesInput,
+} from '@/features/agents/server/cqrs';
+import { google } from '@ai-sdk/google';
 
 export const getTimeTool = tool({
   name: 'getTime',
@@ -50,3 +77,81 @@ export const getUserContext = async (req: NextRequest) => {
     },
   });
 };
+
+type Writer = UIMessageStreamWriter<UIMessage<unknown, UIDataTypes, UITools>>;
+
+export const createPmSearch = (
+  messages: UIMessage<unknown, UIDataTypes, UITools>[],
+  writer: Writer,
+  { actorId }: { actorId: string },
+) =>
+  tool({
+    name: 'pmSearch',
+    description: `Project management search tool to retrieve user, project, board, sprint, issue, source, status, and role information.`,
+    inputSchema: z.any().describe('No input required.'),
+    async execute() {
+      const sub = streamText({
+        model: google('gemini-2.5-flash'),
+        system: `You are a project management AI assistant. Use the available tools to answer user queries. Always respond in JSON format with an "answer" field and, if applicable, a "data" field containing results from tool calls.`,
+        messages: convertToModelMessages(messages.slice(-8)),
+        tools: {
+          getCurrentTime: tool({
+            name: 'getCurrentTime',
+            description: 'Get the current date and time in ISO 8601 format.',
+            inputSchema: z.any().describe('No input required.'),
+            async execute() {
+              return new Date().toISOString();
+            },
+          }),
+          listProjects: tool({
+            name: 'listProjects',
+            description: `List projects the user has access to.`,
+            inputSchema: ZProjectListInput,
+            execute: (input) => listProjects(input),
+          }),
+          listBoards: tool({
+            name: 'listBoards',
+            description: `List boards the user has access to.`,
+            inputSchema: ZBoardListInput,
+            execute: (input) => listBoards(input, { actorId }),
+          }),
+          listSprints: tool({
+            name: 'listSprints',
+            description: `List sprints by board IDs and status.`,
+            inputSchema: ZSprintListInput,
+            execute: (input) => listSprints(input, { actorId }),
+          }),
+          listIssues: tool({
+            name: 'listIssues',
+            description: `List issues by project ID and status.`,
+            inputSchema: ZListIssuesInput,
+            execute: (input) => listIssues(input, { actorId }),
+          }),
+          listSources: tool({
+            name: 'listSources',
+            description: `List sources by agent ID.`,
+            inputSchema: ZSourceListInput,
+            execute: (input) => listSources(input, { actorId }),
+          }),
+          listStatuses: tool({
+            name: 'listStatuses',
+            description: `List issue statuses with optional filters.`,
+            inputSchema: ZStatusListInput,
+            execute: (input) => listStatuses(input, { actorId }),
+          }),
+          listRoles: tool({
+            description: `List user roles with optional filters.`,
+            inputSchema: ZRoleListInput,
+            execute: (input) => listProjectRoles(input, { actorId }),
+          }),
+        },
+        stopWhen: stepCountIs(50),
+      });
+
+      writer.merge(sub.toUIMessageStream({ sendStart: false, sendFinish: false }));
+      const final = await sub.text;
+      // log
+      console.log(final);
+      return JSON.parse(final);
+    },
+  });

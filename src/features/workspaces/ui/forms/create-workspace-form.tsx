@@ -32,7 +32,7 @@ export const CreateWorkspaceForm = ({ onSuccess, onSubmit }: CreateWorkspaceForm
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit?.();
-    toast
+    return toast
       .promise(createWorkspace.mutateAsync(data), {
         success: 'Workspace created successfully!',
         error: (e) => `Error creating workspace: ${e.message}`,

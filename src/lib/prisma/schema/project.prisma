@@ -7,21 +7,21 @@ enum ProjectType {
 
 model Project {
     id          String      @id
-    workspaceId String
-    leadId      String
-    key         String
-    name        String
-    type        ProjectType
-    description String?
+    workspaceId String      @map("workspace_id")
+    leadId      String      @map("lead_id")
+    key         String      @map("key")
+    name        String      @map("name")
+    type        ProjectType @map("type")
+    description String?     @map("description")
     avatar      String?
 
     // === internal ===
-    issueCounter  Int @default(0)
-    sprintCounter Int @default(0)
+    issueCounter  Int @default(0) @map("issue_counter")
+    sprintCounter Int @default(0) @map("sprint_counter")
     // ===
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // Relations
     workspace Workspace      @relation("WorkspaceProjects", fields: [workspaceId], references: [id], onDelete: Cascade)
@@ -48,8 +48,8 @@ model ProjectRole {
 
     projectId String
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     project Project        @relation("ProjectRoles", fields: [projectId], references: [id], onDelete: Cascade)
     actors  ProjectActor[] @relation("ProjectActors")
@@ -64,10 +64,10 @@ enum ActorType {
 
 model ProjectActor {
     id        String    @id
-    projectId String
-    actorType ActorType
-    actorId   String
-    roleId    String
+    projectId String    @map("project_id")
+    actorType ActorType @map("actor_type")
+    actorId   String    @map("actor_id")
+    roleId    String    @map("role_id")
 
     project Project     @relation("ProjectActors", fields: [projectId], references: [id], onDelete: Cascade)
     role    ProjectRole @relation("ProjectActors", fields: [roleId], references: [id], onDelete: Cascade)
