@@ -1,4 +1,4 @@
-import { RESOURCE_TYPE, SearchInput, SearchOutput, ZSearchOutput } from './search.schema';
+import { RESOURCE_TYPE, SearchInput, SearchOutput, ZSearchOutput } from '../search.schema';
 import { prisma } from '@/lib/prisma';
 
 // ==========  FTS Index Management ==========

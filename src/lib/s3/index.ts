@@ -4,10 +4,15 @@ import {
   S3Client,
   S3ClientConfig,
 } from '@aws-sdk/client-s3';
+import z from 'zod';
+
+const MINIO_API_URL = process.env.MINIO_API_URL || 'http://localhost:9000';
+
+const endpoint = z.url().parse(MINIO_API_URL);
 
 // MinIO client
 const MinIOConfig: S3ClientConfig = {
-  endpoint: 'http://localhost:9000',
+  endpoint: endpoint,
   region: 'us-east-1',
   forcePathStyle: true, // needed with minio?
   credentials: {

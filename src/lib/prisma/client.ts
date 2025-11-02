@@ -11,20 +11,22 @@ const getGlobalPrisma = () => {
   const { prisma } = globalForPrisma;
   if (prisma) return prisma as typeof client;
 
-  const client = new PrismaClient({
-    datasources: { db: { url: prismaConfig.DATABASE_URL } },
-  }).$extends(
-    withTrigger({
-      connectionString: prismaConfig.DATABASE_URL,
-      models: {
-        Project: {
-          channel: 'project_changes',
-          model: 'projects',
-          operations: { insert: true, update: true, delete: true },
-        },
-      },
-    }),
-  );
+  // const client = new PrismaClient({
+  //   datasources: { db: { url: prismaConfig.DATABASE_URL } },
+  // }).$extends(
+  //   withTrigger({
+  //     connectionString: prismaConfig.DATABASE_URL,
+  //     models: {
+  //       Project: {
+  //         channel: 'project_changes',
+  //         model: 'projects',
+  //         operations: { insert: true, update: true, delete: true },
+  //       },
+  //     },
+  //   }),
+  // );
+
+  const client = new PrismaClient({});
 
   Object.assign(globalForPrisma, { prisma: client });
   return client;

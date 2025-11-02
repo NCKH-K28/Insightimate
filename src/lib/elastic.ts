@@ -1,26 +1,29 @@
-import { ClientOptions } from '@elastic/elasticsearch';
+import { ClientOptions, Client } from '@elastic/elasticsearch';
+import get from 'lodash/get';
+import set from 'lodash/set';
 
-async function createElasticSearchClient(options: ClientOptions) {
-  const { Client } = await import('@elastic/elasticsearch');
-
-  return new Client(options);
-}
-
+const ELASTICSEARCH_NODE = process.env.ELASTICSEARCH_NODE || 'http://localhost:9200';
 const DEFAULTS: ClientOptions = {
-  node: 'http://localhost:9200',
-  auth: {
-    username: 'elastic',
-    password: 'E8NqMYnEJa1IJY7ZZU6TgM2V',
+  node: ELASTICSEARCH_NODE,
+  // auth: {
+  // username: 'elastic',
+  // password: 'E8NqMYnEJa1IJY7ZZU6TgM2V',
+  // },
+  headers: {
+    accept: 'application/vnd.elasticsearch+json; compatible-with=8',
+    'content-type': 'application/vnd.elasticsearch+json; compatible-with=8',
   },
 };
 
-export function getElasticClient() {
-  return createElasticSearchClient(getElasticOptions());
-}
+const getElastic = () => {
+  const elastic = get(globalThis, '__INSIGHTIMATE_ELASTIC__', null);
+  if (elastic) return elastic;
+  const client = new Client(DEFAULTS);
+  set(globalThis, '__INSIGHTIMATE_ELASTIC__', client);
+  return client;
+};
 
-function getElasticOptions(): ClientOptions {
-  // this branch is for dev
-  return {
-    node: DEFAULTS.node,
-  };
-}
+export const elasticClient = getElastic();
+
+export type SearchRequest = Extract<Parameters<Client['search']>[0], object>;
+export type SearchQuery = Extract<SearchRequest['query'], object>;

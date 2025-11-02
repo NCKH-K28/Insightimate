@@ -3,13 +3,14 @@
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport, UIMessage } from 'ai';
 import { useMemo, useRef } from 'react';
-import AiChatInput from '../ai-chat-input/ai-chat-input';
 import { cn } from '@/lib/utils';
 import { Content } from '@tiptap/core';
 import { useEditor } from '@tiptap/react';
 import { generateHTML } from '@tiptap/html';
 
-import { extensions } from '../extensions';
+import AIChatInput from '@/features/agents/ui/components/ai-chat-input/ai-chat-input';
+
+import { outputExtensions } from '../extensions';
 import { isTiptapJSONContent } from '../utils';
 
 const getHeaderMarkdown = () => {
@@ -23,7 +24,7 @@ You can ask questions, get help, and explore various topics!
 
 type ChatPanelProps = { params: { agentId: string } };
 export function ChatPanel({ params }: ChatPanelProps) {
-  const extsRef = useRef(extensions);
+  const extsRef = useRef(outputExtensions);
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({
       api: `/api/v2/agents/${params.agentId}/chat`,
@@ -49,12 +50,21 @@ export function ChatPanel({ params }: ChatPanelProps) {
     return tz || 'UTC';
   }, []);
 
+  const renderHTML = (html: string): React.ReactNode => {
+    return (
+      <div
+        dangerouslySetInnerHTML={{ __html: html }}
+        className='prose prose-sm focus:outline-none max-w-none leading-6 p-1'
+      />
+    );
+  };
+
   const renderMessageContent = (message: UIMessage): React.ReactNode => {
     try {
       const meta: Content = message.metadata || {};
       if (isTiptapJSONContent(meta.doc)) {
         const html = generateHTML(meta.doc, extsRef.current);
-        return <div dangerouslySetInnerHTML={{ __html: html }} style={{ width: '100%' }} />;
+        return renderHTML(html);
       }
 
       const renderTextParts = (p: UIMessage['parts'][number], index: number): string => {
@@ -83,7 +93,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
       }
 
       const html = markdownToHtml(combinedText);
-      return <div dangerouslySetInnerHTML={{ __html: html }} />;
+      return renderHTML(html);
     } catch (error) {
       console.error('Error rendering message content:', error);
       return <div className='text-red-500'>Error rendering message</div>;
@@ -93,7 +103,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
   const renderHeader = () => {
     const title = getHeaderMarkdown();
     const html = markdownToHtml(title);
-    return <div dangerouslySetInnerHTML={{ __html: html }} />;
+    return renderHTML(html);
   };
 
   return (
@@ -102,22 +112,17 @@ export function ChatPanel({ params }: ChatPanelProps) {
         <div className='prose prose-sm'>{renderHeader()}</div>
       </div>
 
-      <article
-        className={cn(
-          'flex-1 overflow-auto',
-          'flex flex-col gap-4',
-          //
-        )}
-      >
+      <article className={cn('flex-1 overflow-auto', 'flex flex-col gap-2')}>
         {messages.map((message, index) => {
           return (
             <div key={index} className='w-full'>
               <div
-                className={cn('w-full px-2 py-0', 'flex-1', {
+                className={cn('w-full px-2 py-0', {
+                  'w-auto max-w-lg': message.role === 'user',
                   'bg-accent-foreground/5': message.role === 'user',
-                  'max-w-lg': message.role === 'user',
                   'ml-auto': message.role === 'user',
                   'border border-accent-foreground/10': message.role === 'user',
+                  'rounded-md': true,
                 })}
               >
                 <div className={cn('prose prose-sm max-w-none')}>
@@ -129,7 +134,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
         })}
       </article>
       <div className={cn('w-full pt-2 mt-2 border-t')}>
-        <AiChatInput
+        <AIChatInput
           onSubmit={async ({ editor }) => {
             const text = editor.getText();
             const doc = editor.getJSON();

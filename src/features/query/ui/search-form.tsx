@@ -6,6 +6,7 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Loader2, Search, FileText, Folder, Target, Bug, ExternalLink } from 'lucide-react';
 import debounce from 'lodash/debounce';
 import React from 'react';
+import get from 'lodash/get';
 
 const getTypeIcon = (type: string) => {
   switch (type) {
@@ -37,7 +38,8 @@ const getTypeBadgeColor = (type: string) => {
   }
 };
 
-export const SearchForm = () => {
+type SearchFormProps = { onSelect?: (item: any) => void };
+export const SearchForm = (props: SearchFormProps) => {
   const [q, setQ] = React.useState('');
   const [inputValue, setInputValue] = React.useState('');
 
@@ -57,10 +59,9 @@ export const SearchForm = () => {
     initialPageParam: { cursor: undefined, size: 20 } as { cursor?: string; size: number },
     queryFn: async ({ pageParam }) => {
       const { cursor, size } = pageParam;
-      const res = await queryApi.search({ q: qTrimmed, pagination: { cursor, size } });
+      const res = await queryApi.searchV2({ q: qTrimmed, pagination: { cursor, size } });
       return { results: res, total: res.meta.total };
     },
-    enabled: qTrimmed.length > 0,
     getNextPageParam: (lastPage) => {
       const cursor = lastPage.results.meta.cursor;
       return cursor ? { cursor, size: 20 } : undefined;
@@ -96,7 +97,7 @@ export const SearchForm = () => {
     };
   }, [search.hasNextPage, search.isFetchingNextPage, search.isLoading, search.fetchNextPage]);
 
-  const results = search.data?.pages.flatMap((page) => page.results.data) || [];
+  const results = search.data?.pages.flatMap((page) => page.results.hits) || [];
   const totalResults = search.data?.pages[0]?.total || 0;
 
   return (
@@ -155,81 +156,61 @@ export const SearchForm = () => {
 
         {/* Results List */}
         <div className='space-y-2'>
-          {results.map((item) => (
-            <Card
-              key={item.id}
-              className='hover:shadow-md transition-shadow duration-200 px-1 py-2'
-            >
-              <CardContent className='px-2 py-1'>
-                <div className='flex items-start gap-3'>
-                  {/* Icon */}
-                  <div className='mt-0.5 flex-shrink-0'>
-                    {item.iconURL ? (
-                      <img src={item.iconURL} alt='' className='w-5 h-5 rounded object-cover' />
-                    ) : (
-                      getTypeIcon(item.type)
-                    )}
-                  </div>
+          {results.map(({ source: item, type }) => {
+            const value = get(item, 'id', 'unknown');
+            const label =
+              get(item, 'title') || get(item, 'name') || get(item, 'summary') || 'Untitled';
+            const iconURL = get(item, 'iconURL') || get(item, 'iconLink') || null;
+            const url = get(item, 'url') || get(item, 'link') || null;
 
-                  {/* Content */}
-                  <div className='flex-1 min-w-0'>
-                    {/* Title and Type */}
-                    <div className='flex items-start justify-between gap-2'>
-                      <h3 className='font-medium text-gray-900 leading-snug'>
-                        {item.url ? (
-                          <a
-                            href={item.url}
-                            className='hover:text-blue-600 transition-colors duration-150 flex items-center gap-1'
-                            target='_blank'
-                            rel='noopener noreferrer'
-                          >
-                            {item.title}
-                            <ExternalLink className='w-3 h-3 opacity-60' />
-                          </a>
-                        ) : (
-                          item.title
-                        )}
-                      </h3>
-                      <Badge
-                        variant='secondary'
-                        className={`${getTypeBadgeColor(
-                          item.type,
-                        )} text-xs font-medium flex-shrink-0`}
-                      >
-                        {item.type}
-                      </Badge>
+            return (
+              <Card
+                key={value}
+                className='hover:shadow-md transition-shadow duration-200 px-1 py-2'
+              >
+                <CardContent className='px-2 py-1'>
+                  <div className='flex items-start gap-3'>
+                    {/* Icon */}
+                    <div className='mt-0.5 flex-shrink-0'>
+                      {iconURL ? (
+                        <img src={iconURL} alt='' className='w-5 h-5 rounded object-cover' />
+                      ) : (
+                        getTypeIcon(type)
+                      )}
                     </div>
 
-                    {/* Breadcrumbs */}
-                    {item.breadcrumbs && item.breadcrumbs.length > 0 && (
-                      <nav className='mb-2'>
-                        <ol className='flex items-center space-x-1 text-xs text-gray-500'>
-                          {item.breadcrumbs.map((crumb, index) => (
-                            <li key={crumb.id} className='flex items-center'>
-                              {index > 0 && <span className='mx-1'>/</span>}
-                              {crumb.href ? (
-                                <a
-                                  href={crumb.href}
-                                  className='hover:text-gray-700 transition-colors duration-150'
-                                >
-                                  {crumb.label}
-                                </a>
-                              ) : (
-                                <span>{crumb.label}</span>
-                              )}
-                            </li>
-                          ))}
-                        </ol>
-                      </nav>
-                    )}
-
-                    {/* Snippet */}
-                    {item.snippet && <p className='text-xs text-gray-700'>{item.snippet}</p>}
+                    {/* Content */}
+                    <div className='flex-1 min-w-0'>
+                      {/* Title and Type */}
+                      <div className='flex items-start justify-between gap-2'>
+                        <h3 className='font-medium text-gray-900 leading-snug'>
+                          {url ? (
+                            <a
+                              href={url}
+                              className='hover:text-blue-600 transition-colors duration-150 flex items-center gap-1'
+                              target='_blank'
+                              rel='noopener noreferrer'
+                            >
+                              {label}
+                              <ExternalLink className='w-3 h-3 opacity-60' />
+                            </a>
+                          ) : (
+                            label
+                          )}
+                        </h3>
+                        <Badge
+                          variant='secondary'
+                          className={`${getTypeBadgeColor(type)} text-xs font-medium flex-shrink-0`}
+                        >
+                          {type}
+                        </Badge>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {/* Loading and Footer */}
@@ -247,3 +228,34 @@ export const SearchForm = () => {
     </div>
   );
 };
+
+// {
+//   /* Breadcrumbs */
+// }
+// {
+//   item.breadcrumbs && item.breadcrumbs.length > 0 && (
+//     <nav className='mb-2'>
+//       <ol className='flex items-center space-x-1 text-xs text-gray-500'>
+//         {item?.breadcrumbs.map((crumb, index) => (
+//           <li key={crumb.id} className='flex items-center'>
+//             {index > 0 && <span className='mx-1'>/</span>}
+//             {crumb.href ? (
+//               <a href={crumb.href} className='hover:text-gray-700 transition-colors duration-150'>
+//                 {crumb.label}
+//               </a>
+//             ) : (
+//               <span>{crumb.label}</span>
+//             )}
+//           </li>
+//         ))}
+//       </ol>
+//     </nav>
+//   );
+// }
+
+// {
+//   /* Snippet */
+// }
+// {
+//   item.snippet && <p className='text-xs text-gray-700'>{item.snippet}</p>;
+// }

@@ -1,7 +1,25 @@
-version: "3.8"
-
 name: insightimate-dev
+
 services:
+  # domain_db:
+  #   image: pgvector/pgvector:pg17
+  #   container_name: domain_db
+  #   networks: [ service_network ]
+  #   environment:
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  #     - POSTGRES_DB=postgres
+  #   ports:
+  #     - "5432:5432"
+  #   healthcheck:
+  #     test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   restart: unless-stopped
+  #   volumes:
+  #     - domain_db_data:/var/lib/postgresql/data
+
   cerbos:
     image: ghcr.io/cerbos/cerbos:latest
     container_name: cerbos
@@ -11,8 +29,7 @@ services:
     volumes:
       - ./cerbos/policies:/policies:ro
       - ./cerbos/schemas:/schemas:ro
-      # - ./cerbos/config/cerbos.yaml:/cerbos.yaml:ro
-      # Healthcheck: kiểm tra HTTP nội bộ
+      - ./cerbos/config/cerbos.yaml:/cerbos.yaml:ro
     healthcheck:
       test: [ "CMD", "/cerbos", "healthcheck", "--kind=http", "--host-port=127.0.0.1:3592", "--no-tls" ]
       interval: 10s
@@ -20,14 +37,11 @@ services:
       retries: 5
     restart: unless-stopped
 
-  postgres:
+  openfga_db:
     image: postgres:17
-    container_name: postgres
-    command: postgres -c 'max_connections=100'
-    networks:
-      - default
-    ports:
-      - "5432:5432"
+    container_name: openfga_db
+    command: [ "postgres", "-c", "max_connections=100" ]
+    networks: [ openfga_network ]
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
@@ -37,44 +51,51 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
+    volumes:
+      - openfga_db_data:/var/lib/postgresql/data
 
   migrate:
-    depends_on:
-      postgres:
-        condition: service_healthy
     image: openfga/openfga:latest
     container_name: migrate
+    depends_on:
+      openfga_db:
+        condition: service_healthy
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://postgres:password@postgres:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_URI=postgres://postgres:password@openfga_db:5432/postgres?sslmode=disable
     command: migrate
-    networks:
-      - default
+    networks: [ openfga_network ]
     restart: "no"
 
   openfga:
+    image: openfga/openfga:latest
+    container_name: openfga
     depends_on:
       migrate:
         condition: service_completed_successfully
-    image: openfga/openfga:latest
-    container_name: openfga
     command: run
     environment:
       - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://postgres:password@postgres:5432/postgres?sslmode=disable
-      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=100 #see postgres container
+      - OPENFGA_DATASTORE_URI=postgres://postgres:password@openfga_db:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_MAX_OPEN_CONNS=100
       - OPENFGA_PLAYGROUND_ENABLED=true
-    networks:
-      - default
+    networks: [ openfga_network ]
     ports:
-      - "8080:8080" #http
-      # - "8081:8081" #grpc
-      - "3333:3000" #playground
+      - "8080:8080" # http
+      # - "8081:8081" # grpc (không cần publish ra host cho healthcheck nội bộ)
+      - "3333:3000" # playground
+    # Nếu image có grpc_health_probe thì dùng block dưới; nếu không, chuyển sang HTTP healthcheck
     healthcheck:
-      test: [ "CMD", "/usr/local/bin/grpc_health_probe", "-addr=openfga:8081" ]
+      test: [ "CMD", "/usr/local/bin/grpc_health_probe", "-addr=localhost:8081" ]
       interval: 5s
       timeout: 30s
       retries: 3
+    # --- Hoặc dùng HTTP:
+    # healthcheck:
+    #   test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz >/dev/null 2>&1 || exit 1"]
+    #   interval: 5s
+    #   timeout: 10s
+    #   retries: 3
     restart: unless-stopped
 
   minio:
@@ -89,12 +110,19 @@ services:
       - "9001:9001" # Console
     volumes:
       - minio-data:/data
+    # Lưu ý: nếu image không có curl/wget, healthcheck này sẽ fail
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      test: [ "CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1" ]
       interval: 30s
       timeout: 20s
       retries: 3
     restart: unless-stopped
 
+networks:
+  openfga_network:
+    driver: bridge
+
 volumes:
+  domain_db_data:
+  openfga_db_data:
   minio-data:

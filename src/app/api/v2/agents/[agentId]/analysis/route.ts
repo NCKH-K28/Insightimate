@@ -21,6 +21,8 @@ export const POST = compose(authenticatedV2, async (req, res) => {
   const body = await req.json();
   const input = ZAnalysisCreateInput.parse(body);
 
+  await inngest.ready;
+
   const s = await prisma.dataSource.findUnique({ where: { id: input.sourceId } });
   if (!s) return NextResponse.json({ error: 'Source not found' }, { status: 404 });
 
