@@ -22,12 +22,24 @@ export const loadAuthorizationModelFile = async () => {
 };
 
 const healthCheck = async () => {
-  const { authorization_models: authzModels } = await openfgaClient.readAuthorizationModels();
-  if (authzModels.length > 0) return;
-  const model = await loadAuthorizationModelFile();
-  await openfgaClient.writeAuthorizationModel(model);
+  try {
+    const { authorization_models: authzModels } = await openfgaClient.readAuthorizationModels();
+    if (authzModels.length > 0) return;
+    const model = await loadAuthorizationModelFile();
+    await openfgaClient.writeAuthorizationModel(model);
 
-  console.log('OpenFGA authorization model initialized');
+    console.log('OpenFGA authorization model initialized');
+  } catch (err: any) {
+    // Don't crash the app if OpenFGA is down or unreachable. Log details for debugging.
+    console.warn('OpenFGA health check failed — skipping initialization. Error:', err?.message ?? err);
+    // Optionally include the full error for local dev debugging
+    if (process.env.NODE_ENV !== 'production') {
+      console.debug(err);
+    }
+  }
 };
 
-await healthCheck();
+// Run health check but don't let failures bubble up to crash the server start.
+healthCheck().catch((err) => {
+  console.warn('Unexpected error during OpenFGA health check:', err?.message ?? err);
+});

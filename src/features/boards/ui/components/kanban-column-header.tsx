@@ -18,7 +18,7 @@ import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
 
 type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 
-type CreateParams = { projectId: string; boardId: string; sprintId?: string };
+type CreateParams = { projectId: string; boardId: string; sprintId?: string; statusId?: string };
 
 interface KanbanColumnHeaderProps {
     label: string;
@@ -52,7 +52,7 @@ export const KanbanColumnHeader = ({ label, taskCount, createParams, onCreate }:
 
     const queryClient = useQueryClient();
     const createMutationOptions = mutationOptions({
-        mutationFn: (data: FormData) => boardApi.issues.create(createParams!, { ...data, ...createParams }),
+        mutationFn: (data: FormData) => boardApi.issues.create(createParams!, { ...data, statusId: createParams?.statusId }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['boards', createParams?.boardId, 'issues'] });
             setOpen(false);

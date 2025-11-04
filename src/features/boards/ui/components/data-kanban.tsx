@@ -105,7 +105,7 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
                         <KanbanColumnHeader
                             label={status.name}
                             taskCount={(state[status.id] || []).length}
-                            createParams={{ projectId, boardId }}
+                            createParams={{ projectId, boardId, statusId: status.id }}
                         />
                         <Droppable droppableId={status.id}>
                             {(provided) => (
