@@ -5,6 +5,8 @@ import {
     type DropResult,
 } from '@hello-pangea/dnd';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { boardApi } from '@/features/boards/api/http';
 import { KanbanColumnHeader } from './kanban-column-header';
 import type { BoardIssueItem } from '@/contracts/boards/boards.query';
 import { useQuery } from '@tanstack/react-query';
@@ -20,7 +22,7 @@ interface KanbanColumnDef {
 
 interface DataKanbanProps {
     data: BoardIssueItem[];
-    columns?: KanbanColumnDef[]; 
+    columns?: KanbanColumnDef[];
     onChange?: (next: BoardIssueItem[]) => void;
     projectId: string;
     boardId: string;
@@ -28,7 +30,7 @@ interface DataKanbanProps {
 
 export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, boardId }: DataKanbanProps) => {
     const { data: statusesResponse } = useQuery(listProjectStatusesQueryOptions({ projectId }));
-    
+
     const statuses = useMemo(() => {
         if (!statusesResponse) return [];
         return (statusesResponse as any).items || [];
@@ -41,7 +43,7 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
 
     const buildInitial = useCallback(() => {
         const map: Record<string, BoardIssueItem[]> = {};
-        
+
         columns.forEach((status: any) => {
             map[status.id] = [];
         });
@@ -61,7 +63,7 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
         Object.keys(map).forEach((statusId: string) => {
             map[statusId].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0));
         });
-        
+
         return map;
     }, [columns, data]);
 
@@ -71,7 +73,7 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
         setState(buildInitial());
     }, [buildInitial]);
 
-    const handleDragEnd = (result: DropResult) => {
+    const handleDragEnd = async (result: DropResult) => {
         const { source, destination } = result;
         if (!destination) return;
 
@@ -81,20 +83,35 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
         const dstIndex = destination.index;
 
         if (srcCol === dstCol && srcIndex === dstIndex) return;
+        const prevState = state;
 
-        setState((prev) => {
-            const next = { ...prev };
-            const srcList = Array.from(next[srcCol] || []);
-            const [moved] = srcList.splice(srcIndex, 1);
-            next[srcCol] = srcList;
+        const next = { ...prevState };
+        const srcList = Array.from(next[srcCol] || []);
+        const [moved] = srcList.splice(srcIndex, 1);
+        next[srcCol] = srcList;
 
-            const dstList = Array.from(next[dstCol] || []);
-            dstList.splice(dstIndex, 0, moved);
-            next[dstCol] = dstList;
+        const dstList = Array.from(next[dstCol] || []);
+        dstList.splice(dstIndex, 0, moved);
+        next[dstCol] = dstList;
 
-            onChange?.(Object.values(next).flat());
-            return next;
-        });
+        setState(next);
+        onChange?.(Object.values(next).flat());
+
+        try {
+            if (!moved) return;
+            await toast.promise(
+                boardApi.issues.update({ boardId, issueId: String(moved.id) }, { statusId: dstCol }),
+                {
+                    loading: 'Updating issue...',
+                    success: 'Issue updated',
+                    error: (err) => `Error: ${err?.message || 'Failed to update issue'}`,
+                },
+            );
+        } catch (err) {
+            console.error('Failed to update issue status after drag:', err);
+            setState(prevState);
+            onChange?.(Object.values(prevState).flat());
+        }
     };
 
     return (
