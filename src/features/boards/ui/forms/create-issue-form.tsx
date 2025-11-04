@@ -20,6 +20,7 @@ import React from 'react';
 import { Loader2, PlusIcon, X } from 'lucide-react';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { DottedSeparator } from '@/components/dotted-separator';
 
 const ZFormData = ZBoardIssueCreateInput;
 type FormData = z.infer<typeof ZFormData>;
@@ -96,7 +97,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
           />
         </div>
 
-        <Separator />
+        <DottedSeparator />
 
         {/* Metadata Section */}
         <div className='space-y-4'>
@@ -155,7 +156,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
           </div>
         </div>
 
-        <Separator />
+        <DottedSeparator />
 
         {/* Action Buttons */}
         <DialogFooter className='gap-2 sm:gap-0'>
