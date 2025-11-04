@@ -1,6 +1,6 @@
 import { authenticatedV2 } from '@/lib/auth';
 import { compose } from '@/lib/http/api-compose';
-import { inngest } from '@/lib/inngest';
+import { kafka } from '@/lib/kafka';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import z from 'zod';
@@ -21,7 +21,8 @@ export const POST = compose(authenticatedV2, async (req, res) => {
   const body = await req.json();
   const input = ZAnalysisCreateInput.parse(body);
 
-  await inngest.ready;
+  const producer = kafka.producer();
+  await producer.connect();
 
   const s = await prisma.dataSource.findUnique({ where: { id: input.sourceId } });
   if (!s) return NextResponse.json({ error: 'Source not found' }, { status: 404 });
@@ -36,10 +37,21 @@ export const POST = compose(authenticatedV2, async (req, res) => {
     },
   });
 
-  await inngest.send({
-    name: 'agents/analysis.created',
-    data: { analysisId: newAnalysis.id, sourceId: input.sourceId, agentId: params.agentId },
+  // push kafka message to start analysis
+  const evt = {
+    analysisId: newAnalysis.id,
+    dataSourceId: input.sourceId,
+    agentId: params.agentId,
+  };
+
+  // log
+  console.log(`[analyzeDocument] Created analysis: ${newAnalysis.id}`);
+
+  await producer.send({
+    topic: 'agents.analysis.created',
+    messages: [{ value: JSON.stringify(evt) }],
   });
+  await producer.disconnect();
 
   return NextResponse.json(newAnalysis);
 });

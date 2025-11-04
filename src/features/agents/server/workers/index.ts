@@ -4,9 +4,10 @@ import get from 'lodash/get';
 import set from 'lodash/set';
 
 import { syncProject } from './sync-project';
-// TODO: fixme
+import { startAnalyzeDocumentConsumer } from './analyze-doc';
+
 export const main = async () => {
-  // await Promise.all([syncProject()]);
+  await Promise.all([startAnalyzeDocumentConsumer(), syncProject()]);
 };
 
 const runMain = async () => {

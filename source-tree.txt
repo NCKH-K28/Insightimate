@@ -1,0 +1,84 @@
+.
+├── public
+├── scripts
+│   ├── cerbos
+│   └── openfga
+└── src
+    ├── app
+    │   ├── api
+    │   │   ├── health
+    │   │   │   ├── debezium
+    │   │   │   └── ping
+    │   │   ├── v1
+    │   │   │   ├── auth
+    │   │   │   ├── boards
+    │   │   │   ├── members
+    │   │   │   ├── permissions
+    │   │   │   ├── projects
+    │   │   │   ├── search
+    │   │   │   ├── teams
+    │   │   │   ├── users
+    │   │   │   └── workspaces
+    │   │   ├── v2
+    │   │   │   ├── agents
+    │   │   │   ├── auth
+    │   │   │   ├── authz
+    │   │   │   ├── boards
+    │   │   │   ├── issues
+    │   │   │   ├── projects
+    │   │   │   ├── search
+    │   │   │   ├── teams
+    │   │   │   └── workspaces
+    │   │   └── v3
+    │   │       └── projects
+    │   ├── (auth)
+    │   │   ├── signin
+    │   │   └── signup
+    │   └── (authed)
+    │       ├── accept-invite
+    │       └── wps
+    │           └── [workspaceId]
+    ├── components
+    │   └── ui
+    ├── contexts
+    ├── contracts
+    │   ├── agents
+    │   ├── auth
+    │   ├── boards
+    │   ├── issues
+    │   ├── plans
+    │   ├── projects
+    │   ├── query
+    │   ├── users
+    │   └── workspaces
+    ├── features
+    │   ├── agents
+    │   ├── authn
+    │   ├── authz
+    │   ├── boards
+    │   ├── projects
+    │   ├── query
+    │   ├── storage
+    │   ├── teams
+    │   ├── users
+    │   └── workspaces
+    ├── layouts
+    ├── lib
+    │   ├── api
+    │   ├── auth
+    │   ├── authz
+    │   │   ├── cerbos
+    │   │   └── openfga
+    │   ├── debezium
+    │   ├── http
+    │   ├── insight-ai
+    │   ├── mail-sender
+    │   ├── prisma
+    │   ├── s3
+    │   ├── serper
+    │   ├── utils
+    │   └── validators
+    ├── providers
+    └── styles
+
+252 directories

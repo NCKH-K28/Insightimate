@@ -40,7 +40,7 @@ import { toast } from 'sonner';
 type AnalyticsData = {
   id: string;
   sourceId: string;
-  status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+  runStatus: 'READY' | 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
   source?: { value: string; label: string };
   createdAt?: string;
   completedAt?: string;
@@ -51,42 +51,49 @@ type AnalyticsData = {
 
 type StudioPanelProps = { params: { agentId: string } };
 
-const StatusIcon = ({ status }: { status: AnalyticsData['status'] }) => {
+const StatusIcon = ({ runStatus }: { runStatus: AnalyticsData['runStatus'] }) => {
   const iconProps = { size: 16 };
 
-  switch (status) {
-    case 'COMPLETED':
+  switch (runStatus) {
+    case 'READY':
       return <CheckCircle2Icon {...iconProps} className='text-green-500' />;
-    case 'IN_PROGRESS':
-      return <Loader2Icon {...iconProps} className='text-blue-500 animate-spin' />;
     case 'PENDING':
       return <ClockIcon {...iconProps} className='text-yellow-500' />;
+    case 'PROCESSING':
+      return <PlayIcon {...iconProps} className='text-blue-500 animate-pulse' />;
+    case 'COMPLETED':
+      return <CheckCircle2Icon {...iconProps} className='text-green-500' />;
     case 'FAILED':
       return <XCircleIcon {...iconProps} className='text-red-500' />;
     default:
-      return <ClockIcon {...iconProps} className='text-gray-400' />;
+      return null;
   }
 };
 
-const StatusBadge = ({ status }: { status: AnalyticsData['status'] }) => {
+const StatusBadge = ({ runStatus }: { runStatus: AnalyticsData['runStatus'] }) => {
   const variants = {
-    COMPLETED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-    IN_PROGRESS: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
+    READY: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
+    PROCESSING: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
     PENDING: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
+    COMPLETED: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
     FAILED: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
   };
 
   const labels = {
-    COMPLETED: 'Completed',
-    IN_PROGRESS: 'Analyzing',
+    READY: 'Ready',
+    PROCESSING: 'In Progress',
     PENDING: 'Pending',
+    COMPLETED: 'Completed',
     FAILED: 'Failed',
   };
 
   return (
-    <Badge variant='secondary' className={cn('text-xs px-2 py-0.5 font-medium', variants[status])}>
-      <StatusIcon status={status} />
-      <span className='ml-1'>{labels[status]}</span>
+    <Badge
+      variant='secondary'
+      className={cn('text-xs px-2 py-0.5 font-medium', variants[runStatus])}
+    >
+      <StatusIcon runStatus={runStatus} />
+      <span className='ml-1'>{labels[runStatus]}</span>
     </Badge>
   );
 };
@@ -105,15 +112,15 @@ const AnalyticsCard = ({
   isDeleting: boolean;
 }) => {
   const reportUrl = `/wps/${workspaceId}/agents/${agentId}/report/${item.id}`;
-  const isActionable = item.status === 'COMPLETED';
-  const canDelete = item.status !== 'IN_PROGRESS'; // Không cho phép xóa khi đang xử lý
+  const isActionable = item.runStatus === 'COMPLETED';
+  const canDelete = item.runStatus !== 'PROCESSING'; // Không cho phép xóa khi đang xử lý
 
   return (
     <Card
       className={cn(
         'transition-all duration-200 hover:shadow-md',
-        item.status === 'FAILED' && 'border-red-200 dark:border-red-800',
-        item.status === 'COMPLETED' && 'border-green-200 dark:border-green-800',
+        item.runStatus === 'FAILED' && 'border-red-200 dark:border-red-800',
+        item.runStatus === 'COMPLETED' && 'border-green-200 dark:border-green-800',
         isDeleting && 'opacity-50',
       )}
     >
@@ -128,7 +135,7 @@ const AnalyticsCard = ({
             </CardDescription>
           </div>
           <div className='flex items-center gap-2'>
-            <StatusBadge status={item.status} />
+            <StatusBadge runStatus={item.runStatus} />
             {canDelete && (
               <AlertDialog>
                 <AlertDialogTrigger asChild>
@@ -173,8 +180,8 @@ const AnalyticsCard = ({
       </CardHeader>
 
       <CardContent className='pt-0'>
-        {/* Progress Bar for In Progress */}
-        {item.status === 'IN_PROGRESS' && (
+        {/* Progress Bar for Processing */}
+        {item.runStatus === 'PROCESSING' && (
           <div className='mb-3'>
             <div className='flex justify-between items-center mb-1'>
               <span className='text-xs text-muted-foreground'>Progress</span>
@@ -185,7 +192,7 @@ const AnalyticsCard = ({
         )}
 
         {/* Insights Count for Completed */}
-        {item.status === 'COMPLETED' && item.insights !== undefined && (
+        {item.runStatus === 'COMPLETED' && item.insights !== undefined && (
           <div className='flex items-center gap-2 mb-3 text-xs text-muted-foreground'>
             <TrendingUpIcon size={12} />
             <span>{item.insights} insights generated</span>
@@ -193,7 +200,7 @@ const AnalyticsCard = ({
         )}
 
         {/* Error Messages for Failed */}
-        {item.status === 'FAILED' && item.errors && item.errors.length > 0 && (
+        {item.runStatus === 'FAILED' && item.errors && item.errors.length > 0 && (
           <div className='mb-3'>
             <div className='flex items-center gap-1 mb-1'>
               <AlertCircleIcon size={12} className='text-red-500' />
@@ -238,7 +245,7 @@ const AnalyticsCard = ({
             )}
           </Button>
 
-          {item.status === 'FAILED' && (
+          {item.runStatus === 'FAILED' && (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -261,9 +268,9 @@ const AnalyticsCard = ({
 const StudioStats = ({ analyticsData }: { analyticsData: AnalyticsData[] }) => {
   const stats = {
     total: analyticsData.length,
-    completed: analyticsData.filter((item) => item.status === 'COMPLETED').length,
-    inProgress: analyticsData.filter((item) => item.status === 'IN_PROGRESS').length,
-    failed: analyticsData.filter((item) => item.status === 'FAILED').length,
+    completed: analyticsData.filter((item) => item.runStatus === 'COMPLETED').length,
+    processing: analyticsData.filter((item) => item.runStatus === 'PROCESSING').length,
+    failed: analyticsData.filter((item) => item.runStatus === 'FAILED').length,
   };
 
   return (
@@ -280,9 +287,9 @@ const StudioStats = ({ analyticsData }: { analyticsData: AnalyticsData[] }) => {
       </div>
       <div className='bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3'>
         <div className='text-lg font-semibold text-blue-700 dark:text-blue-400'>
-          {stats.inProgress}
+          {stats.processing}
         </div>
-        <div className='text-xs text-muted-foreground'>In Progress</div>
+        <div className='text-xs text-muted-foreground'>Processing</div>
       </div>
       <div className='bg-red-50 dark:bg-red-900/20 rounded-lg p-3'>
         <div className='text-lg font-semibold text-red-700 dark:text-red-400'>{stats.failed}</div>
@@ -454,7 +461,7 @@ export const StudioPanel = ({}: StudioPanelProps) => {
               <h3 className='text-sm font-medium text-gray-700 dark:text-gray-300'>
                 Recent Analyses
               </h3>
-              {analyticsData && analyticsData.some((item) => item.status === 'IN_PROGRESS') && (
+              {analyticsData && analyticsData.some((item) => item.runStatus === 'PROCESSING') && (
                 <div className='w-2 h-2 bg-blue-500 rounded-full animate-pulse' />
               )}
             </div>
