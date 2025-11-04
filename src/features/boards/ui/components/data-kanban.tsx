@@ -122,6 +122,9 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
                         <KanbanColumnHeader
                             label={status.name}
                             taskCount={(state[status.id] || []).length}
+                            category={status.category}
+                            iconURL={status.iconURL}
+                            color={status.color}
                             createParams={{ projectId, boardId, statusId: status.id }}
                         />
                         <Droppable droppableId={status.id}>

@@ -36,6 +36,7 @@ export const CreateStatusForm = ({ onCancel, onSubmit }: CreateStatusFormProps) 
             description: '',
             category: 'TODO' as const,
             color: '#6B7280',
+            iconURL: '',
             sequence: 0,
         },
     });
@@ -146,6 +147,30 @@ export const CreateStatusForm = ({ onCancel, onSubmit }: CreateStatusFormProps) 
                                                 {...field}
                                                 value={field.value ?? ''}
                                             />
+                                        </div>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name='iconURL'
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className='text-base font-semibold'>Icon URL</FormLabel>
+                                    <FormControl>
+                                        <div className='flex items-center gap-2'>
+                                            <Input
+                                                placeholder='https://... (optional)'
+                                                className='h-11 flex-1'
+                                                {...field}
+                                                value={field.value ?? ''}
+                                            />
+                                            {field.value ? (
+                                                <img src={field.value} alt='icon preview' className='h-10 w-10 rounded-sm object-cover border' />
+                                            ) : null}
                                         </div>
                                     </FormControl>
                                     <FormMessage />

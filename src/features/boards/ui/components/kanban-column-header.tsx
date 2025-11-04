@@ -23,6 +23,10 @@ type CreateParams = { projectId: string; boardId: string; sprintId?: string; sta
 interface KanbanColumnHeaderProps {
     label: string;
     taskCount: number;
+    /** Optional status metadata so we can show custom icons/colors */
+    category?: string | null;
+    iconURL?: string | null;
+    color?: string | null;
     /** If provided, show the full CreateIssueButton wired to project/board/sprint */
     createParams?: CreateParams;
     /** fallback handler when no createParams available */
@@ -45,9 +49,45 @@ const formatLabel = (s: string) =>
         .map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
         .join(' ');
 
-export const KanbanColumnHeader = ({ label, taskCount, createParams, onCreate }: KanbanColumnHeaderProps) => {
-    const key = (label || '').toString().toLowerCase();
-    const icon = labelIconMap[key] ?? null;
+export const KanbanColumnHeader = ({ label, taskCount, category, iconURL, color, createParams, onCreate }: KanbanColumnHeaderProps) => {
+    const raw = ((category ?? label) || '').toString().toLowerCase();
+    // try several normalizations so labels like "To Do", "To-Do", "Todo" all match the 'todo' icon
+    const candidates = [
+        raw,
+        raw.replace(/[_\s-]+/g, '_'),
+        raw.replace(/[_\s-]+/g, ''),
+    ];
+
+    let icon: React.ReactNode = null;
+    // exact / normalized matches first
+    for (const c of candidates) {
+        if (labelIconMap[c]) {
+            icon = labelIconMap[c];
+            break;
+        }
+    }
+
+    // fuzzy matches: contains keywords
+    if (!icon) {
+        if (raw.includes('todo')) icon = labelIconMap['todo'];
+        else if (raw.includes('inprogress') || raw.includes('in_progress') || raw.includes('in progress')) icon = labelIconMap['in_progress'];
+        else if (raw.includes('done')) icon = labelIconMap['done'];
+    }
+
+    if (!icon) {
+        if (iconURL) {
+            icon = (
+                <img
+                    src={iconURL}
+                    alt={`${label} icon`}
+                    className="size-[18px] rounded-sm object-cover"
+                    style={{ border: color ? `2px solid ${color}` : undefined }}
+                />
+            );
+        } else {
+            icon = <CircleDotIcon className="size-[18px]" style={color ? { color } : undefined} />;
+        }
+    }
     const [open, setOpen] = React.useState(false);
 
     const queryClient = useQueryClient();
