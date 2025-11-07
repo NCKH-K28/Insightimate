@@ -57,6 +57,7 @@ model BoardColumn {
 }
 
 model ColumnStatus {
+    id       String @id @default(cuid())
     columnId String @map("column_id")
     statusId String @map("status_id")
 

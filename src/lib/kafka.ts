@@ -25,4 +25,5 @@ const getKafka = async () => {
 };
 
 const kafka = await getKafka();
+
 export { kafka, getKafka };

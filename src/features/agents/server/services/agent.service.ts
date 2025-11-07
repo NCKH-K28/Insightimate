@@ -10,23 +10,15 @@ const authz: AuthzFacade = {} as any;
 
 export const createAgent = async (input: AIAgentCreateInput, context: AgentContext) => {
   const { actorId } = context;
-  // const decision = await authz.can(
-  //   { type: 'user', id: actorId },
-  //   'agent:create',
-  //   { type: 'workspace', id: input.workspaceId },
-  //   { leadId: input.leadId },
-  // );
-
-  // if (!decision.allow) throw new Error('Permission denied');
-
   return await prisma.$transaction(async (tx) => {
     const agent = await tx.aIAgent.create({
       data: {
         id: genAgentId(),
         name: input.name,
         description: input.description,
+        instructions: input.instructions,
+        ownerId: actorId,
         workspaceId: input.workspaceId,
-        leadId: input.leadId,
       },
       include: { dataSources: true },
     });

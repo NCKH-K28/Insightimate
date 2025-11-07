@@ -1,6 +1,7 @@
 // src/lib/services/projects.service.ts
 import {
   PROJECT_ACTIONS,
+  PROJECT_ROLE_PERMISSION_KEYS,
   ProjectCreateInput,
   ProjectUpdateInput,
   ZProject,
@@ -124,7 +125,9 @@ const createDefaultBoard = async (
           id: `col_${createId()}`,
           name: status.name,
           sequence: index,
-          statuses: { create: { statusId: status.id } },
+          statuses: {
+            create: { id: `colst_${createId()}`, statusId: status.id },
+          },
         })),
       },
       sprints: {
@@ -246,7 +249,12 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     // --- authz ---
     const tuples = buildProjectTuples({
       ...project,
-      roles: roles.map((r) => ({ ...r, projectId, actors: [] })),
+      roles: roles.map((r) => {
+        const permJSON = JSON.parse(JSON.stringify(r.permissions));
+        const permissions = Array.isArray(permJSON) ? permJSON : [];
+        return { ...r, permissions, projectId, actors: [] };
+      }),
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
     });
     await openfgaClient.writeTuples(tuples);
   });
@@ -301,7 +309,18 @@ const deleteProject = async (projectId: string, context: ProjectContext) => {
       where: { id: projectId },
       include: { roles: { include: { actors: true } } },
     });
-    const tuples = buildProjectTuples(project);
+
+    const roles = project.roles.map((r) => {
+      const permJSON = JSON.parse(JSON.stringify(r.permissions));
+      const permissions = Array.isArray(permJSON) ? permJSON : [];
+      return { ...r, permissions };
+    });
+
+    const tuples = buildProjectTuples({
+      ...project,
+      roles,
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
+    });
     await openfgaClient.deleteTuples(tuples);
   });
 

@@ -15,7 +15,7 @@ import AIFilesInput from '../inputs/ai-files-input';
 import { MuilSelectors } from '@/features/agents/ui/selectors/muil-selectors';
 import { queryOptions, useMutation } from '@tanstack/react-query';
 import { searchProjectsQueryOptions } from '@/features/projects/api/actions';
-import { addSourceMutationOptions } from '@/features/agents/api/actions';
+import { createSourceMutationOptions } from '@/features/agents/api/actions';
 import { toast } from 'sonner';
 import React from 'react';
 
@@ -26,7 +26,7 @@ export const AddSourceButton = (props: AddSourceButtonProps) => {
   const [selectedP, setSelectedP] = React.useState<{ value: string; label: string }[]>([]);
   const [toastRef, setToastRef] = React.useState<ReturnType<typeof toast.promise> | null>(null);
 
-  const addSource = useMutation(addSourceMutationOptions(props.params));
+  const addSource = useMutation(createSourceMutationOptions(props.params));
 
   const handleAddSource = () => {
     if (selectedP.length === 0) return;

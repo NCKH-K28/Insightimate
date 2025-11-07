@@ -6,9 +6,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Upload } from '@aws-sdk/lib-storage';
 import z from 'zod';
 import { prisma } from '@/lib/prisma';
+import { getZodParams, zodParamsPipe } from '@/lib/http/zod-pipes';
 
-const ZParams = z.object({ agentId: z.string().min(1) });
-
+const ZSourceParams = z.object({ agentId: z.string() });
 const genFileId = () => `reqfile_${Math.random().toString(36).substring(2, 15)}`;
 
 export const GET = async (request: NextRequest) => {
@@ -16,48 +16,54 @@ export const GET = async (request: NextRequest) => {
   return NextResponse.json({ objects: allObj.Contents || [] }, { status: 200 });
 };
 
-export const POST = compose(authenticatedV2, async (req, res) => {
-  const auth = await getAuthFromRequest(req);
-  const actorId = auth.user.id;
+export const POST = compose(
+  authenticatedV2,
+  zodParamsPipe(ZSourceParams),
+  //
+  async (req) => {
+    const auth = await getAuthFromRequest(req);
+    const actorId = auth.user.id;
 
-  const params = ZParams.parse(req.params);
-  const formData = await req.formData();
-  const fileRefId = genFileId();
-  const key = `${actorId}/${params.agentId}/${fileRefId}`;
-  const file = formData.get('file') as File | null;
-  if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+    const params = getZodParams(req, ZSourceParams);
 
-  const body = file.stream() as any;
-  const up = new Upload({
-    client: s3,
-    params: { Bucket: 'ai-files', Key: key, Body: body, ContentType: file.type },
-    queueSize: 4, // tùy chọn
-    leavePartsOnError: false,
-  });
+    const formData = await req.formData();
+    const fileRefId = genFileId();
+    const key = `${actorId}/${params.agentId}/${fileRefId}`;
+    const file = formData.get('file') as File | null;
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 });
 
-  await up.done();
-
-  const result = await prisma.$transaction(async (tx) => {
-    await tx.fileReference.create({
-      data: {
-        id: fileRefId,
-        filename: file.name,
-        fileURL: key,
-        metadata: { size: file.size, type: file.type },
-      },
+    const body = file.stream() as any;
+    const up = new Upload({
+      client: s3,
+      params: { Bucket: 'ai-files', Key: key, Body: body, ContentType: file.type },
+      queueSize: 4, // tùy chọn
+      leavePartsOnError: false,
     });
 
-    return await tx.dataSource.create({
-      data: {
-        id: `agent_source_${Math.random().toString(36).substring(2, 15)}`,
-        agentId: params.agentId,
-        sourceId: fileRefId,
-        sourceType: 'FILE',
-        status: 'READY',
-        snapshot: { value: fileRefId, label: file.name },
-      },
-    });
-  });
+    await up.done();
 
-  return NextResponse.json({ data: result }, { status: 200 });
-});
+    const result = await prisma.$transaction(async (tx) => {
+      await tx.fileReference.create({
+        data: {
+          id: fileRefId,
+          filename: file.name,
+          key,
+          metadata: { size: file.size, type: file.type },
+        },
+      });
+
+      return await tx.dataSource.create({
+        data: {
+          id: `agent_source_${Math.random().toString(36).substring(2, 15)}`,
+          agentId: params.agentId,
+          sourceId: fileRefId,
+          sourceType: 'FILE',
+          status: 'READY',
+          snapshot: { value: fileRefId, label: file.name },
+        },
+      });
+    });
+
+    return NextResponse.json({ data: result }, { status: 200 });
+  },
+);

@@ -10,54 +10,32 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useForm } from 'react-hook-form';
-import { MuilSelectors } from '../selectors/muil-selectors';
 import React from 'react';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { queryOptions, useMutation } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { searchProjectsQueryOptions } from '@/features/projects/api/actions';
-import get from 'lodash/get';
+import { ZAIAgentCreateInput } from '@/contracts/agents';
+import { createAgentMutationOptions } from '../../api/actions';
+import { Textarea } from '@/components/ui/textarea';
 
-export const ZCreateAgentForm = z.object({
-  name: z.string().min(1, 'Name is required'),
-  description: z.string().optional(),
-  workspaceId: z.string().min(1),
-  sources: z.array(z.string()).optional(),
-});
-export type CreateAgentFormData = z.infer<typeof ZCreateAgentForm>;
+export const ZCreateFormData = ZAIAgentCreateInput;
+type CreateFormData = z.infer<typeof ZCreateFormData>;
 
 type NewPageProps = {
   values: { workspaceId: string };
-  onSubmit?: (data: CreateAgentFormData) => void;
-  onSuccess?: (data: CreateAgentFormData & { id: string }) => void;
+  onSubmit?: (data: CreateFormData) => void;
+  onSuccess?: (data: CreateFormData & { id: string }) => void;
 };
-export const CreateAgentForm = ({ values, onSubmit, onSuccess }: NewPageProps) => {
+export const CreateAgentForm = ({ values, onSubmit }: NewPageProps) => {
   const form = useForm({
-    resolver: zodResolver(ZCreateAgentForm),
-    values: { workspaceId: values.workspaceId, name: '', description: '', sources: [] },
+    resolver: zodResolver(ZCreateFormData),
+    values: { workspaceId: values.workspaceId, name: '', description: '', instructions: '' },
   });
 
-  const createAgent = useMutation({
-    mutationFn: async (data: CreateAgentFormData) => {
-      const response = await fetch('/api/v2/agents', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const errorRes = await response.json();
-        const mesg = get(errorRes, 'message', 'Failed to create agent');
-        throw new Error(mesg);
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (onSuccess) onSuccess(data);
-    },
-  });
+  const createAgent = useMutation(createAgentMutationOptions());
 
   const handleSubmit = form.handleSubmit((data) => {
     if (onSubmit) onSubmit(data);
@@ -67,7 +45,10 @@ export const CreateAgentForm = ({ values, onSubmit, onSuccess }: NewPageProps) =
         success: 'Agent created successfully!',
         error: (err) => `Error: ${err.message}`,
       })
-      .unwrap();
+      .unwrap()
+      .then((res) => {
+        if (onSubmit) onSubmit(res);
+      });
   });
 
   return (
@@ -103,27 +84,16 @@ export const CreateAgentForm = ({ values, onSubmit, onSuccess }: NewPageProps) =
 
         <FormField
           control={form.control}
-          name='sources'
+          name='instructions'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Sources</FormLabel>
+              <FormLabel>Instructions</FormLabel>
               <FormControl>
-                <MuilSelectors
-                  onChange={(selected) => {
-                    const v = selected.map((s) => s.value);
-                    field.onChange(v);
-                  }}
-                  inputProps={{ placeholder: 'Search sources...' }}
-                  className='w-full h-32 border'
-                  searchQueryOptions={(q) => {
-                    const filter = { q, workspaceId: values.workspaceId };
-                    return queryOptions({
-                      ...searchProjectsQueryOptions({ filter }),
-                      select: ({ data }) => {
-                        return data.map((project) => ({ value: project.id, label: project.name }));
-                      },
-                    });
-                  }}
+                <Textarea
+                  placeholder='Agent Instructions'
+                  className='resize-none'
+                  rows={4}
+                  {...field}
                 />
               </FormControl>
               <FormMessage />

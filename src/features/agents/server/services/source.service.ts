@@ -2,11 +2,10 @@ import { openfgaClient } from '@/lib/authz/openfga';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
-import z, { file } from 'zod';
+import z from 'zod';
 import { genDataSourceId } from '../../utils/id-generator';
-import { SourceCreateInput } from '@/contracts/agents';
+import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents';
 
 // ========================== Service Methods ==========================
 export const projectToSource = (project: { id: string; name: string; avatar?: string | null }) => ({
@@ -52,19 +51,12 @@ export const removeSource = async (sourceId: string, context: SourceContext) => 
     if (source.sourceType === 'FILE') {
       const fileRef = await tx.fileReference.delete({ where: { id: source.sourceId } });
       if (!fileRef) throw new Error('File not found');
-      await s3.send(new DeleteObjectCommand({ Bucket: 'ai-files', Key: fileRef.fileURL }));
+      await s3.send(new DeleteObjectCommand({ Bucket: 'ai-files', Key: fileRef.key }));
     }
 
     return source;
   });
 };
-
-export const ZSourceListInput = z.object({
-  filter: z.object({
-    agentId: z.string().describe('Agent ID to filter sources by'),
-    q: z.string().optional().describe('Search term for filtering sources'),
-  }),
-});
 
 export const ZSourceItem = z.object({
   id: z.string(),
@@ -87,11 +79,11 @@ export const ZSourceListOutput = z.object({ data: z.array(ZSourceItem) });
 export type SourceListInput = z.infer<typeof ZSourceListInput>;
 export type SourceListOutput = z.infer<typeof ZSourceListOutput>;
 
-export const listSources = async (
+const listSources = async (
   input: SourceListInput,
   context: SourceContext,
 ): Promise<SourceListOutput> => {
-  const agentId = input.filter.agentId;
+  const agentId = input.filter?.agentId;
 
   const whereClause: Prisma.DataSourceWhereInput & {
     AND: Prisma.DataSourceWhereInput[];
@@ -101,7 +93,7 @@ export const listSources = async (
     AND: [],
   };
 
-  if (input.filter.q) {
+  if (input.filter?.q) {
     whereClause.AND = [
       ...whereClause.AND,
       { snapshot: { path: ['label'], mode: 'insensitive', string_contains: input.filter.q } },

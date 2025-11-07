@@ -1,5 +1,9 @@
 import z from 'zod';
 
+const ZQueryFilter = z.object({
+  // ktop
+});
+
 export const ZQueryParams = z.object({
   q: z.string().min(1).max(1000).describe('The search query string.'),
   pagination: z

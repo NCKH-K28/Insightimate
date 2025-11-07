@@ -12,3 +12,11 @@ datasource db {
     url        = env("DATABASE_URL")
     extensions = [vector]
 }
+
+model DebeziumSignal {
+    id   String @id @default(uuid())
+    type String
+    data Json?
+
+    @@map("debezium_signal")
+}

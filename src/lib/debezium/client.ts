@@ -1,8 +1,9 @@
 export const runtime = 'nodejs';
 import axios from 'axios';
 
+const DEBEZIUM_HOST = process.env.DEBEZIUM_HOST || 'http://localhost:8083';
 const debeziumAxios = axios.create({
-  baseURL: 'http://localhost:8083',
+  baseURL: DEBEZIUM_HOST,
   timeout: 50000,
   headers: { 'Content-Type': 'application/json' },
 });

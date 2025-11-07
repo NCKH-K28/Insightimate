@@ -21,6 +21,7 @@ import { SourceActions } from './source-actions';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { DataSource } from '@/contracts/agents';
+import { listAgentSourcesQueryOptions } from '@/features/agents/api/actions';
 
 type SourceRef = DataSource;
 type SourcesListProps = {
@@ -83,17 +84,7 @@ const SourcesList = ({
     data: sources,
     isPending,
     error,
-  } = useQuery({
-    queryKey: ['agent-sources', params.agentId],
-    queryFn: async () => {
-      const response = await fetch(`/api/v2/agents/${params.agentId}/sources`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch sources');
-      }
-      const data = await response.json();
-      return data.data as SourceRef[];
-    },
-  });
+  } = useQuery(listAgentSourcesQueryOptions({ agentId: params.agentId }));
 
   const allSelected = useMemo(() => {
     if (!sources) return false;

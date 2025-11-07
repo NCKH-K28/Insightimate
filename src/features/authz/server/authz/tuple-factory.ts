@@ -1,6 +1,6 @@
 import { TupleKey } from '@openfga/sdk';
 
-const R = { PARENT: 'parent', CHILD: 'child' } as const;
+const R = { PARENT: 'parent', CHILD: 'child', GRANTS: 'grants' } as const;
 
 type ProjectRoleId = string;
 type ProjectId = string;
@@ -11,6 +11,7 @@ const asUser = (id: UserId) => `user:${id}`;
 const asWs = (id: WorkspaceId) => `workspace:${id}`;
 const asTeam = (id: string) => `team:${id}`;
 const asProj = (id: ProjectId) => `project:${id}`;
+const asProjPerm = (projectId: string, perm: string) => `project_permission:${projectId}:${perm}`;
 const asProjRole = (id: ProjectRoleId) => `project_role:${id}`;
 
 export type ProjectActorInput = {
@@ -24,6 +25,7 @@ export type ProjectRoleInput = {
   id: ProjectRoleId;
   projectId: ProjectId;
   actors: ProjectActorInput[];
+  permissions: string[];
 };
 
 export type ProjectInput = {
@@ -31,6 +33,7 @@ export type ProjectInput = {
   leadId: UserId;
   workspaceId: WorkspaceId;
   roles: ProjectRoleInput[];
+  permissions: string[];
 };
 
 export type TeamInput = {
@@ -73,6 +76,13 @@ export const buildProjectRoleTuples = (input: ProjectRoleInput): TupleKey[] => {
   // the role itself
   tuples.push({ user: asProjRole(input.id), relation: R.CHILD, object: asProj(input.projectId) });
 
+  // role permissions
+  input.permissions.forEach((perm) => {
+    user: asProjPerm(input.projectId, perm);
+    relation: R.GRANTS;
+    object: asProjRole(input.id);
+  });
+
   // actors of this role
   input.actors.flatMap(buildProjectActorTuples).forEach((t) => tuples.push(t));
 
@@ -87,6 +97,13 @@ export const buildProjectTuples = (input: ProjectInput): TupleKey[] => {
 
   // project lead
   tuples.push({ user: asUser(input.leadId), relation: 'PROJ_LEAD', object: asProj(input.id) });
+
+  // project permissions
+  input.permissions.forEach((perm) => ({
+    user: asProj(input.id),
+    relation: R.PARENT,
+    object: asProjPerm(input.id, perm),
+  }));
 
   // project roles
   input.roles.flatMap(buildProjectRoleTuples).forEach((t) => tuples.push(t));

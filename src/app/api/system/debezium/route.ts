@@ -2,9 +2,19 @@ import { seedDebeziumConnectors } from '@/lib/debezium/seed';
 import { NextRequest, NextResponse } from 'next/server';
 import get from 'lodash/get';
 import set from 'lodash/set';
+import { elasticClient } from '@/lib/elastic';
+
+// clear elast
+const clearEs = async () => {
+  await elasticClient.deleteByQuery({
+    index: '_all',
+    query: { match_all: {} },
+  });
+};
 
 export const GET = async (request: NextRequest) => {
   try {
+    await clearEs();
     const result = await seedDebeziumConnectors();
     return NextResponse.json({ status: 'success', message: result });
   } catch (error) {
@@ -14,4 +24,6 @@ export const GET = async (request: NextRequest) => {
     console.error('Detail:', detail);
     return NextResponse.json({ status: 'error', message: errorMessage, detail }, { status: 500 });
   }
+
+  // re push
 };

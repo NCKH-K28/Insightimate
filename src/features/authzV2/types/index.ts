@@ -9,7 +9,7 @@
 // export type TenantId = string & { __brand: 'TenantId' };
 // export type SubjectId = string & { __brand: 'SubjectId' };
 // export type ResourceId = string & { __brand: 'ResourceId' };
-
+export type TenantId = string;
 export type SubjectId = string;
 export type ResourceId = string;
 

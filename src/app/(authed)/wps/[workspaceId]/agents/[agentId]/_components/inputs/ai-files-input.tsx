@@ -9,6 +9,7 @@ import uniqBy from 'lodash/uniqBy';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import * as axios from 'axios';
+import { uploadSourceMutationOptions } from '@/features/agents/api/actions';
 
 type AIFilesInputProps = {
   params: { agentId: string; workspaceId: string };
@@ -19,28 +20,30 @@ export const AIFilesInput = (props: AIFilesInputProps) => {
     { value: string; label: string; progress?: number }[]
   >([]);
 
-  const uploadFile = useMutation({
-    mutationFn: async (file: File) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      const url = `/api/v2/agents/${props.params.agentId}/sources/upload`;
-      const res = await axios.default.post(url, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        onUploadProgress: (progressEvent) => {
-          const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
-          // log
-          console.log(`Upload progress: ${progress}%`);
-          setUploadedFiles((prev) =>
-            prev.map((f) => (f.value === file.name ? { ...f, progress } : f)),
-          );
-        },
-      });
-      return res.data;
-    },
-  });
+  const uploadSource = useMutation({ ...uploadSourceMutationOptions(props.params) });
+
+  // const uploadFile = useMutation({
+  //   mutationFn: async (file: File) => {
+  //     const formData = new FormData();
+  //     formData.append('file', file);
+  //     const url = `/api/v2/agents/${props.params.agentId}/sources/upload`;
+  //     const res = await axios.default.post(url, formData, {
+  //       headers: { 'Content-Type': 'multipart/form-data' },
+  //       onUploadProgress: (progressEvent) => {
+  //         const progress = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+  //         // log
+  //         console.log(`Upload progress: ${progress}%`);
+  //         setUploadedFiles((prev) =>
+  //           prev.map((f) => (f.value === file.name ? { ...f, progress } : f)),
+  //         );
+  //       },
+  //     });
+  //     return res.data;
+  //   },
+  // });
 
   const handleFileUpload = (file: File) => {
-    toast.promise(uploadFile.mutateAsync(file), {
+    toast.promise(uploadSource.mutateAsync({ file }), {
       loading: `Uploading ${file.name}...`,
       success: (data) => `Uploaded ${file.name} successfully!`,
       error: (err) => `Error uploading ${file.name}: ${err.message}`,

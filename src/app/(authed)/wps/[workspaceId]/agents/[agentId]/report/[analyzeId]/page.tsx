@@ -475,7 +475,7 @@ export default function Page() {
     queryFn: async () => {
       // log
       console.log('Fetching estimation report for analyzeId:', params);
-      const res = await fetch(`/api/v2/agents/${params.agentId}/analysis/${params.analyzeId}`);
+      const res = await fetch(`/api/v2/agents/${params.agentId}/analyses/${params.analyzeId}`);
       const { data } = await res.json();
       return data as EstimationReportType;
     },

@@ -1,34 +1,55 @@
-import { sourceService, ZSourceListInput } from '@/features/agents/server/services/source.service';
+import { sourceService } from '@/features/agents/server/services/source.service';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
-import { compose } from '@/lib/http/api-compose';
 import { NextResponse } from 'next/server';
 import merge from 'lodash/merge';
 
 import z from 'zod';
-import { ZSourceCreateInput } from '@/contracts/agents';
+import { SourceListInput, ZSourceCreateInput, ZSourceListInput } from '@/contracts/agents';
+import { compose } from '@/lib/http/api-compose';
+import {
+  getZodBody,
+  getZodParams,
+  getZodQuery,
+  zodBodyPipe,
+  zodParamsPipe,
+  zodQueryPipe,
+} from '@/lib/http/zod-pipes';
 
 const ZSourceParams = z.object({ agentId: z.string() });
+const ZSourceCreateBody = ZSourceCreateInput.omit({ agentId: true });
 
-export const GET = compose(authenticatedV2, async (req) => {
-  const auth = await getAuthFromRequest(req);
-  const actorId = auth.user.id;
+export const GET = compose(
+  authenticatedV2,
+  zodParamsPipe(ZSourceParams),
+  zodQueryPipe(ZSourceListInput),
+  async (req) => {
+    const auth = await getAuthFromRequest(req);
+    const actorId = auth.user.id;
 
-  const params = ZSourceParams.parse(req.params);
-  const input = ZSourceListInput.parse(merge({ filter: { agentId: params.agentId } }, req.query));
+    const params = getZodParams(req, ZSourceParams);
+    const query = getZodQuery(req, ZSourceListInput);
 
-  const result = await sourceService.list(input, { actorId });
+    const input: SourceListInput = merge({}, query, { filter: { agentId: params.agentId } });
+    const result = await sourceService.list(input, { actorId });
 
-  return NextResponse.json(result);
-});
+    return NextResponse.json(result);
+  },
+);
 
-export const POST = compose(authenticatedV2, async (req) => {
-  const auth = await getAuthFromRequest(req);
-  const actorId = auth.user.id;
+export const POST = compose(
+  authenticatedV2,
+  zodParamsPipe(ZSourceParams),
+  zodBodyPipe(ZSourceCreateBody),
+  async (req) => {
+    const auth = await getAuthFromRequest(req);
+    const actorId = auth.user.id;
 
-  const body = await req.json();
-  const params = ZSourceParams.parse(req.params);
-  const input = ZSourceCreateInput.parse({ ...body, ...params });
-  const result = await sourceService.create(input, { actorId });
+    const params = getZodParams(req, ZSourceParams);
+    const body = getZodBody(req, ZSourceCreateBody);
 
-  return NextResponse.json(result);
-});
+    const input = { agentId: params.agentId, ...body };
+    const result = await sourceService.create(input, { actorId });
+
+    return NextResponse.json(result);
+  },
+);

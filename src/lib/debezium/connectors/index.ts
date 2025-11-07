@@ -15,6 +15,8 @@ export const postgresSourceConfig = {
     'tombstones.on.delete': 'false',
     'heartbeat.interval.ms': '5000',
     'publication.autocreate.mode': 'all_tables',
+    'snapshot.mode': 'initial',
+    'signal.data.collection': 'public.debezium_signal',
   },
 };
 

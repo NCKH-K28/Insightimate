@@ -5,8 +5,8 @@ model Account {
     email      String @id
     credential String
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // Relations
     user User @relation("UserAccount", fields: [email], references: [email])
@@ -18,8 +18,8 @@ model User {
     name   String // full name
     avatar String?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // Relations
     teams            TeamMember[]      @relation("UserTeams")
@@ -32,6 +32,7 @@ model User {
     projectsLead     Project[]         @relation("ProjectLead")
     teamsLed         Team[]            @relation("UserLedTeams")
     invitesSent      Invitation[]      @relation("UserInvites")
+    aiAgents         AIAgent[]         @relation("UserAIAgents")
 
     @@map("users")
 }
@@ -65,3 +66,13 @@ model Invitation {
     @@index([email, resourceType, resourceId])
     @@map("invites")
 }
+
+// model Role {
+//     id          String @id
+//     name        String // ADMIN, MEMBER, VIEWER
+//     scope       String // workspace:{workspaceId}, project:{projectId}, team:{teamId}
+//     permissions Json
+
+//     createdAt DateTime @default(now())
+//     updatedAt DateTime @updatedAt
+// }

@@ -18,7 +18,7 @@ import {
   TrashIcon,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,6 +36,10 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
+import {
+  deleteAgentAnalysisMutationOptions,
+  listAgentAnalysesQueryOptions,
+} from '@/features/agents/api/actions';
 
 type AnalyticsData = {
   id: string;
@@ -310,93 +314,15 @@ export const StudioPanel = ({}: StudioPanelProps) => {
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ['analytics', 'studio-panel', params.agentId],
-    queryFn: async () => {
-      const res = await fetch(`/api/v2/agents/${params.agentId}/analysis`);
-      if (!res.ok) {
-        throw new Error('Failed to fetch analytics data');
-      }
-      const { data } = await res.json();
-      return data as AnalyticsData[];
-    },
-    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
-  });
+  } = useQuery(listAgentAnalysesQueryOptions({ agentId: params.agentId }));
 
   // Mutation để xóa analysis
-  const deleteAnalysisMutation = useMutation({
-    mutationFn: async (analysisId: string) => {
-      const res = await fetch(`/api/v2/agents/${params.agentId}/analysis/${analysisId}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const errorData = await res.json().catch(() => ({}));
-        throw new Error(errorData.message || 'Failed to delete analysis');
-      }
-      return analysisId;
-    },
-    onMutate: async (analysisId) => {
-      // Optimistic update
-      setDeletingIds((prev) => new Set(prev).add(analysisId));
-
-      // Cancel any outgoing refetches
-      await queryClient.cancelQueries({
-        queryKey: ['analytics', 'studio-panel', params.agentId],
-      });
-
-      // Snapshot the previous value
-      const previousAnalytics = queryClient.getQueryData<AnalyticsData[]>([
-        'analytics',
-        'studio-panel',
-        params.agentId,
-      ]);
-
-      // Optimistically remove the item
-      if (previousAnalytics) {
-        queryClient.setQueryData<AnalyticsData[]>(
-          ['analytics', 'studio-panel', params.agentId],
-          previousAnalytics.filter((item) => item.id !== analysisId),
-        );
-      }
-
-      return { previousAnalytics };
-    },
-    onError: (error, analysisId, context) => {
-      // Rollback on error
-      if (context?.previousAnalytics) {
-        queryClient.setQueryData(
-          ['analytics', 'studio-panel', params.agentId],
-          context.previousAnalytics,
-        );
-      }
-
-      setDeletingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(analysisId);
-        return newSet;
-      });
-
-      toast.error('Failed to delete analysis');
-    },
-    onSuccess: (analysisId) => {
-      setDeletingIds((prev) => {
-        const newSet = new Set(prev);
-        newSet.delete(analysisId);
-        return newSet;
-      });
-
-      toast.success('Analysis deleted successfully');
-    },
-    onSettled: () => {
-      // Always refetch to ensure we have the latest data
-      queryClient.invalidateQueries({
-        queryKey: ['analytics', 'studio-panel', params.agentId],
-      });
-    },
-  });
+  const deleteAnalysisMutation = useMutation(
+    deleteAgentAnalysisMutationOptions({ agentId: params.agentId }),
+  );
 
   const handleDelete = (analysisId: string) => {
-    deleteAnalysisMutation.mutate(analysisId);
+    deleteAnalysisMutation.mutate({ analysisId });
   };
 
   return (

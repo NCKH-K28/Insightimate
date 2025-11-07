@@ -57,19 +57,9 @@ async function resolveFileRef(sourceId: string) {
   const fileRef = await prisma.fileReference.findUnique({ where: { id: source.sourceId } });
   if (!fileRef) throw new Error(`FileReference not found for source: ${sourceId}`);
 
-  const s3Key = fileRef.fileURL;
-
-  if (s3Key) return { bucket: process.env.S3_BUCKET ?? 'ai-files', key: s3Key };
-
-  let bucket = process.env.S3_BUCKET ?? 'ai-files';
-  let finalKey = s3Key;
-  if (s3Key.startsWith('s3://')) {
-    const [, , bkt, ...rest] = s3Key.split('/');
-    bucket = bkt;
-    finalKey = rest.join('/');
-  }
-
-  return { bucket, key: finalKey };
+  const s3Key = fileRef.key;
+  const bucket = process.env.S3_BUCKET_NAME || 'ai-files';
+  return { bucket, key: s3Key };
 }
 
 /**
@@ -135,7 +125,8 @@ export const startAnalyzeDocumentConsumer = () => {
 
         try {
           if (!message.value) return;
-          const parsed = AnalysisMsg.safeParse(JSON.parse(message.value.toString()));
+          const mesValue = message.value.toString();
+          const parsed = AnalysisMsg.safeParse(JSON.parse(mesValue));
           if (!parsed.success) {
             console.error('[analyzeDocument] Invalid payload', parsed.error.flatten());
             return;

@@ -1,9 +1,8 @@
 import { debezium } from './client';
 import { elasticsearchSinkConfig, postgresSourceConfig } from './connectors';
+import { prisma } from '@/lib/prisma';
 
 const connectors = [postgresSourceConfig, elasticsearchSinkConfig];
-
-// rebuild
 
 export const seedDebeziumConnectors = async () => {
   const results = [];
@@ -17,9 +16,26 @@ export const seedDebeziumConnectors = async () => {
       results.push(`[${connector.name}] Connector updated`);
     } catch (error) {
       console.warn(`Failed to update connector [${connector.name}]:`, error);
-      await debezium.create(connector);
+      await debezium.delete(connector.name).finally(() => debezium.create(connector));
       results.push(`[${connector.name}] Connector created`);
     }
   }
+
+  await prisma.debeziumSignal.create({
+    data: {
+      id: `debezium-snapshot-${Date.now()}`,
+      type: 'execute-snapshot',
+      data: {
+        'data-collections': [
+          'public.users',
+          'public.workspaces',
+          'public.projects',
+          'public.issues',
+        ],
+        type: 'INCREMENTAL',
+      },
+    },
+  });
+
   return results;
 };

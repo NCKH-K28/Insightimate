@@ -2,13 +2,15 @@ model AIAgent {
     id            String  @id
     name          String
     description   String?
-    leadId        String
-    workspaceId   String
+    ownerId       String  @map("owner_id")
+    workspaceId   String  @map("workspace_id")
+    instructions  String?
     configuration Json?
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
+    owner       User         @relation("UserAIAgents", fields: [ownerId], references: [id], onDelete: Cascade)
     dataSources DataSource[]
     analyses    Analysis[]
 
@@ -18,10 +20,11 @@ model AIAgent {
 model FileReference {
     id        String   @id
     filename  String
-    fileURL   String
+    key       String
+    url       String?
     metadata  Json?
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     @@map("file_references")
 }
@@ -48,13 +51,13 @@ enum DataSourceStatus {
 model DataSource {
     id         String           @id
     agentId    String
-    sourceType DataSourceType
-    sourceId   String
+    sourceType DataSourceType   @map("source_type")
+    sourceId   String           @map("source_id")
     status     DataSourceStatus
-    snapshot   Json?
+    snapshot   Json? // FIXME: create a proper snapshot model later
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
     // -- Internal Use --
     isHidden Boolean @default(false)
@@ -78,17 +81,17 @@ enum AnalysisStatus {
 
 model Analysis {
     id           String         @id
-    agentId      String
-    dataSourceId String?
-    runStatus    AnalysisStatus @default(PENDING)
+    agentId      String         @map("agent_id")
+    dataSourceId String?        @map("data_source_id")
+    runStatus    AnalysisStatus @default(PENDING) @map("run_status")
 
     output  Json?
     metrics Json?
 
     // Timestamps
-    createdAt   DateTime  @default(now())
-    updatedAt   DateTime  @updatedAt
-    processedAt DateTime?
+    createdAt   DateTime  @default(now()) @map("created_at")
+    updatedAt   DateTime  @updatedAt @map("updated_at")
+    processedAt DateTime? @map("processed_at")
 
     agent      AIAgent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
     dataSource DataSource? @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)

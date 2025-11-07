@@ -9,43 +9,24 @@ import {
 import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import {
+  createAgentAnalysisMutationOptions,
+  deleteSourceMutationOptions,
+} from '@/features/agents/api/actions';
 
 type SourceActionsProps = { agentId: string; id: string };
 export const SourceActions = (props: SourceActionsProps) => {
-  const queryClient = useQueryClient();
-  const analyzeSource = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/v2/agents/${props.agentId}/analysis`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sourceId: props.id }),
-      });
-      if (!response.ok) throw new Error('Failed to analyze source');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agent-analyses', props.agentId] });
-    },
-  });
+  const analyzeSource = useMutation(createAgentAnalysisMutationOptions({ agentId: props.agentId }));
 
-  const deleteSource = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/v2/agents/${props.agentId}/sources/${props.id}`, {
-        method: 'DELETE',
-      });
-      if (!response.ok) throw new Error('Failed to delete source');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agent-sources', props.agentId] });
-    },
-  });
+  const deleteSource = useMutation(
+    deleteSourceMutationOptions({ agentId: props.agentId, sourceId: props.id }),
+  );
 
   const handleAnalyze = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (analyzeSource.isPending) return;
-    toast.promise(analyzeSource.mutateAsync(), {
+    toast.promise(analyzeSource.mutateAsync({ dataSourceId: props.id }), {
       loading: 'Analyzing source...',
       success: 'Source scheduled for analysis!',
       error: 'Failed to analyze source.',
@@ -56,7 +37,7 @@ export const SourceActions = (props: SourceActionsProps) => {
     e.preventDefault();
     e.stopPropagation();
     if (deleteSource.isPending) return;
-    toast.promise(deleteSource.mutateAsync(), {
+    toast.promise(deleteSource.mutateAsync({ sourceId: props.id }), {
       loading: 'Deleting source...',
       success: 'Source deleted successfully!',
       error: 'Failed to delete source.',

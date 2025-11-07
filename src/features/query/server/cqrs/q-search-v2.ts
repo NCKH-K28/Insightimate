@@ -1,6 +1,8 @@
 import { elasticClient, SearchQuery } from '@/lib/elastic';
 import { QueryOutput, QueryParams, ZQueryOutput } from '@/contracts/query/schema-v2';
 
+import { listAccessibleResources } from '@/features/authz/server/cqrs/q-allowed-objects';
+
 const toCamelKey = (k: string) =>
   k.replace(/^_+/, '').replace(/[_-]([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
 
@@ -38,18 +40,16 @@ const formatHit = <T extends ElasticSearchHit>(hit: T): QueryOutput['hits'][0] =
   };
 };
 
-export const search = async (
+export const buildQuery = async (
   input: QueryParams,
-  context?: { actorId: string },
-): Promise<QueryOutput> => {
+  context: { actorId: string },
+): Promise<SearchQuery> => {
   const q = input.q.trim();
 
-  let query: SearchQuery = {};
+  let baseQuery: SearchQuery = { match_all: {} };
 
-  if (q === '') {
-    query = { match_all: {} };
-  } else {
-    query = {
+  if (q !== '') {
+    baseQuery = {
       bool: {
         should: [
           {
@@ -75,10 +75,59 @@ export const search = async (
     };
   }
 
+  const workspaceIds = await listAccessibleResources({
+    action: 'can_view',
+    subject: { type: 'user', id: context.actorId },
+    resource: { type: 'workspace' },
+  });
+  const projectIds = await listAccessibleResources({
+    action: 'can_view',
+    subject: { type: 'user', id: context.actorId },
+    resource: { type: 'project' },
+  });
+
+  // Build authorization filters
+  const authShould: SearchQuery[] = [];
+  authShould.push({
+    bool: {
+      must_not: [
+        { exists: { field: 'owner_id' } },
+        { exists: { field: 'project_id' } },
+        { exists: { field: 'workspace_id' } },
+      ],
+    },
+  });
+  authShould.push({ term: { owner_id: context.actorId } });
+  authShould.push({ terms: { project_id: projectIds } });
+  authShould.push({ terms: { workspace_id: workspaceIds } });
+
+  return {
+    bool: {
+      must: [baseQuery],
+      should: authShould,
+      minimum_should_match: 1,
+    },
+  };
+};
+
+export const search = async (
+  input: QueryParams,
+  context: { actorId: string },
+): Promise<QueryOutput> => {
+  const query = await buildQuery(input, context);
+
   const searchResult = await elasticClient.search({
     index: '_all',
     query,
     sort: [{ _score: { order: 'desc' } }],
+    _source: {
+      excludes: [
+        'embedding',
+        'embedding_raw',
+        'full_text',
+        //
+      ],
+    },
     // size: input.pagination?.size || 25,
     // search_after: input.pagination?.cursor ? [input.pagination.cursor] : undefined,
   });

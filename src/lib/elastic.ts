@@ -5,10 +5,6 @@ import set from 'lodash/set';
 const ELASTICSEARCH_NODE = process.env.ELASTICSEARCH_NODE || 'http://localhost:9200';
 const DEFAULTS: ClientOptions = {
   node: ELASTICSEARCH_NODE,
-  // auth: {
-  // username: 'elastic',
-  // password: 'E8NqMYnEJa1IJY7ZZU6TgM2V',
-  // },
   headers: {
     accept: 'application/vnd.elasticsearch+json; compatible-with=8',
     'content-type': 'application/vnd.elasticsearch+json; compatible-with=8',
