@@ -120,6 +120,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
+    "@types/express": "^5.0.5",
     "@types/lodash": "^4.17.20",
     "@types/node": "^20",
     "@types/nodemailer": "^7.0.2",

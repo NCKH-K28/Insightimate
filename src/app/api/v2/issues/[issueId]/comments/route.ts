@@ -2,15 +2,13 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
 
-export async function GET(req: NextRequest, { params }: { params: { issueId: string } }) {
+export async function GET(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
   try {
+    const { issueId } = await params;
+
     const comments = await prisma.comment.findMany({
-      where: {
-        issueId: params.issueId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
+      where: { issueId },
+      orderBy: { createdAt: 'desc' },
     });
 
     return Response.json(comments);
@@ -20,18 +18,14 @@ export async function GET(req: NextRequest, { params }: { params: { issueId: str
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { issueId: string } }) {
+export async function POST(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
   try {
     const { content, userId, userName } = await req.json();
 
+    const { issueId } = await params;
+
     const comment = await prisma.comment.create({
-      data: {
-        id: createId(),
-        content,
-        userId,
-        userName,
-        issueId: params.issueId,
-      },
+      data: { id: createId(), content, userId, userName, issueId },
     });
 
     return Response.json(comment, { status: 201 });
