@@ -2,32 +2,32 @@
 
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import { useCallback } from 'react';
-import { toast } from 'sonner';
-
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
-import {
-  updateBoardIssueMutationOptions,
-  deleteBoardIssueMutationOptions,
-} from '@/features/boards/api/actions';
+import { useCallback } from 'react';
+import { deleteBoardIssueMutationOptions } from '@/features/boards/api/actions';
+import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
+import { toast } from 'sonner';
 
 import IssueMainPanel from '@/features/boards/ui/components/issue-main-panel';
 import IssueSidePanel from '@/features/boards/ui/components/issue-side-panel';
 
 export default function Page() {
-  const params = useParams<{ workspaceId: string; projectId: string; issueId: string }>();
-  const router = useRouter();
+  const params = useParams<{
+    workspaceId: string;
+    projectId: string;
+    issueId: string;
+  }>();
 
   const { data: project } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
 
+  const router = useRouter();
+
   const boardId = project?.boardId;
-  const issueQuery = useQuery({
+  const { data: issue } = useQuery({
     ...getBoardIssueQueryOptions({ boardId: boardId ?? '', issueId: params.issueId }),
     enabled: Boolean(boardId),
   });
-
-  const issue = issueQuery.data;
 
   const updateMutation = useMutation(
     updateBoardIssueMutationOptions({ boardId: boardId ?? '', issueId: params.issueId }),
