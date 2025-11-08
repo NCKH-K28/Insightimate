@@ -13,8 +13,31 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { toast } from 'sonner';
+import React from 'react';
 
-export default function MoreOptionsDropdown() {
+type Props = {
+  onDelete?: () => Promise<any> | void;
+  onDeleted?: () => void;
+};
+
+export default function MoreOptionsDropdown({ onDelete, onDeleted }: Props) {
+  const handleDelete = async () => {
+    if (!onDelete) return;
+    const res = onDelete();
+    if (res && typeof (res as any).then === 'function') {
+      await toast.promise(res as Promise<any>, {
+        loading: 'Deleting issue...',
+        success: 'Issue deleted',
+        error: (err: any) => `Error: ${err?.message || 'Failed to delete issue'}`,
+      });
+      onDeleted?.();
+    } else {
+      toast.success('Issue deleted');
+      onDeleted?.();
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -39,7 +62,7 @@ export default function MoreOptionsDropdown() {
         <DropdownMenuItem>Clone</DropdownMenuItem>
         <DropdownMenuItem>Move</DropdownMenuItem>
         <DropdownMenuItem>Archive</DropdownMenuItem>
-        <DropdownMenuItem className="text-red-600 hover:text-red-700">
+        <DropdownMenuItem className="text-red-600 hover:text-red-700" onSelect={handleDelete}>
           Delete
         </DropdownMenuItem>
 

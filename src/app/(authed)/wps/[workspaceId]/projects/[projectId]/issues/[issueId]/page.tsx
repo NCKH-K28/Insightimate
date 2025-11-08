@@ -1,13 +1,15 @@
 'use client';
 
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useRouter } from 'next/navigation';
 import { getProjectQueryOptions, listProjectMembersQueryOptions } from '@/features/projects/api/actions';
 import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
 import { useParams } from "next/navigation";
 import { useState, useEffect, useCallback } from "react";
-import { Share2, UsersIcon, Calendar as CalendarIcon } from "lucide-react";
+import { Share2, Calendar as CalendarIcon } from "lucide-react";
 import StatusDropdown from "@/features/boards/ui/components/status-dropdown";
 import MoreOptionsDropdown from "@/features/boards/ui/components/more-options-dropdown";
+import { deleteBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import {
   Accordion,
   AccordionContent,
@@ -23,12 +25,13 @@ import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import RichTextDescription from "@/features/boards/ui/components/richtext-description";
 import { UserSelectors, userToOption, unassignedUser } from '@/features/users/ui/user-selector';
 import { toast } from 'sonner';
+import CommentInput from "@/features/boards/ui/components/CommentInput";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import CommentList from "@/features/boards/ui/components/CommentList";
 
 
 
 export default function Page() {
-  const [status, setStatus] = useState('To Do');
-
   const params = useParams<{
     workspaceId: string;
     projectId: string;
@@ -36,6 +39,8 @@ export default function Page() {
   }>();
 
   const { data: project } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
+
+  const router = useRouter();
 
   const boardId = project?.boardId;
   const issueQuery = useQuery({
@@ -59,6 +64,22 @@ export default function Page() {
   const [editingSummary, setEditingSummary] = useState(false);
 
   const updateMutation = useMutation(updateBoardIssueMutationOptions({ boardId: boardId ?? '', issueId: params.issueId }));
+  const deleteMutation = useMutation(deleteBoardIssueMutationOptions({ boardId: boardId ?? '', issueId: params.issueId }));
+
+  const handleDelete = async () => {
+    if (deleteMutation.isPending) return;
+    await toast.promise(deleteMutation.mutateAsync({} as any), {
+      loading: 'Deleting issue...',
+      success: 'Issue deleted',
+      error: (err: any) => `Error: ${err?.message || 'Failed to delete issue'}`,
+    });
+    // navigate back to the project page after successful delete
+    try {
+      router.push(`/wps/${params.workspaceId}/projects/${params.projectId}`);
+    } catch (e) {
+      // ignore navigation errors
+    }
+  };
 
   const saveSummary = async () => {
     if (!summary.trim()) return;
@@ -183,7 +204,17 @@ export default function Page() {
 
           <div>
             <h3 className="font-semibold text-lg mb-1">Activity</h3>
+            <Tabs defaultValue="checklist" className="w-full ">
+              <TabsList>
+                <TabsTrigger value="checklist">Checklist</TabsTrigger>
+                <TabsTrigger value="comments">Comments</TabsTrigger>
+              </TabsList>
+              <TabsContent value="checklist"></TabsContent>
+              <TabsContent value="comments"><CommentInput issueId={params.issueId} /><CommentList projectId={params.issueId} /></TabsContent>
+            </Tabs>
           </div>
+
+
         </div>
       </div>
 
@@ -207,7 +238,7 @@ export default function Page() {
                 <Share2 className="w-4 h-4" />
               </button>
 
-              <MoreOptionsDropdown />
+              <MoreOptionsDropdown onDelete={handleDelete} onDeleted={() => router.push(`/wps/${params.workspaceId}/projects/${params.projectId}`)} />
             </div>
           </div>
 
@@ -257,13 +288,28 @@ export default function Page() {
                     <DatePickerInput
                       label="Start Date"
                       initialDate={issue?.startDate ?? undefined}
-                      onChange={(d) => console.log("Start date:", d)}
+                      onChange={(d) => {
+                        // server expects date-only ISO (yyyy-MM-dd) for z.iso.date()
+                        if (!d) return handleUpdate({ startDate: null } as any);
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const dateOnly = `${yyyy}-${mm}-${dd}`;
+                        handleUpdate({ startDate: dateOnly } as any);
+                      }}
                     />
 
                     <DatePickerInput
                       label="Due Date"
                       initialDate={issue?.dueDate ?? undefined}
-                      onChange={(d) => console.log("Due date:", d)}
+                      onChange={(d) => {
+                        if (!d) return handleUpdate({ dueDate: null } as any);
+                        const yyyy = d.getFullYear();
+                        const mm = String(d.getMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getDate()).padStart(2, '0');
+                        const dateOnly = `${yyyy}-${mm}-${dd}`;
+                        handleUpdate({ dueDate: dateOnly } as any);
+                      }}
                     />
                     <div className="mt-4 flex gap-4">
                       {/* Sprint */}

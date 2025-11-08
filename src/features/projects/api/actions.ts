@@ -172,12 +172,10 @@ export const updateProjectMembersMutationOptions = (params: { projectId: string 
   });
 };
 
-// project fields
 export const listProjectStatusesQueryOptions = (params: { projectId: string }) => {
   return queryOptions({
     queryKey: ['projects', params.projectId, 'fields', 'statuses'],
     queryFn: async () => projectApi.fields.statuses.list(params),
-    select: (res) => res.data,
     staleTime: 1000 * 60 * 5,
   });
 };
