@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "socket": "ts-node server/socket-server.ts"
   },
   "dependencies": {
     "@blueprintjs/core": "^6.1.0",
@@ -77,6 +78,7 @@
     "date-fns-tz": "^3.2.0",
     "decimal.js": "^10.6.0",
     "embla-carousel-react": "^8.6.0",
+    "express": "^5.1.0",
     "fuse.js": "^7.1.0",
     "input-otp": "^1.4.2",
     "jose": "^6.0.12",
@@ -103,11 +105,14 @@
     "react-use": "^17.6.0",
     "react-window": "^1.8.11",
     "recharts": "2.15.4",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
     "tunnel-rat": "^0.1.2",
     "uuid": "^13.0.0",
     "vaul": "^1.1.2",
+    "ws": "^8.18.3",
     "zod": "^4.0.14",
     "zustand": "^5.0.7"
   },
@@ -121,6 +126,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-window": "^1.8.8",
+    "@types/socket.io": "^3.0.1",
+    "@types/ws": "^8.18.1",
     "eslint": "^9",
     "eslint-config-next": "15.4.5",
     "prisma": "6.13.0",

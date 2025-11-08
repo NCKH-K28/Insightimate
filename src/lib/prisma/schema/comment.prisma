@@ -1,0 +1,10 @@
+model Comment {
+  id         String   @id @default(cuid())
+  content    String
+  userId     String
+  userName   String?
+  issueId    String
+  parentId   String?   // nếu có -> đây là reply
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
