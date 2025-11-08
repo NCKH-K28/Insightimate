@@ -8,7 +8,7 @@ export const GET = compose(async (req, res) => {
   const data = await prisma.analysis.findFirst({ where: { id: analyzeId } });
   if (!data) throw new Error('Analysis not found');
 
-  return res.json({ data: toJSON(data.output) });
+  return res.json({ data: toJSON(data) });
 });
 
 export const DELETE = compose(async (req, res) => {

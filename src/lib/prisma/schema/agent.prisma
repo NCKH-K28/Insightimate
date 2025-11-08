@@ -79,11 +79,22 @@ enum AnalysisStatus {
     @@map("analysis_status")
 }
 
+enum AnalysisType {
+    SUMMARY
+    INSIGHT_EXTRACTION
+    ANOMALY_DETECTION
+    ESTIMATION
+
+    @@map("analysis_type")
+}
+
 model Analysis {
     id           String         @id
     agentId      String         @map("agent_id")
     dataSourceId String?        @map("data_source_id")
     runStatus    AnalysisStatus @default(PENDING) @map("run_status")
+    type         AnalysisType   @map("type")
+    version      Int            @default(1)
 
     output  Json?
     metrics Json?

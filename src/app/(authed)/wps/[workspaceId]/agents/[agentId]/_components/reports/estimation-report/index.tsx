@@ -27,14 +27,10 @@ import {
   Target,
   Code,
   Database,
-  Shield,
   Zap,
   Layout,
   FileCode,
-  Calendar,
 } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
 import { EstimationReport as EstimationReportType } from './types';
 
 interface EstimationReportPageProps {
@@ -464,31 +460,6 @@ export function EstimationReport({ data }: EstimationReportPageProps) {
           </Card>
         </TabsContent>
       </Tabs>
-    </div>
-  );
-}
-
-export default function Page() {
-  const params = useParams<{ workspaceId: string; agentId: string; analyzeId: string }>();
-  const { data: estimationReport, isPending } = useQuery({
-    queryKey: ['estimation-report', params.analyzeId],
-    queryFn: async () => {
-      // log
-      console.log('Fetching estimation report for analyzeId:', params);
-      const res = await fetch(`/api/v2/agents/${params.agentId}/analyses/${params.analyzeId}`);
-      const { data } = await res.json();
-      return data as EstimationReportType;
-    },
-  });
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
-
-  if (!estimationReport) return <div>No report found.</div>;
-
-  return (
-    <div className='h-full overflow-y-auto'>
-      <EstimationReport data={estimationReport} />
     </div>
   );
 }

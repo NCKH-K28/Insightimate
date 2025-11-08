@@ -1,57 +1,69 @@
-import { ZAnalysisCreateInput } from '@/contracts/agents';
+import { AnalysisCreateInput, ZAnalysisCreateInput } from '@/contracts/agents';
 import { authenticatedV2 } from '@/lib/auth';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, getZodParams, zodBodyPipe, zodParamsPipe } from '@/lib/http/zod-pipes';
 import { kafka } from '@/lib/kafka';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import z from 'zod';
+import { z } from 'zod';
 
 const ZAnalysisParams = z.object({ agentId: z.string() });
 
 export const GET = async () => {
   const analysis = await prisma.analysis.findMany();
-  const result = { data: analysis };
+  return NextResponse.json({ data: analysis });
+};
 
-  return NextResponse.json(result);
+const estimation = async (input: AnalysisCreateInput & { type: 'ESTIMATION'; agentId: string }) => {
+  const producer = kafka.producer();
+  await producer.connect();
+
+  const newAnalysis = await prisma.analysis.create({
+    data: {
+      id: `analysis_${Math.random().toString(36).substring(2, 15)}`,
+      dataSourceId: input.dataSourceId,
+      agentId: input.agentId,
+      runStatus: 'PENDING',
+      version: 1,
+      type: 'ESTIMATION',
+    },
+  });
+
+  const evt = {
+    analysisId: newAnalysis.id,
+    dataSourceId: newAnalysis.dataSourceId,
+    agentId: newAnalysis.agentId,
+  };
+
+  await producer.send({
+    topic: 'agents.analysis.created',
+    messages: [{ value: JSON.stringify(evt) }],
+  });
+
+  await producer.disconnect();
+
+  return newAnalysis;
 };
 
 export const POST = compose(
   authenticatedV2,
   zodParamsPipe(ZAnalysisParams),
   zodBodyPipe(ZAnalysisCreateInput),
-  async (req, res) => {
+  async (req) => {
     const params = getZodParams(req, ZAnalysisParams);
     const input = getZodBody(req, ZAnalysisCreateInput);
 
-    const producer = kafka.producer();
-    await producer.connect();
+    const source = await prisma.dataSource.findUnique({ where: { id: input.dataSourceId } });
+    if (!source) {
+      return NextResponse.json({ error: 'Source not found' }, { status: 404 });
+    }
 
-    const s = await prisma.dataSource.findUnique({ where: { id: input.dataSourceId } });
-    if (!s) return NextResponse.json({ error: 'Source not found' }, { status: 404 });
+    if (input.type !== 'ESTIMATION') {
+      return NextResponse.json({ error: 'Unsupported analysis type' }, { status: 400 });
+    }
 
-    // Create a new analysis record
-    const newAnalysis = await prisma.analysis.create({
-      data: {
-        id: `analysis_${Math.random().toString(36).substring(2, 15)}`,
-        dataSourceId: input.dataSourceId,
-        agentId: params.agentId,
-        runStatus: 'PENDING',
-      },
-    });
+    const newAnalysis = await estimation({ ...input, agentId: params.agentId, type: 'ESTIMATION' });
 
-    // push kafka message to start analysis
-    const evt = {
-      analysisId: newAnalysis.id,
-      dataSourceId: newAnalysis.dataSourceId,
-      agentId: newAnalysis.agentId,
-    };
-    await producer.send({
-      topic: 'agents.analysis.created',
-      messages: [{ value: JSON.stringify(evt) }],
-    });
-    await producer.disconnect();
-
-    return NextResponse.json(newAnalysis);
+    return NextResponse.json({ data: newAnalysis }, { status: 201 });
   },
 );

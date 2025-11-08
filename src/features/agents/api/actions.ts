@@ -106,13 +106,10 @@ export const updateSourceMutationOptions = (params: { agentId: string }) => {
 export const listAgentAnalysesQueryOptions = (params: { agentId: string }) => {
   return queryOptions({
     queryKey: ['agent-analyses', params.agentId],
-    queryFn: async () => {
-      const res: any = await agentApi.analyses.list({ agentId: params.agentId });
-      return res.data;
-    },
+    queryFn: () => agentApi.analyses.list({ agentId: params.agentId }).then((res) => res.data),
     staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
-    refetchInterval: 30 * 1000, // 30 seconds
+    refetchInterval: 10 * 1000, // 10 seconds
   });
 };
 

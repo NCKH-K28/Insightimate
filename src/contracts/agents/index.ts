@@ -47,6 +47,8 @@ export const ZAnalysis = z.object({
   id: z.string().min(1, 'Analysis ID is required'),
   dataSourceId: z.string().min(1, 'Data Source ID is required').optional(),
   runStatus: ZAnalysisStatus,
+  type: z.enum(['SUMMARY', 'INSIGHT_EXTRACTION', 'ANOMALY_DETECTION', 'ESTIMATION']),
+  version: z.number(),
   output: z.record(z.string(), z.any()).optional(),
   metrics: z.record(z.string(), z.any()).optional(),
   createdAt: ZIsoDate.optional(),
@@ -75,6 +77,7 @@ export const ZDataSourceCreateInput = z.object({
 
 export const ZAnalysisCreateInput = z.object({
   dataSourceId: z.string().min(1, 'Data Source ID is required'),
+  type: z.enum(['SUMMARY', 'INSIGHT_EXTRACTION', 'ANOMALY_DETECTION', 'ESTIMATION']),
 });
 
 export type AIAgentCreateInput = z.infer<typeof ZAIAgentCreateInput>;

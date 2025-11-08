@@ -26,7 +26,7 @@ export const SourceActions = (props: SourceActionsProps) => {
     e.preventDefault();
     e.stopPropagation();
     if (analyzeSource.isPending) return;
-    toast.promise(analyzeSource.mutateAsync({ dataSourceId: props.id }), {
+    toast.promise(analyzeSource.mutateAsync({ dataSourceId: props.id, type: 'ESTIMATION' }), {
       loading: 'Analyzing source...',
       success: 'Source scheduled for analysis!',
       error: 'Failed to analyze source.',
