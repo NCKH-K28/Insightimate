@@ -45,5 +45,5 @@ next-env.d.ts
 /.temp
 /.tmp
 
-# specific files
-/src/lib/authz/openfga/index.ts
+# Authentication tokens
+.npmrc

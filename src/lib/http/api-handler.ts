@@ -40,7 +40,7 @@ export const apiHandler = <TParams = unknown, TQuery = unknown, TBody = unknown>
 export type MiddlewareParams<TParams = unknown> = Parameters<ApiHandler<TParams>>;
 export type MiddlewareHandler = (
   ...args: MiddlewareParams
-) => Promise<NextResponse | void> | NextResponse | void;
+) => Promise<NextResponse | void> | NextResponse | void | any;
 export const middlewareHandler = <TParams = unknown>(
   middlewares: Array<MiddlewareHandler>,
   handler: ApiHandler<TParams>,

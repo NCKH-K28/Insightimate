@@ -32,7 +32,7 @@ export const CreateWorkspaceForm = ({ onSuccess, onSubmit }: CreateWorkspaceForm
 
   const handleSubmit = form.handleSubmit((data) => {
     onSubmit?.();
-    toast
+    return toast
       .promise(createWorkspace.mutateAsync(data), {
         success: 'Workspace created successfully!',
         error: (e) => `Error creating workspace: ${e.message}`,
@@ -54,6 +54,9 @@ export const CreateWorkspaceForm = ({ onSuccess, onSubmit }: CreateWorkspaceForm
               <FormControl>
                 <Input
                   placeholder='Enter workspace name'
+                  aria-label='Workspace Name'
+                  id='new-workspace-name'
+                  autoComplete='new-workspace-name'
                   disabled={form.formState.isSubmitting}
                   {...field}
                 />

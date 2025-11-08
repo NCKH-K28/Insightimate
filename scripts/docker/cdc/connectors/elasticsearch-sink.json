@@ -1,0 +1,14 @@
+{
+  "name": "elasticsearch-sink",
+  "config": {
+    "connector.class": "io.aiven.connect.elasticsearch.ElasticsearchSinkConnector",
+    "topics": "mysql-server.demo.users",
+    "connection.url": "http://elasticsearch:9200",
+    "key.ignore": "true",
+    "schema.ignore": "true",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "type.name": "_doc",
+    "tasks.max": "1"
+  }
+}

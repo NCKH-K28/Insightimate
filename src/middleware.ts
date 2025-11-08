@@ -3,6 +3,13 @@ import type { NextRequest } from 'next/server';
 
 const authRoutes = ['/signin', '/signup'];
 
+const pingHealthCheck = async (request: NextRequest) => {
+  const { pathname } = request.nextUrl;
+  const isHealthRoute = pathname.startsWith('/api/health/');
+  if (isHealthRoute) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}/api/health/ping`);
+};
+
 const authenticated = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
@@ -25,6 +32,8 @@ const authenticated = async (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
+  await pingHealthCheck(request);
+
   return authenticated(request);
 }
 
@@ -37,6 +46,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

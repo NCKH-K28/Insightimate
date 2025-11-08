@@ -4,6 +4,7 @@ import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors';
 import { GuardHandler } from '@/lib/http/api-handler';
 import { AuthContext } from '@/contracts/auth';
 import { verifyToken } from '@/lib/auth/session';
+import { HandleRequest, Middleware } from '../http/api-compose';
 
 export const authenticated: GuardHandler = async (request, ctx) => {
   const cookieStore = await cookies();
@@ -29,3 +30,6 @@ export const authenticated: GuardHandler = async (request, ctx) => {
     throw error;
   }
 };
+
+export const authenticatedV2: Middleware = (req: HandleRequest) =>
+  authenticated(req, { params: req.params });

@@ -1,10 +1,15 @@
 import get from 'lodash/get';
+import merge from 'lodash/merge';
 import { NextRequest } from 'next/server';
 import { AuthContext, ZAuthContext } from '@/contracts/auth';
 
-export const getAuthFromRequest = async (request: NextRequest): Promise<AuthContext> => {
+export const getAuthFromRequest = async (
+  request: NextRequest,
+  parse: boolean = true,
+): Promise<AuthContext> => {
   const auth = get(request, 'auth', null);
   if (!auth) throw new Error('Missing "auth" in "request"');
+  if (!parse) return auth;
   const valid = ZAuthContext.safeParse(auth);
   if (!valid.success)
     throw new Error('Invalid "auth" in "request"' + JSON.stringify(valid.error.issues));
