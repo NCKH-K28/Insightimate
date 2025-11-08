@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { boardApi } from '@/features/boards/api/http';
 import { KanbanColumnHeader } from './kanban-column-header';
 import type { BoardIssueItem } from '@/contracts/boards/boards.query';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { listProjectStatusesQueryOptions } from '@/features/projects/api/actions';
 
 type ColumnKey = string;
@@ -28,7 +28,7 @@ interface DataKanbanProps {
     boardId: string;
 }
 
-export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, boardId }: DataKanbanProps) => {
+export const DataKanban = ({ data, onChange, projectId, boardId }: DataKanbanProps) => {
     const { data: statusesResponse } = useQuery(listProjectStatusesQueryOptions({ projectId }));
 
     const statuses = useMemo(() => {
@@ -73,6 +73,8 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
         setState(buildInitial());
     }, [buildInitial]);
 
+    const queryClient = useQueryClient();
+
     const handleDragEnd = async (result: DropResult) => {
         const { source, destination } = result;
         if (!destination) return;
@@ -107,6 +109,8 @@ export const DataKanban = ({ data, columns: propsColumns, onChange, projectId, b
                     error: (err) => `Error: ${err?.message || 'Failed to update issue'}`,
                 },
             );
+
+            queryClient.invalidateQueries({ queryKey: ['boards', boardId, 'issues'] });
         } catch (err) {
             console.error('Failed to update issue status after drag:', err);
             setState(prevState);

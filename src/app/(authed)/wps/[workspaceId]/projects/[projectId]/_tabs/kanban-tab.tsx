@@ -23,7 +23,6 @@ type KanbanTabProps = {
 
 export const KanbanTab = ({ params }: KanbanTabProps) => {
   const boardId = params.boardId;
-  const { data: board } = useQuery(getBoardQueryOptions(boardId));
   const { data: issues } = useQuery(listBoardIssuesQueryOptions(boardId));
   const { data: issueFacets } = useQuery(getBoardIssueFacetsQueryOptions(boardId));
 
@@ -43,8 +42,7 @@ export const KanbanTab = ({ params }: KanbanTabProps) => {
       filters.push({ type: 'faceted', columnKey: 'statusId', title: 'Status', options: issueFacets.statuses });
     }
 
-    // Only include the three filters requested (Type, Priority, Status)
-    return filters;
+  return filters;
   }, [issueFacets]);
 
   const tableConfig = useMemo(

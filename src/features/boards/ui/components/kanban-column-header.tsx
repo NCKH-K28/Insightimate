@@ -23,21 +23,16 @@ type CreateParams = { projectId: string; boardId: string; sprintId?: string; sta
 interface KanbanColumnHeaderProps {
     label: string;
     taskCount: number;
-    /** Optional status metadata so we can show custom icons/colors */
     category?: string | null;
     iconURL?: string | null;
     color?: string | null;
-    /** If provided, show the full CreateIssueButton wired to project/board/sprint */
     createParams?: CreateParams;
-    /** fallback handler when no createParams available */
     onCreate?: () => void;
 }
 
 const labelIconMap: Record<string, React.ReactNode> = {
-    // backlog: <CircleDashedIcon className="size-[18px] text-pink-400" />,
     todo: <CircleDashedIcon className="size-[18px] text-red-400" />,
     in_progress: <CircleDotDashedIcon className="size-[18px] text-yellow-400" />,
-    // in-review: <CircleDotIcon className="size-[18px] text-blue-400" />,
     done: <CircleCheckIcon className="size-[18px] text-emerald-400" />,
 };
 
@@ -51,7 +46,6 @@ const formatLabel = (s: string) =>
 
 export const KanbanColumnHeader = ({ label, taskCount, category, iconURL, color, createParams, onCreate }: KanbanColumnHeaderProps) => {
     const raw = ((category ?? label) || '').toString().toLowerCase();
-    // try several normalizations so labels like "To Do", "To-Do", "Todo" all match the 'todo' icon
     const candidates = [
         raw,
         raw.replace(/[_\s-]+/g, '_'),
@@ -59,7 +53,6 @@ export const KanbanColumnHeader = ({ label, taskCount, category, iconURL, color,
     ];
 
     let icon: React.ReactNode = null;
-    // exact / normalized matches first
     for (const c of candidates) {
         if (labelIconMap[c]) {
             icon = labelIconMap[c];
@@ -67,7 +60,6 @@ export const KanbanColumnHeader = ({ label, taskCount, category, iconURL, color,
         }
     }
 
-    // fuzzy matches: contains keywords
     if (!icon) {
         if (raw.includes('todo')) icon = labelIconMap['todo'];
         else if (raw.includes('inprogress') || raw.includes('in_progress') || raw.includes('in progress')) icon = labelIconMap['in_progress'];
