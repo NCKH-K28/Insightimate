@@ -18,7 +18,7 @@ const getKafka = async () => {
   const newKafka = new Kafka({
     clientId,
     brokers,
-    logLevel: logLevel.INFO,
+    logLevel: logLevel.ERROR,
   });
   set(globalThis, 'kafkaInstance', newKafka);
   return newKafka;

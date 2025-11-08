@@ -1,15 +1,24 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const authRoutes = ['/signin', '/signup'];
-
-const pingHealthCheck = async (request: NextRequest) => {
+let isSocketPing: boolean = false;
+const pingSocket = async (request: NextRequest) => {
+  const pingPath = '/api/socket';
+  if (isSocketPing) return;
+  isSocketPing = true;
   const { pathname } = request.nextUrl;
-  const isHealthRoute = pathname.startsWith('/api/health/');
-  if (isHealthRoute) return NextResponse.next();
-  await fetch(`${request.nextUrl.origin}/api/health/ping`);
+  if (pathname === pingPath) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}${pingPath}`);
 };
 
+const pingHealthCheck = async (request: NextRequest) => {
+  const pingPath = '/api/health/ping';
+  const { pathname } = request.nextUrl;
+  if (pathname === pingPath) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}${pingPath}`);
+};
+
+const authRoutes = ['/signin', '/signup'];
 const authenticated = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
@@ -32,7 +41,7 @@ const authenticated = async (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
-  await pingHealthCheck(request);
+  await Promise.all([pingSocket(request), pingHealthCheck(request)]);
 
   return authenticated(request);
 }
