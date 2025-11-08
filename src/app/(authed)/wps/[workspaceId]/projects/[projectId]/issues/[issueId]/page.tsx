@@ -58,7 +58,7 @@ export default function Page() {
     router.push(`/wps/${params.workspaceId}/projects/${params.projectId}`);
   };
 
-  if (!issue) throw new Error('Issue not found');
+  if (!issue) return null;
 
   return (
     <div className='flex flex-1 overflow-y-auto size-full'>
