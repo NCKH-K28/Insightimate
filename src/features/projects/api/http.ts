@@ -114,8 +114,14 @@ const PrjEndpoints = {
     update: `${PrjItem}/actors/{actorId}` as const,
   },
 
+  issueStatuses: {
+    list: `${PrjItem}/issue-statuses`,
+    create: `${PrjItem}/issue-statuses`,
+    delete: `${PrjItem}/issue-statuses`,
+  },
+
   fields: {
-    statuses: `${PrjItem}/fields/statuses`,
+    statuses: `${PrjItem}/issue-statuses`, // Updated to use new endpoint
     priorities: `${PrjItem}/fields/priorities`,
     types: `${PrjItem}/fields/types`,
   },
@@ -174,9 +180,16 @@ export const projectApi = {
       baseApi.put(PrjEndpoints.actors.update, data, ctx),
   },
 
+  issueStatuses: {
+    list: (ctx: PrjCtx) => baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.issueStatuses.list, ctx),
+    create: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.issueStatuses.create, data, ctx),
+    delete: (ctx: PrjCtx, statusId: string) => 
+      baseApi.delete(`${PrjEndpoints.issueStatuses.delete}?statusId=${statusId}`, ctx),
+  },
+
   fields: {
     statuses: {
-      list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.statuses, ctx),
+      list: (ctx: PrjCtx) => baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.fields.statuses, ctx),
     },
     priorities: {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.priorities, ctx),
