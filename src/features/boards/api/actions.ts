@@ -1,7 +1,8 @@
-import { BoardIssueMoveInput } from '@/contracts/boards/boards.input';
+import { BoardIssueMoveInput, BoardIssueUpdateInput } from '@/contracts/boards/boards.input';
 import { createApiMutationFc } from '@/lib/utils/api';
 import { mutationOptions, queryOptions, useQueryClient } from '@tanstack/react-query';
 import { boardApi } from './http';
+import { BoardIssueQueryParams } from '@/contracts/boards/boards.query';
 
 export const getBoardQueryOptions = (boardId: string) =>
   queryOptions({
@@ -12,10 +13,7 @@ export const getBoardQueryOptions = (boardId: string) =>
 
 // ========= BOARD ISSUES ==========
 type BoardIssueContext = Parameters<typeof boardApi.issues.update>[0];
-export const listBoardIssuesQueryOptions = (
-  boardId: string,
-  params?: Parameters<typeof boardApi.issues.list>[1],
-) =>
+export const listBoardIssuesQueryOptions = (boardId: string, params?: BoardIssueQueryParams) =>
   queryOptions({
     queryKey: ['boards', boardId, 'issues', params],
     queryFn: () => boardApi.issues.list({ boardId }, params),
@@ -29,7 +27,7 @@ export const getBoardIssueQueryOptions = (context: BoardIssueContext) => {
     queryFn: () => boardApi.issues.get(context, {}),
     staleTime: 1000 * 60 * 5,
   });
-}
+};
 
 export const getBoardIssueFacetsQueryOptions = (boardId: string) => {
   return queryOptions({
@@ -54,7 +52,11 @@ export const updateBoardIssueMutationOptions = (context: BoardIssueContext) => {
   const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'issues', context.issueId, 'update'],
-    mutationFn: createApiMutationFc(context, boardApi.issues.update),
+    mutationFn: (data: BoardIssueUpdateInput & { issueId?: string }) => {
+      const issueId = data.issueId || context.issueId;
+      if (!issueId) throw new Error('Issue ID is required to update an issue');
+      return boardApi.issues.update({ ...context, issueId }, data);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boards', context.boardId, 'issues'] });
     },
@@ -85,8 +87,7 @@ export const moveBoardIssueMutationOptions = (contex: { boardId: string; issueId
       queryClient.invalidateQueries({ queryKey: ['boards', contex.boardId, 'issues'] });
     },
   });
-};  
-
+};
 
 // ========= BOARD SPRINTS ==========
 export const createBoardSprintMutationOptions = (boardId: string) => {

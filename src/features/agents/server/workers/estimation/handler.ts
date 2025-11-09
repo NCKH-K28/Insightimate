@@ -7,18 +7,14 @@ import { getFileBytesFromS3, resolveFileRef } from './file-resolver';
 export async function analyzeDocumentHandler(input: AnalysisMsg) {
   const { analysisId } = input;
 
-  await prisma.analysis.updateMany({
-    where: { id: analysisId },
-    data: { runStatus: 'PROCESSING' },
-  });
+  const exists = await prisma.analysis.findUnique({ where: { id: analysisId } });
+  if (!exists) throw new Error(`[not-found] Analysis with id ${analysisId} not found`);
+  if (!exists.dataSourceId) throw new Error(`[invalid-data] Analysis dataSourceId is missing`);
+
+  await prisma.analysis.update({ where: { id: analysisId }, data: { runStatus: 'PROCESSING' } });
 
   try {
-    const analysis = await prisma.analysis.findUnique({ where: { id: analysisId } });
-    if (!analysis) throw new Error(`Analysis not found: ${analysisId}`);
-
-    if (!analysis.dataSourceId) throw new Error(`Analysis ${analysisId} missing dataSourceId`);
-
-    const { bucket, key } = await resolveFileRef(analysis.dataSourceId);
+    const { bucket, key } = await resolveFileRef(exists.dataSourceId);
     const bytes: Uint8Array<any> = await getFileBytesFromS3(bucket, key);
 
     const formData = new FormData();
@@ -39,9 +35,10 @@ export async function analyzeDocumentHandler(input: AnalysisMsg) {
     return analysisResult;
   } catch (err) {
     await prisma.analysis.updateMany({
-      where: { id: analysisId, runStatus: 'PROCESSING' },
+      where: { id: analysisId },
       data: { runStatus: 'FAILED', processedAt: new Date() },
     });
+
     throw err;
   }
 }

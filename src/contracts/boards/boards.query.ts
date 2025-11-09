@@ -4,8 +4,18 @@ import { ZBoard, ZBoardIssue, ZColumn, ZSprint } from './board';
 // ========== Board Issues ==========
 const ZBoardIssueFilter = z.object({ type: z.enum(['KANBAN', 'SCRUM']).optional() });
 
+const ZBoardIssueIncludeFields = z.enum([
+  'status',
+  'type',
+  'priority',
+  'assignee',
+  'sprint',
+  //
+]);
+
 export const ZBoardIssueQueryParams = z.object({
   filter: ZBoardIssueFilter.optional(),
+  include: z.array(ZBoardIssueIncludeFields).optional(),
 });
 
 export const ZBoardItem = ZBoard.extend({
@@ -28,6 +38,8 @@ export const ZBoardIssueItem = ZBoardIssue.extend({
   assignee: z
     .object({ id: z.string(), name: z.string(), email: z.string(), avatar: z.string().nullable() })
     .nullable(),
+  // ===
+  sprint: ZSprint.nullish(),
 });
 export const ZBoardIssueList = z.object({ data: ZBoardIssueItem.array(), meta: z.unknown() });
 

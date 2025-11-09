@@ -7,13 +7,15 @@ import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
-import { BacklogTab, KanbanTab, ListTab } from './_tabs';
+import { BacklogTab, KanbanTab, ListTab, GranttTab } from './_tabs';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
 type WrapperProps = { Component: React.ComponentType<{ params: WrapperParams }> };
 const Wrapper = React.memo(
   function Wrapper({ Component }: WrapperProps) {
     const params = useParams<{ projectId: string; workspaceId: string; boardId: string }>();
+    if (!params) throw new Error('Params not found');
+
     const { data: project, isPending } = useQuery(getProjectQueryOptions(params));
     if (isPending) return <div>Loading...</div>;
     if (!project) return <div>Project not found</div>;
@@ -47,9 +49,9 @@ const tabs = {
     labelEl: 'List',
     contentEl: <Wrapper Component={ListTab} />,
   },
-  timeline: {
-    labelEl: 'Timeline',
-    contentEl: <div>Timeline Page</div>,
+  grantt: {
+    labelEl: 'Grantt',
+    contentEl: <Wrapper Component={GranttTab} />,
   },
   calendar: {
     labelEl: 'Calendar',

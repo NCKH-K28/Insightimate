@@ -33,7 +33,10 @@ const getById = async (id: string) => {
   return ZBoardItem.parse(board);
 };
 
-const getIssue = async (params: { boardId: string; issueId: string }, context: { actorId: string }) => {
+const getIssue = async (
+  params: { boardId: string; issueId: string },
+  context: { actorId: string },
+) => {
   const boardIssue = await prisma.boardIssue.findFirst({
     where: { boardId: params.boardId, issueId: params.issueId },
     include: {
@@ -51,7 +54,7 @@ const getIssue = async (params: { boardId: string; issueId: string }, context: {
   });
   if (!boardIssue) throw new Error('Board issue not found');
   return ZBoardIssueList.parse({ data: [{ ...boardIssue.issue, ...boardIssue }] }).data[0];
-}
+};
 
 const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
   const board = await prisma.board.findUnique({ where: { id: boardId } });
@@ -101,6 +104,35 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
   });
 };
 
+const buildIncludeOptions = (
+  params: { boardId: string },
+  query: BoardIssueQueryParams,
+  context: { actorId: string },
+): Prisma.BoardIssueInclude & { issue: { include: Prisma.IssueInclude } } => {
+  const include: Prisma.BoardIssueInclude & { issue: { include: Prisma.IssueInclude } } = {
+    issue: {
+      include: {
+        type: true,
+        priority: true,
+        status: true,
+        reporter: true,
+        resolution: true,
+        assignee: true,
+      },
+    },
+    sprint: true,
+  };
+  if (!query.include) return include;
+  const includeInputMap = new Map<string, boolean>(query.include.map((field) => [field, true]));
+  if (includeInputMap.get('status')) include.issue.include.status = true;
+  if (includeInputMap.get('type')) include.issue.include.type = true;
+  if (includeInputMap.get('priority')) include.issue.include.priority = true;
+  if (includeInputMap.get('assignee')) include.issue.include.assignee = true;
+  if (includeInputMap.get('sprint')) include.sprint = true;
+
+  return include;
+};
+
 const listIssues = async (
   b: { id: string; type?: 'SCRUM' | 'KANBAN' },
   query: BoardIssueQueryParams,
@@ -131,20 +163,10 @@ const listIssues = async (
     where.sprintId = { in: ids };
   }
 
+  const includeOptions = buildIncludeOptions({ boardId: b.id }, query, context);
   const issues = await prisma.boardIssue.findMany({
     where,
-    include: {
-      issue: {
-        include: {
-          type: true,
-          priority: true,
-          status: true,
-          reporter: true,
-          resolution: true,
-          assignee: true,
-        },
-      },
-    },
+    include: includeOptions,
     orderBy: { rank: 'asc' },
   });
 
