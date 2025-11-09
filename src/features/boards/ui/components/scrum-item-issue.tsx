@@ -36,27 +36,22 @@ export type IssueItemProps = {
 };
 
 export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
-
   // FIXME: use workspace root path from context or hook
   const pathname = usePathname();
   const p = useParams<{
     workspaceId: string;
   }>();
 
-  const wspRoot = useMemo(
-    () => {
-      // p: wps/{workspaceId}/...
-      const reg = new RegExp(`/wps/${p.workspaceId}(/|$)`);
-      const match = pathname.match(reg);
-      if (match) {
-        return match[0].replace(/\/$/, ''); // remove trailing slash
-      }
-      return `/wps/${p.workspaceId}`;
-    },
-    [pathname, p.workspaceId],
-  );
+  const wspRoot = useMemo(() => {
+    // p: wps/{workspaceId}/...
+    const reg = new RegExp(`/wps/${p.workspaceId}(/|$)`);
+    const match = pathname.match(reg);
+    if (match) {
+      return match[0].replace(/\/$/, ''); // remove trailing slash
+    }
+    return `/wps/${p.workspaceId}`;
+  }, [pathname, p.workspaceId]);
   //============
-
 
   const params = useMemo(
     () => ({ boardId: issue.boardId, issueId: issue.id, projectId: issue.projectId }),
@@ -91,7 +86,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
   return (
     <div
       className={cn(
-'group relative flex items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
+        'group relative flex items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
         'hover:border-border hover:bg-accent/50 hover:shadow-sm',
         updateIssue.isPending && 'opacity-60 pointer-events-none',
       )}
@@ -122,7 +117,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
 
       <Link
         href={`${wspRoot}/projects/${issue.projectId}/issues/${issue.id}`}
-        className="text-xs font-medium text-muted-foreground opacity-90"
+        className='text-xs font-medium text-muted-foreground opacity-90'
       >
         {issue.key}
       </Link>
@@ -172,7 +167,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
             onChange={(option) => option.value && handleUpdate({ priorityId: option.value })}
           />
         </div>
-<Separator orientation='vertical' className='h-5' />
+        <Separator orientation='vertical' className='h-5' />
 
         {/* Assignee */}
         <div className='w-40'>

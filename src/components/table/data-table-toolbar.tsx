@@ -115,7 +115,7 @@ export function DataTableToolbar<TData>({ table, config }: DataTableToolbarProps
   const searchValue = useMemo(
     () =>
       config.searchColumn
-        ? (table.getColumn(config.searchColumn)?.getFilterValue() as string) ?? ''
+        ? ((table.getColumn(config.searchColumn)?.getFilterValue() as string) ?? '')
         : '',
     [table, config.searchColumn, columnFiltersState],
   );

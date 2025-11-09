@@ -108,8 +108,8 @@ export const MuilSelectors = (props: MuilSelectorsProps) => {
           {q.trim().length === 0
             ? 'Type to search options'
             : isPending
-            ? 'Loading options...'
-            : 'No options found.'}
+              ? 'Loading options...'
+              : 'No options found.'}
         </CommandEmpty>
         <CommandGroup
           className='max-h-60 overflow-y-auto'

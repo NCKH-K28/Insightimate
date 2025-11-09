@@ -25,10 +25,13 @@ export function useRoleManagement(projectId: string, serverRoles?: BaseRole[]) {
   }, [serverRoles]);
 
   const lookup = useMemo(() => {
-    return roles.reduce((acc, r) => {
-      acc[r.id] = { ...r, permLookup: new Set(r.permissions) };
-      return acc;
-    }, {} as Record<string, RoleState & { permLookup: Set<string> }>);
+    return roles.reduce(
+      (acc, r) => {
+        acc[r.id] = { ...r, permLookup: new Set(r.permissions) };
+        return acc;
+      },
+      {} as Record<string, RoleState & { permLookup: Set<string> }>,
+    );
   }, [roles]);
 
   const hasPermission = (roleId: string, perm: string) => {

@@ -1,5 +1,8 @@
 import { httpExceptionFilter } from '@/lib/http/filters';
-import { boardIssueCreateSchema, boardIssueQueryParamsSchema } from '../../../../../../../.temp/schemas/board-issue';
+import {
+  boardIssueCreateSchema,
+  boardIssueQueryParamsSchema,
+} from '../../../../../../../.temp/schemas/board-issue';
 import { NextRequest, NextResponse } from 'next/server';
 import { getBoardIssues, createBoardIssue } from '@/lib/services/old/board';
 import qs from 'qs';

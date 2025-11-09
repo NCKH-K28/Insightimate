@@ -1,73 +1,67 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import type { Editor } from "@tiptap/react"
+import * as React from 'react';
+import type { Editor } from '@tiptap/react';
 
 // --- Contexts ---
-import { useAppState } from "@/contexts/app-context"
+import { useAppState } from '@/contexts/app-context';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Tiptap UI ---
-import { CommentBubble } from "@/components/tiptap-ui/comment/comment-bubble"
+import { CommentBubble } from '@/components/tiptap-ui/comment/comment-bubble';
 
 // --- Styles ---
-import "@/components/tiptap-ui/comment/comment-bubbles.scss"
+import '@/components/tiptap-ui/comment/comment-bubbles.scss';
 
 interface Position {
-  id: string
-  pos: number
+  id: string;
+  pos: number;
 }
 
-export const CommentBubbles = ({
-  editor: providedEditor,
-}: {
-  editor?: Editor | null
-}) => {
-  const { editor } = useTiptapEditor(providedEditor)
-  const [positions, setPositions] = React.useState<Record<number, Position>>({})
-  const [editorWidth, setEditorWidth] = React.useState(0)
-  const { setActiveThread } = useAppState()
-  const positionsRef = React.useRef<Record<number, Position>>({})
+export const CommentBubbles = ({ editor: providedEditor }: { editor?: Editor | null }) => {
+  const { editor } = useTiptapEditor(providedEditor);
+  const [positions, setPositions] = React.useState<Record<number, Position>>({});
+  const [editorWidth, setEditorWidth] = React.useState(0);
+  const { setActiveThread } = useAppState();
+  const positionsRef = React.useRef<Record<number, Position>>({});
 
-  const commentBubbleItems = editor?.extensionStorage.commentBubbles?.items
+  const commentBubbleItems = editor?.extensionStorage.commentBubbles?.items;
   const bubbles = React.useMemo(
     () =>
       (commentBubbleItems ? Object.values(commentBubbleItems) : []) as Array<{
-        pos: number
-        threadIds: string[]
+        pos: number;
+        threadIds: string[];
       }>,
-    [commentBubbleItems]
-  )
+    [commentBubbleItems],
+  );
 
   const calculateDimensions = React.useCallback(() => {
     if (!bubbles || bubbles.length === 0 || !editor) {
-      return
+      return;
     }
 
-    const newPositions: Record<number, Position> = {}
-    const editorDom = editor.view.dom
-    const editorRect = editorDom.getBoundingClientRect()
+    const newPositions: Record<number, Position> = {};
+    const editorDom = editor.view.dom;
+    const editorRect = editorDom.getBoundingClientRect();
 
-    setEditorWidth(editorRect.width)
+    setEditorWidth(editorRect.width);
 
     bubbles.forEach((bubble) => {
-      const id = bubble.threadIds[0]
-      if (!id) return
+      const id = bubble.threadIds[0];
+      if (!id) return;
 
-      const domNode = editorDom.querySelector(
-        `[data-thread-id="${id}"]`
-      ) as HTMLElement | null
+      const domNode = editorDom.querySelector(`[data-thread-id="${id}"]`) as HTMLElement | null;
 
-      if (!domNode) return
+      if (!domNode) return;
 
       if (Object.values(newPositions).some((pos) => pos.id === id)) {
-        return
+        return;
       }
 
-      let coords = editor.view.coordsAtPos(bubble.pos)
-      const rect = domNode.getBoundingClientRect()
+      let coords = editor.view.coordsAtPos(bubble.pos);
+      const rect = domNode.getBoundingClientRect();
 
       // use rect if coords are not available
       if (!coords) {
@@ -76,68 +70,68 @@ export const CommentBubbles = ({
           top: rect.top,
           bottom: rect.bottom,
           right: rect.right,
-        }
+        };
       }
 
-      const scrollTop = window.scrollY || document.documentElement.scrollTop
+      const scrollTop = window.scrollY || document.documentElement.scrollTop;
 
       newPositions[bubble.pos] = {
         pos: coords.top + scrollTop,
         id,
-      }
-    })
+      };
+    });
 
-    setPositions(newPositions)
-    positionsRef.current = newPositions
-  }, [bubbles, editor])
+    setPositions(newPositions);
+    positionsRef.current = newPositions;
+  }, [bubbles, editor]);
 
   React.useEffect(() => {
-    if (!editor) return
+    if (!editor) return;
 
-    calculateDimensions()
+    calculateDimensions();
 
-    const observer = new ResizeObserver(calculateDimensions)
-    observer.observe(editor.view.dom)
+    const observer = new ResizeObserver(calculateDimensions);
+    observer.observe(editor.view.dom);
 
     const handleScroll = () => {
-      requestAnimationFrame(calculateDimensions)
-    }
+      requestAnimationFrame(calculateDimensions);
+    };
 
-    editor.view.root.addEventListener("scroll", handleScroll, {
+    editor.view.root.addEventListener('scroll', handleScroll, {
       passive: true,
-    })
+    });
 
     const handleUpdate = () => {
-      requestAnimationFrame(calculateDimensions)
-    }
+      requestAnimationFrame(calculateDimensions);
+    };
 
-    editor.on("update", handleUpdate)
+    editor.on('update', handleUpdate);
 
     return () => {
-      observer.disconnect()
-      editor.view.root.removeEventListener("scroll", handleScroll)
-      editor.off("update", handleUpdate)
-    }
-  }, [calculateDimensions, editor])
+      observer.disconnect();
+      editor.view.root.removeEventListener('scroll', handleScroll);
+      editor.off('update', handleUpdate);
+    };
+  }, [calculateDimensions, editor]);
 
   if (bubbles.length === 0 || !editor) {
-    return null
+    return null;
   }
 
   return (
     <div
-      className="tiptap-comment-bubbles"
-      style={{ "--editor-width": `${editorWidth}px` } as React.CSSProperties}
+      className='tiptap-comment-bubbles'
+      style={{ '--editor-width': `${editorWidth}px` } as React.CSSProperties}
     >
       {bubbles.map((bubble) => (
         <CommentBubble
           key={bubble.pos}
           offset={positions[bubble.pos]?.pos ?? 0}
           threadIds={bubble.threadIds}
-          resolvedThreadDisplay="semi-transparent"
+          resolvedThreadDisplay='semi-transparent'
           onBubbleClick={(threadId) => setActiveThread(threadId)}
         />
       ))}
     </div>
-  )
-}
+  );
+};

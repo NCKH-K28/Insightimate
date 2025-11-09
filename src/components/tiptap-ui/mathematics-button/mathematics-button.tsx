@@ -1,45 +1,43 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 // --- Lib ---
-import { parseShortcutKeys } from "@/lib/tiptap-utils"
+import { parseShortcutKeys } from '@/lib/tiptap-utils';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Tiptap UI ---
-import type { UseMathematicsConfig } from "@/components/tiptap-ui/mathematics-button"
+import type { UseMathematicsConfig } from '@/components/tiptap-ui/mathematics-button';
 import {
   MATHEMATICS_SHORTCUT_KEY,
   useMathematics,
-} from "@/components/tiptap-ui/mathematics-button"
+} from '@/components/tiptap-ui/mathematics-button';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Badge } from "@/components/tiptap-ui-primitive/badge"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button } from '@/components/tiptap-ui-primitive/button';
+import { Badge } from '@/components/tiptap-ui-primitive/badge';
 
-export interface MathematicsButtonProps
-  extends Omit<ButtonProps, "type">,
-    UseMathematicsConfig {
+export interface MathematicsButtonProps extends Omit<ButtonProps, 'type'>, UseMathematicsConfig {
   /**
    * Optional text to display alongside the icon.
    */
-  text?: string
+  text?: string;
   /**
    * Optional show shortcut keys in the button.
    * @default false
    */
-  showShortcut?: boolean
+  showShortcut?: boolean;
 }
 
 export function MathematicsShortcutBadge({
   shortcutKeys = MATHEMATICS_SHORTCUT_KEY,
 }: {
-  shortcutKeys?: string
+  shortcutKeys?: string;
 }) {
-  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>
+  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>;
 }
 
 /**
@@ -47,15 +45,12 @@ export function MathematicsShortcutBadge({
  *
  * For custom button implementations, use the `useMathematics` hook instead.
  */
-export const MathematicsButton = React.forwardRef<
-  HTMLButtonElement,
-  MathematicsButtonProps
->(
+export const MathematicsButton = React.forwardRef<HTMLButtonElement, MathematicsButtonProps>(
   (
     {
       editor: providedEditor,
       text,
-      formula = "",
+      formula = '',
       hideWhenUnavailable = false,
       onInserted,
       showShortcut = false,
@@ -63,45 +58,38 @@ export const MathematicsButton = React.forwardRef<
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const { editor } = useTiptapEditor(providedEditor)
-    const {
-      isVisible,
-      handleMathematics,
-      label,
-      canInsert,
-      isActive,
-      shortcutKeys,
-      Icon,
-    } = useMathematics({
-      editor,
-      formula,
-      hideWhenUnavailable,
-      onInserted,
-    })
+    const { editor } = useTiptapEditor(providedEditor);
+    const { isVisible, handleMathematics, label, canInsert, isActive, shortcutKeys, Icon } =
+      useMathematics({
+        editor,
+        formula,
+        hideWhenUnavailable,
+        onInserted,
+      });
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        handleMathematics()
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        handleMathematics();
       },
-      [handleMathematics, onClick]
-    )
+      [handleMathematics, onClick],
+    );
 
     if (!isVisible) {
-      return null
+      return null;
     }
 
     return (
       <Button
-        type="button"
+        type='button'
         disabled={!canInsert}
-        data-style="ghost"
-        data-active-state={isActive ? "on" : "off"}
+        data-style='ghost'
+        data-active-state={isActive ? 'on' : 'off'}
         data-disabled={!canInsert}
-        role="button"
+        role='button'
         tabIndex={-1}
         aria-label={label}
         tooltip={label}
@@ -111,16 +99,14 @@ export const MathematicsButton = React.forwardRef<
       >
         {children ?? (
           <>
-            <Icon className="tiptap-button-icon" />
-            {text && <span className="tiptap-button-text">{text}</span>}
-            {showShortcut && (
-              <MathematicsShortcutBadge shortcutKeys={shortcutKeys} />
-            )}
+            <Icon className='tiptap-button-icon' />
+            {text && <span className='tiptap-button-text'>{text}</span>}
+            {showShortcut && <MathematicsShortcutBadge shortcutKeys={shortcutKeys} />}
           </>
         )}
       </Button>
-    )
-  }
-)
+    );
+  },
+);
 
-MathematicsButton.displayName = "MathematicsButton"
+MathematicsButton.displayName = 'MathematicsButton';

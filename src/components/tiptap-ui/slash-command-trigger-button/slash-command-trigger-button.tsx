@@ -1,45 +1,45 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 // --- Lib ---
-import { parseShortcutKeys } from "@/lib/tiptap-utils"
+import { parseShortcutKeys } from '@/lib/tiptap-utils';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Tiptap UI ---
-import type { UseSlashCommandTriggerConfig } from "@/components/tiptap-ui/slash-command-trigger-button"
+import type { UseSlashCommandTriggerConfig } from '@/components/tiptap-ui/slash-command-trigger-button';
 import {
   SLASH_COMMAND_TRIGGER_SHORTCUT_KEY,
   useSlashCommandTrigger,
-} from "@/components/tiptap-ui/slash-command-trigger-button"
+} from '@/components/tiptap-ui/slash-command-trigger-button';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Badge } from "@/components/tiptap-ui-primitive/badge"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button } from '@/components/tiptap-ui-primitive/button';
+import { Badge } from '@/components/tiptap-ui-primitive/badge';
 
 export interface SlashCommandTriggerButtonProps
-  extends Omit<ButtonProps, "type">,
+  extends Omit<ButtonProps, 'type'>,
     UseSlashCommandTriggerConfig {
   /**
    * Optional text to display alongside the icon.
    */
-  text?: string
+  text?: string;
   /**
    * Optional show shortcut keys in the button.
    * @default false
    */
-  showShortcut?: boolean
+  showShortcut?: boolean;
 }
 
 export function SlashCommandShortcutBadge({
   shortcutKeys = SLASH_COMMAND_TRIGGER_SHORTCUT_KEY,
 }: {
-  shortcutKeys?: string
+  shortcutKeys?: string;
 }) {
-  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>
+  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>;
 }
 
 /**
@@ -57,7 +57,7 @@ export const SlashCommandTriggerButton = React.forwardRef<
       node,
       nodePos,
       text,
-      trigger = "/",
+      trigger = '/',
       hideWhenUnavailable = false,
       onTriggered,
       showShortcut = false,
@@ -65,43 +65,37 @@ export const SlashCommandTriggerButton = React.forwardRef<
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const { editor } = useTiptapEditor(providedEditor)
-    const {
-      isVisible,
-      canInsert,
-      handleSlashCommand,
-      label,
-      shortcutKeys,
-      Icon,
-    } = useSlashCommandTrigger({
-      editor,
-      node,
-      nodePos,
-      trigger,
-      hideWhenUnavailable,
-      onTriggered,
-    })
+    const { editor } = useTiptapEditor(providedEditor);
+    const { isVisible, canInsert, handleSlashCommand, label, shortcutKeys, Icon } =
+      useSlashCommandTrigger({
+        editor,
+        node,
+        nodePos,
+        trigger,
+        hideWhenUnavailable,
+        onTriggered,
+      });
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        handleSlashCommand()
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        handleSlashCommand();
       },
-      [handleSlashCommand, onClick]
-    )
+      [handleSlashCommand, onClick],
+    );
 
     if (!isVisible) {
-      return null
+      return null;
     }
 
     return (
       <Button
-        type="button"
-        data-style="ghost"
-        role="button"
+        type='button'
+        data-style='ghost'
+        role='button'
         tabIndex={-1}
         disabled={!canInsert}
         data-disabled={!canInsert}
@@ -113,16 +107,14 @@ export const SlashCommandTriggerButton = React.forwardRef<
       >
         {children ?? (
           <>
-            <Icon className="tiptap-button-icon" />
-            {text && <span className="tiptap-button-text">{text}</span>}
-            {showShortcut && (
-              <SlashCommandShortcutBadge shortcutKeys={shortcutKeys} />
-            )}
+            <Icon className='tiptap-button-icon' />
+            {text && <span className='tiptap-button-text'>{text}</span>}
+            {showShortcut && <SlashCommandShortcutBadge shortcutKeys={shortcutKeys} />}
           </>
         )}
       </Button>
-    )
-  }
-)
+    );
+  },
+);
 
-SlashCommandTriggerButton.displayName = "SlashCommandTriggerButton"
+SlashCommandTriggerButton.displayName = 'SlashCommandTriggerButton';

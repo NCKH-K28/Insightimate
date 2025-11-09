@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export const commentService = {
   // 🟢 Tạo comment mới
@@ -25,7 +25,7 @@ export const commentService = {
   async getByIssue(issueId: string) {
     const comments = await prisma.comment.findMany({
       where: { issueId },
-      orderBy: { createdAt: "asc" },
+      orderBy: { createdAt: 'asc' },
     });
     return comments;
   },

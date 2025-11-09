@@ -1,1 +1,1 @@
-export * from "./improve-dropdown"
+export * from './improve-dropdown';

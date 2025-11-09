@@ -541,7 +541,6 @@ const addStatus = async (
   return status;
 };
 
-
 export const projectsService = {
   list: listProjects,
   create: createProject,
@@ -570,5 +569,5 @@ export const projectsService = {
 
   // -- field
   listStatuses,
-  addStatus
+  addStatus,
 };

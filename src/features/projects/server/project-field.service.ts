@@ -15,9 +15,12 @@ export const listStatuses = async (projectId: string) => {
   });
 
   const groupedData = groupBy(data, (item) => categories[item.category]);
-  const aggregations = Object.keys(groupedData).reduce((acc, key) => {
-    return Object.assign(acc, { [key]: groupedData[key].length });
-  }, {} as Record<string, number>);
+  const aggregations = Object.keys(groupedData).reduce(
+    (acc, key) => {
+      return Object.assign(acc, { [key]: groupedData[key].length });
+    },
+    {} as Record<string, number>,
+  );
 
   return {
     data,

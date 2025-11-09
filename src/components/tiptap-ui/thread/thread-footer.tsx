@@ -1,15 +1,15 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import type { JSONContent } from "@tiptap/react"
+import * as React from 'react';
+import type { JSONContent } from '@tiptap/react';
 
 // --- Tiptap UI ---
-import { CommentInput } from "@/components/tiptap-ui/comment"
+import { CommentInput } from '@/components/tiptap-ui/comment';
 
 interface ThreadFooterProps {
-  isCommenting: boolean
-  setIsCommenting: (value: boolean) => void
-  onCreateComment: (content: JSONContent) => void
+  isCommenting: boolean;
+  setIsCommenting: (value: boolean) => void;
+  onCreateComment: (content: JSONContent) => void;
 }
 
 export const ThreadFooter: React.FC<ThreadFooterProps> = ({
@@ -17,7 +17,7 @@ export const ThreadFooter: React.FC<ThreadFooterProps> = ({
   setIsCommenting,
   onCreateComment,
 }) => (
-  <div className="tiptap-thread-footer">
+  <div className='tiptap-thread-footer'>
     <CommentInput
       onSend={onCreateComment}
       onCancel={() => setIsCommenting(false)}
@@ -26,4 +26,4 @@ export const ThreadFooter: React.FC<ThreadFooterProps> = ({
       onOpen={() => setIsCommenting(true)}
     />
   </div>
-)
+);

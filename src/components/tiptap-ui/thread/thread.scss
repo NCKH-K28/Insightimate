@@ -22,9 +22,7 @@
   width: 22.5rem;
   max-height: 80dvh;
   position: relative;
-  border-radius: calc(
-    var(--padding) + var(--tt-radius-lg) + var(--border-width)
-  );
+  border-radius: calc(var(--padding) + var(--tt-radius-lg) + var(--border-width));
   border: var(--border-width) solid var(--tiptap-thread-border-color);
   box-shadow: var(--tiptap-thread-shadow);
   background-color: var(--tiptap-thread-bg-color);

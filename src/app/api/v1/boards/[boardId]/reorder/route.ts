@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { httpExceptionFilter } from '@/lib/http/filters';
-import { boardIssueReorderSchema, boardReorderSchema } from '../../../../../../../.temp/schemas/board';
+import {
+  boardIssueReorderSchema,
+  boardReorderSchema,
+} from '../../../../../../../.temp/schemas/board';
 import { reorderBoardIssues } from '@/lib/services/old/board';
 
 type Context = { params: Promise<{ boardId: string }> };

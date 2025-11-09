@@ -25,11 +25,11 @@ type CreateStatusButtonProps = {
   className?: string;
 };
 
-export const CreateStatusButton = ({ 
-  projectId, 
-  variant = 'default', 
+export const CreateStatusButton = ({
+  projectId,
+  variant = 'default',
   size = 'sm',
-  className 
+  className,
 }: CreateStatusButtonProps) => {
   const [open, setOpen] = React.useState(false);
 
@@ -57,7 +57,8 @@ export const CreateStatusButton = ({
         <DialogHeader className='space-y-3'>
           <DialogTitle className='text-2xl font-bold'>Create New Status</DialogTitle>
           <DialogDescription className='text-base'>
-            Create a new status for organizing your issues. Choose a category to determine which column it belongs to.
+            Create a new status for organizing your issues. Choose a category to determine which
+            column it belongs to.
           </DialogDescription>
         </DialogHeader>
         <CreateStatusForm

@@ -101,8 +101,8 @@ const formatTextJSON = (text: string) => {
     firstCurly === -1
       ? firstSquare
       : firstSquare === -1
-      ? firstCurly
-      : Math.min(firstCurly, firstSquare);
+        ? firstCurly
+        : Math.min(firstCurly, firstSquare);
   const lastCurly = text.lastIndexOf('}');
   const lastSquare = text.lastIndexOf(']');
   const endIndex =

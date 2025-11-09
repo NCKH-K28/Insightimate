@@ -190,4 +190,3 @@ export interface ModelEstimates {
   loc_random_forest_name: string;
   loc_random_forest_type: string;
 }
-    

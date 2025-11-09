@@ -998,7 +998,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         '--gantt-header-height': `${headerHeight}px`,
         '--gantt-row-height': `${rowHeight}px`,
         '--gantt-sidebar-width': `${sidebarWidth}px`,
-      } as CSSProperties),
+      }) as CSSProperties,
     [zoom, columnWidth, sidebarWidth],
   );
   useEffect(() => {

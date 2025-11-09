@@ -1,64 +1,60 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import type { JSONContent, Editor } from "@tiptap/react"
-import { NodeSelection } from "@tiptap/pm/state"
+import * as React from 'react';
+import type { JSONContent, Editor } from '@tiptap/react';
+import { NodeSelection } from '@tiptap/pm/state';
 
 // --- Contexts ---
-import { useUser } from "@/contexts/user-context"
+import { useUser } from '@/contexts/user-context';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
-import { useIsMobile } from "@/hooks/use-mobile"
-import { useUiEditorState } from "@/hooks/use-ui-editor-state"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useUiEditorState } from '@/hooks/use-ui-editor-state';
 
 // --- Lib ---
-import { isSelectionValid } from "@/lib/tiptap-collab-utils"
+import { isSelectionValid } from '@/lib/tiptap-collab-utils';
 
 // --- Tiptap UI ---
-import { FloatingElement } from "@/components/tiptap-ui-utils/floating-element"
-import { CommentInput } from "@/components/tiptap-ui/comment"
+import { FloatingElement } from '@/components/tiptap-ui-utils/floating-element';
+import { CommentInput } from '@/components/tiptap-ui/comment';
 
 interface CommentInputFloatingProps {
-  editor?: Editor | null
+  editor?: Editor | null;
 }
 
-export const CommentInputFloating = ({
-  editor: providedEditor,
-}: CommentInputFloatingProps) => {
-  const { editor } = useTiptapEditor(providedEditor)
-  const { user } = useUser()
-  const isMobile = useIsMobile()
-  const { commentInputVisible } = useUiEditorState(editor)
-  const [shouldShow, setShouldShow] = React.useState(false)
+export const CommentInputFloating = ({ editor: providedEditor }: CommentInputFloatingProps) => {
+  const { editor } = useTiptapEditor(providedEditor);
+  const { user } = useUser();
+  const isMobile = useIsMobile();
+  const { commentInputVisible } = useUiEditorState(editor);
+  const [shouldShow, setShouldShow] = React.useState(false);
 
   React.useEffect(() => {
-    if (!editor) return
+    if (!editor) return;
 
     const handleSelectionUpdate = () => {
-      setShouldShow(
-        isSelectionValid(editor, editor.state.selection) && commentInputVisible
-      )
-    }
+      setShouldShow(isSelectionValid(editor, editor.state.selection) && commentInputVisible);
+    };
 
-    handleSelectionUpdate()
+    handleSelectionUpdate();
 
-    editor.on("selectionUpdate", handleSelectionUpdate)
+    editor.on('selectionUpdate', handleSelectionUpdate);
 
     return () => {
-      editor.off("selectionUpdate", handleSelectionUpdate)
-    }
-  }, [editor, commentInputVisible])
+      editor.off('selectionUpdate', handleSelectionUpdate);
+    };
+  }, [editor, commentInputVisible]);
 
   const handleSend = React.useCallback(
     (content: JSONContent) => {
-      if (!editor) return
+      if (!editor) return;
 
-      const { selection } = editor.view.state
-      const { from, to } = selection
+      const { selection } = editor.view.state;
+      const { from, to } = selection;
 
       if (selection instanceof NodeSelection) {
-        editor.chain().focus().setTextSelection({ from, to }).run()
+        editor.chain().focus().setTextSelection({ from, to }).run();
       }
 
       const commentData = {
@@ -66,7 +62,7 @@ export const CommentInputFloating = ({
         authorName: user.name,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-      }
+      };
 
       editor
         .chain()
@@ -76,30 +72,30 @@ export const CommentInputFloating = ({
           commentData,
           data: commentData,
         })
-        .run()
+        .run();
 
-      editor.commands.commentInputHide()
+      editor.commands.commentInputHide();
     },
-    [editor, user.id, user.name]
-  )
+    [editor, user.id, user.name],
+  );
 
   return (
     <FloatingElement
       shouldShow={shouldShow}
       floatingOptions={{
-        placement: "bottom",
+        placement: 'bottom',
         onOpenChange: (isOpen) => {
-          if (!isOpen) editor?.commands.commentInputHide()
+          if (!isOpen) editor?.commands.commentInputHide();
         },
       }}
       {...(isMobile
         ? {
             style: {
-              position: "fixed",
+              position: 'fixed',
               left: 0,
               right: 0,
               bottom: 0,
-              margin: ".5rem",
+              margin: '.5rem',
               zIndex: 50,
             },
           }
@@ -107,5 +103,5 @@ export const CommentInputFloating = ({
     >
       <CommentInput onSend={handleSend} floating />
     </FloatingElement>
-  )
-}
+  );
+};

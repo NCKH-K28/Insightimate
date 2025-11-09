@@ -1,12 +1,12 @@
 # yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
-  version: "default"
+  version: 'default'
   importDerivedRoles:
     - common_derived_roles
-  resource: "project"
+  resource: 'project'
   rules:
-    - actions: ["read", "list"]
+    - actions: ['read', 'list']
       effect: EFFECT_ALLOW
       derivedRoles:
         - ws_owner
@@ -15,14 +15,14 @@ resourcePolicy:
         - proj_lead
         - proj_member
 
-    - actions: ["update", "delete"]
+    - actions: ['update', 'delete']
       effect: EFFECT_ALLOW
       derivedRoles:
         - ws_owner
         - ws_admin
         - proj_lead
 
-    - actions: ["manage"]
+    - actions: ['manage']
       effect: EFFECT_ALLOW
       derivedRoles:
         - ws_owner

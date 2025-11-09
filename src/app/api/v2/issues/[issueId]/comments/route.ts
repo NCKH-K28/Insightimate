@@ -2,7 +2,10 @@ import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
 
-export async function GET(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { issueId: string } | Promise<{ issueId: string }> },
+) {
   try {
     const { issueId } = await params;
 
@@ -18,7 +21,10 @@ export async function GET(req: NextRequest, { params }: { params: { issueId: str
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { issueId: string } | Promise<{ issueId: string }> },
+) {
   try {
     const { content, userId, userName } = await req.json();
 
