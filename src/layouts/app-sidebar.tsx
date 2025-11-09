@@ -37,7 +37,9 @@ import NavUser from './nav-user';
 import { SearchButton } from '@/features/query/ui/search-button';
 
 function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Params is undefined');
+  const { workspaceId } = params;
 
   // const fetchRecentPlans = useQuery({
   //   ...fetchPlansQueryOption(),
@@ -104,6 +106,15 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
+              <Link href={`/wps/${workspaceId}/teams`}>
+                <Users2Icon />
+                <span>Teams</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+
+          <SidebarMenuItem className='opacity-50 pointer-events-none'>
+            <SidebarMenuButton asChild disabled={true}>
               <Link href={`/wps/${workspaceId}/reports`}>
                 <BarChart3 />
                 <span>Reports</span>
@@ -111,20 +122,11 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
+          <SidebarMenuItem className='opacity-50 pointer-events-none'>
+            <SidebarMenuButton asChild disabled={true}>
               <Link href={`/wps/${workspaceId}/starred`}>
                 <Star />
                 <span>Starred</span>
-              </Link>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href={`/wps/${workspaceId}/teams`}>
-                <Users2Icon />
-                <span>Teams</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -135,18 +137,19 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           label='Recent'
           items={[
             {
+              title: 'Projects',
+              url: `/wps/${workspaceId}/projects`,
+              icon: FolderKanban,
+            },
+            {
               title: 'Plans',
               url: `/wps/${workspaceId}/plans`,
               icon: Calendar,
+              disabled: true,
               items: recentPlans?.map((plan) => ({
                 title: plan.title,
                 url: `/wps/${workspaceId}/plans/${plan.id}`,
               })),
-            },
-            {
-              title: 'Projects',
-              url: `/wps/${workspaceId}/projects`,
-              icon: FolderKanban,
             },
           ]}
         />

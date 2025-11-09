@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
-import { BacklogTab, KanbanTab, ListTab, GranttTab } from './_tabs';
+import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab } from './_tabs';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
 type WrapperProps = { Component: React.ComponentType<{ params: WrapperParams }> };
@@ -55,7 +55,7 @@ const tabs = {
   },
   calendar: {
     labelEl: 'Calendar',
-    contentEl: <div>Calendar Page</div>,
+    contentEl: <Wrapper Component={CalendarTab} />,
   },
 };
 
@@ -65,6 +65,8 @@ export default function ProjectWithViewModePage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  if (!searchParams) throw new Error('Search params not found');
 
   const tab = searchParams.get('tab') || tabArr[0][0];
 

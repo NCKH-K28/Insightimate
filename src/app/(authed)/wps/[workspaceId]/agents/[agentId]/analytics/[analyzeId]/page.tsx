@@ -8,6 +8,7 @@ import { EstimationReport } from '../../_components/reports/estimation-report';
 
 export default function Page() {
   const params = useParams<{ workspaceId: string; agentId: string; analyzeId: string }>();
+  if (!params) throw new Error('Params not found');
   const { data: analyze, isPending } = useQuery({
     queryKey: ['estimation-report', params.analyzeId],
     queryFn: async () => {
@@ -27,7 +28,11 @@ export default function Page() {
 
   if (type == 'ESTIMATION' && version == 1) {
     const estimationReport = analyze.output as EstimationReportType;
-    return <EstimationReport data={estimationReport} />;
+    return (
+      <div className='size-full overflow-x-auto'>
+        <EstimationReport data={estimationReport} />;
+      </div>
+    );
   }
 
   return <div>Unsupported analysis type or version.</div>;
