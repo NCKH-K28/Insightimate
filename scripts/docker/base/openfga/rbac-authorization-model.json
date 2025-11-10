@@ -160,12 +160,34 @@
       }
     },
     {
+      "type": "project_permission",
+      "relations": {
+        "parent": {
+          "this": {}
+        }
+      },
+      "metadata": {
+        "relations": {
+          "parent": {
+            "directly_related_user_types": [
+              {
+                "type": "project_role"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
       "type": "project_role",
       "relations": {
         "parent": {
           "this": {}
         },
         "child": {
+          "this": {}
+        },
+        "grants": {
           "this": {}
         },
         "can_delete": {
@@ -212,6 +234,13 @@
               {
                 "type": "team",
                 "relation": "TEAM_MEMBER"
+              }
+            ]
+          },
+          "grants": {
+            "directly_related_user_types": [
+              {
+                "type": "project_permission"
               }
             ]
           },

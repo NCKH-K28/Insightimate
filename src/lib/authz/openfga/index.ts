@@ -16,7 +16,19 @@ export const openfgaClient = new OpenFgaClient({
 });
 
 export const loadAuthorizationModelFile = async () => {
-  const filePath = path.join(process.cwd(), 'scripts', 'openfga', 'rbac-authorization-model.json');
+  const filePath = path.join(
+    process.cwd(),
+    'scripts/docker/base',
+    'openfga',
+    'rbac-authorization-model.json',
+  );
+
+  const fileExists = await fs
+    .access(filePath)
+    .then(() => true)
+    .catch(() => false);
+  if (!fileExists) throw new Error(`Authorization model file not found at path: ${filePath}`);
+
   const fileContents = await fs.readFile(filePath, 'utf-8');
   return JSON.parse(fileContents);
 };

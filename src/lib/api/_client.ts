@@ -1,5 +1,3 @@
- 
-
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import qs from 'qs';
 
@@ -39,7 +37,7 @@ const axiosInstance = axios.create({
   baseURL: '/api',
   // headers: { 'Content-Type': 'application/json' },
   withCredentials: true, // FIXME: cân nhắc token-based
-  timeout: 15000,
+  timeout: 30000,
   paramsSerializer: (params) =>
     qs.stringify(params, {
       arrayFormat: 'brackets',

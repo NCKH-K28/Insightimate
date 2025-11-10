@@ -1,6 +1,5 @@
 import {
   getBoardIssueFacetsQueryOptions,
-  getBoardQueryOptions,
   listBoardIssuesQueryOptions,
 } from '@/features/boards/api/actions';
 import { ColumnFilter, DataTable, DataTablePagination, DataTableToolbar } from '@/components/table';
