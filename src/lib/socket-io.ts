@@ -6,7 +6,7 @@ const SET_SOCKET_IO_CLIENT = '__socketIOClient__';
 
 const getSocketClient = (): Socket => {
   const globalAny: any = globalThis as any;
-  let client = get(globalAny, SET_SOCKET_IO_CLIENT);
+  const client = get(globalAny, SET_SOCKET_IO_CLIENT);
   if (client) return client;
   const newClient = io('http://localhost:4000', {
     reconnection: true,

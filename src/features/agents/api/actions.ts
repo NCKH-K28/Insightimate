@@ -52,7 +52,15 @@ export const listAgentSourcesQueryOptions = (params: { agentId: string }) => {
     queryKey: ['agent-sources', params.agentId],
     queryFn: async () => {
       const res: any = await agentApi.sources.list({ agentId: params.agentId });
-      return res.data;
+      return res.data as {
+        id: string;
+        sourceType: 'PROJECT' | 'FILE';
+        name: string;
+        status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED' | 'READY';
+        createdAt: string;
+        updatedAt: string;
+        snapshot: any;
+      }[];
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

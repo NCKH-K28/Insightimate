@@ -1,28 +1,7 @@
-import React, { memo, useMemo, useCallback, useRef, useState } from 'react';
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  DragStartEvent,
-  DragEndEvent,
-  DragOverEvent,
-  useDroppable,
-  useSensors,
-  useSensor,
-  PointerSensor,
-  KeyboardSensor,
-  useDndContext,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { createPortal } from 'react-dom';
-import tunnel from 'tunnel-rat';
-import { cn } from '@/lib/utils';
+/* eslint-disable react/display-name */
+
+import React, { memo } from 'react';
+import { DndContext } from '@dnd-kit/core';
 
 type KanbanItemProps = {
   value: string | null;
@@ -51,7 +30,7 @@ type KanbanBoardProps = {
 };
 
 export const KanbanBoard = memo((props: KanbanBoardProps) => {
-  const { columns, onColumnDrop, onItemDrop } = props;
+  const { columns } = props;
 
   return (
     <DndContext>

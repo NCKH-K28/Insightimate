@@ -1,4 +1,3 @@
-// src/features/authz/server/invite.service.ts
 import { Prisma } from '@prisma/client';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { z } from 'zod';
@@ -76,7 +75,7 @@ const ZInvitePayload = z.object({
   }),
 });
 
-const listInvites = async (query: ListInvitesQuery, context: InviteContext) => {
+const listInvites = async (query: ListInvitesQuery, _context: InviteContext) => {
   const invites = await prisma.invitation.findMany({
     where: {
       resourceType: query.resourceType,
@@ -274,7 +273,7 @@ const searchCandidates = async (
   throw new Error('Resource is required for searching candidates');
 };
 
-const revokeInvite = async (inviteId: string, context: InviteContext) => {
+const revokeInvite = async (inviteId: string, _context: InviteContext) => {
   const invite = await prisma.invitation.findUnique({ where: { id: inviteId } });
   if (!invite) throw new InviteNotFoundError();
 
@@ -288,7 +287,7 @@ const revokeInvite = async (inviteId: string, context: InviteContext) => {
   });
 };
 
-const resendInvite = async (inviteId: string, context: InviteContext) => {
+const resendInvite = async (inviteId: string, _context: InviteContext) => {
   const invite = await prisma.invitation.findUnique({ where: { id: inviteId } });
   if (!invite) throw new InviteNotFoundError();
   if (invite.revokedAt || invite.acceptedAt || invite.expiresAt < new Date()) {

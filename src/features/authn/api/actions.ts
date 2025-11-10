@@ -1,5 +1,5 @@
 import { isAuthed } from '@/lib/utils/api';
-import { queryOptions, useQueryClient } from '@tanstack/react-query';
+import { queryOptions } from '@tanstack/react-query';
 import { authApi } from './http';
 
 export const getMeQueryOptions = () => {
@@ -13,28 +13,25 @@ export const getMeQueryOptions = () => {
 };
 
 export const signoutMutationOptions = () => {
-  const queryClient = useQueryClient();
   return {
     mutationKey: ['signout'],
     mutationFn: async () => authApi.signOut({}, {}),
-    onSuccess: () => queryClient.clear(),
+    meta: { clear: true },
   };
 };
 
 export const signInMutationOptions = () => {
-  const queryClient = useQueryClient();
   return {
     mutationKey: ['signin'],
     mutationFn: (data: Parameters<typeof authApi.signIn>[0]) => authApi.signIn({}, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
+    meta: { invalidateQueries: [['me']] },
   };
 };
 
 export const signUpMutationOptions = () => {
-  const queryClient = useQueryClient();
   return {
     mutationKey: ['signup'],
     mutationFn: (data: Parameters<typeof authApi.signUp>[0]) => authApi.signUp({}, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
+    meta: { invalidateQueries: [['me']] },
   };
 };

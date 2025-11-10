@@ -23,6 +23,9 @@ export const useProjectsQueryParams = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
+  if (!pathname) throw new Error('Missing pathname');
+  if (!searchParams) throw new Error('Missing search params');
+
   const setQuery = React.useCallback(
     (query: Partial<ProjectQueryParams>, options?: { replace?: boolean }) => {
       const current = projectQs.parse(searchParams.toString());

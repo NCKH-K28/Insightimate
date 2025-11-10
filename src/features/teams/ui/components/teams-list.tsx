@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export type TeamListProps = { params: { workspaceId: string } };
-export const TeamsList = ({ params }: TeamListProps) => {
+export const TeamsList = ({}: TeamListProps) => {
   const pathname = usePathname();
+  if (!pathname) throw new Error('pathname is undefined');
 
   const teamBasePath = useMemo(() => {
     const basePath = pathname.replace(/\/teams(\/.*)?$/, '');
@@ -18,7 +19,7 @@ export const TeamsList = ({ params }: TeamListProps) => {
     return basePath + '/teams';
   }, [pathname]);
 
-  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions(params));
+  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions());
 
   if (teams.length === 0) {
     return <p className='text-gray-600'>No teams found. Create a team to get started.</p>;

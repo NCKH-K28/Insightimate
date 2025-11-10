@@ -18,12 +18,12 @@
     width: 100%;
     margin: 1.5rem 0;
 
-    &[data-align="right"] {
+    &[data-align='right'] {
       text-align: right;
       justify-content: flex-end;
     }
 
-    &[data-align="center"] {
+    &[data-align='center'] {
       text-align: center;
       justify-content: center;
     }

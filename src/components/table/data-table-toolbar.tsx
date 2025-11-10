@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 'use client';
 
 import { Table } from '@tanstack/react-table';
@@ -115,7 +117,7 @@ export function DataTableToolbar<TData>({ table, config }: DataTableToolbarProps
   const searchValue = useMemo(
     () =>
       config.searchColumn
-        ? (table.getColumn(config.searchColumn)?.getFilterValue() as string) ?? ''
+        ? ((table.getColumn(config.searchColumn)?.getFilterValue() as string) ?? '')
         : '',
     [table, config.searchColumn, columnFiltersState],
   );

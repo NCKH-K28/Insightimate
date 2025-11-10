@@ -1,61 +1,58 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { type Editor } from "@tiptap/react"
+import * as React from 'react';
+import { type Editor } from '@tiptap/react';
 
 // --- Lib ---
-import { parseShortcutKeys } from "@/lib/tiptap-utils"
+import { parseShortcutKeys } from '@/lib/tiptap-utils';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Tiptap UI ---
-import {
-  COMMENT_SHORTCUT_KEY,
-  useComment,
-} from "@/components/tiptap-ui/comment-button"
+import { COMMENT_SHORTCUT_KEY, useComment } from '@/components/tiptap-ui/comment-button';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Badge } from "@/components/tiptap-ui-primitive/badge"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button } from '@/components/tiptap-ui-primitive/button';
+import { Badge } from '@/components/tiptap-ui-primitive/badge';
 
-export interface CommentButtonProps extends Omit<ButtonProps, "type"> {
+export interface CommentButtonProps extends Omit<ButtonProps, 'type'> {
   /**
    * The Tiptap editor instance.
    */
-  editor?: Editor | null
+  editor?: Editor | null;
   /**
    * Optional text to display alongside the icon.
    */
-  text?: string
+  text?: string;
   /**
    * Whether the button should hide when commenting is not available.
    * @default false
    */
-  hideWhenUnavailable?: boolean
+  hideWhenUnavailable?: boolean;
   /**
    * Control visibility for resolved block threads
    * @default true
    */
-  showOnResolvedBlockThreads?: boolean
+  showOnResolvedBlockThreads?: boolean;
   /**
    * Callback function called after a successful comment addition.
    */
-  onCommented?: () => void
+  onCommented?: () => void;
   /**
    * Optional show shortcut keys in the button.
    * @default false
    */
-  showShortcut?: boolean
+  showShortcut?: boolean;
 }
 
 export function CommentShortcutBadge({
   shortcutKeys = COMMENT_SHORTCUT_KEY,
 }: {
-  shortcutKeys?: string
+  shortcutKeys?: string;
 }) {
-  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>
+  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>;
 }
 
 /**
@@ -63,10 +60,7 @@ export function CommentShortcutBadge({
  *
  * For custom button implementations, use the `useComment` hook instead.
  */
-export const CommentButton = React.forwardRef<
-  HTMLButtonElement,
-  CommentButtonProps
->(
+export const CommentButton = React.forwardRef<HTMLButtonElement, CommentButtonProps>(
   (
     {
       editor: providedEditor,
@@ -79,56 +73,53 @@ export const CommentButton = React.forwardRef<
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const { editor } = useTiptapEditor(providedEditor)
-    const { isVisible, canComment, handleComment, label, shortcutKeys, Icon } =
-      useComment({
-        editor,
-        hideWhenUnavailable,
-        showOnResolvedBlockThreads,
-        onCommented,
-      })
+    const { editor } = useTiptapEditor(providedEditor);
+    const { isVisible, canComment, handleComment, label, shortcutKeys, Icon } = useComment({
+      editor,
+      hideWhenUnavailable,
+      showOnResolvedBlockThreads,
+      onCommented,
+    });
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        handleComment()
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        handleComment();
       },
-      [handleComment, onClick]
-    )
+      [handleComment, onClick],
+    );
 
     if (!isVisible) {
-      return null
+      return null;
     }
 
     return (
       <Button
-        type="button"
-        data-style="ghost"
+        type='button'
+        data-style='ghost'
         disabled={!canComment}
         data-disabled={!canComment}
-        role="button"
+        role='button'
         tabIndex={-1}
         aria-label={label}
-        tooltip="Add comment"
+        tooltip='Add comment'
         onClick={handleClick}
         {...buttonProps}
         ref={ref}
       >
         {children ?? (
           <>
-            <Icon className="tiptap-button-icon" />
-            {text && <span className="tiptap-button-text">{text}</span>}
-            {showShortcut && (
-              <CommentShortcutBadge shortcutKeys={shortcutKeys} />
-            )}
+            <Icon className='tiptap-button-icon' />
+            {text && <span className='tiptap-button-text'>{text}</span>}
+            {showShortcut && <CommentShortcutBadge shortcutKeys={shortcutKeys} />}
           </>
         )}
       </Button>
-    )
-  }
-)
+    );
+  },
+);
 
-CommentButton.displayName = "CommentButton"
+CommentButton.displayName = 'CommentButton';

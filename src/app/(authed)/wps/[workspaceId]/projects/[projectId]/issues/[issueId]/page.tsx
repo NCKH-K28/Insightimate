@@ -18,6 +18,7 @@ export default function Page() {
     projectId: string;
     issueId: string;
   }>();
+  if (!params) throw new Error('Missing params');
 
   const { data: project } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
 

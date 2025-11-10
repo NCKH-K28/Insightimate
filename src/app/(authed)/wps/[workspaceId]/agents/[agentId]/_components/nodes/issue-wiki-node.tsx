@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { cn } from '@/lib/utils';
 import { Node, mergeAttributes } from '@tiptap/core';
 

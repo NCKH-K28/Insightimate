@@ -15,9 +15,10 @@ const isDiff = (r: BaseRole, o: BaseRole) => {
   );
 };
 
-export function useRoleManagement(projectId: string, serverRoles?: BaseRole[]) {
+export function useRoleManagement(_projectId: string, serverRoles?: BaseRole[]) {
   const [roles, setRoles] = useState<RoleState[]>([]);
 
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     if (!serverRoles) return;
     const roles: RoleState[] = serverRoles.map((r) => ({ ...r, original: r }));
@@ -25,10 +26,13 @@ export function useRoleManagement(projectId: string, serverRoles?: BaseRole[]) {
   }, [serverRoles]);
 
   const lookup = useMemo(() => {
-    return roles.reduce((acc, r) => {
-      acc[r.id] = { ...r, permLookup: new Set(r.permissions) };
-      return acc;
-    }, {} as Record<string, RoleState & { permLookup: Set<string> }>);
+    return roles.reduce(
+      (acc, r) => {
+        acc[r.id] = { ...r, permLookup: new Set(r.permissions) };
+        return acc;
+      },
+      {} as Record<string, RoleState & { permLookup: Set<string> }>,
+    );
   }, [roles]);
 
   const hasPermission = (roleId: string, perm: string) => {

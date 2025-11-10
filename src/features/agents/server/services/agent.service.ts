@@ -2,11 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { genAgentId } from '@/features/agents/utils/id-generator';
 import { AIAgentCreateInput, AIAgentListInput } from '@/contracts/agents';
 import z from 'zod';
-import { AuthzFacade } from '@/features/authzV2/types';
 
 export const ZAgentContext = z.object({ actorId: z.string().min(1, 'Actor ID is required') });
 export type AgentContext = z.infer<typeof ZAgentContext>;
-const authz: AuthzFacade = {} as any;
 
 export const createAgent = async (input: AIAgentCreateInput, context: AgentContext) => {
   const { actorId } = context;

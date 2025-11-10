@@ -1,6 +1,6 @@
 import { FallbackProps } from 'react-error-boundary';
 
-const Forbidden: React.ComponentType<FallbackProps> = (props) => {
+const Forbidden: React.ComponentType<FallbackProps> = () => {
   return <div>403 - Forbidden</div>;
 };
 

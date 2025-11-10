@@ -76,11 +76,13 @@ export const buildProjectRoleTuples = (input: ProjectRoleInput): TupleKey[] => {
   // the role itself
   tuples.push({ user: asProjRole(input.id), relation: R.CHILD, object: asProj(input.projectId) });
 
-  // role permissions
+  // permissions granted to this role
   input.permissions.forEach((perm) => {
-    user: asProjPerm(input.projectId, perm);
-    relation: R.GRANTS;
-    object: asProjRole(input.id);
+    tuples.push({
+      user: asProjRole(input.id),
+      relation: R.GRANTS,
+      object: asProjPerm(input.projectId, perm),
+    });
   });
 
   // actors of this role

@@ -1,13 +1,13 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 // --- Hooks ---
-import { useMenuNavigation } from "@/hooks/use-menu-navigation"
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useMenuNavigation } from '@/hooks/use-menu-navigation';
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Icons ---
-import { ChevronDownIcon } from "@/components/tiptap-icons/chevron-down-icon"
+import { ChevronDownIcon } from '@/components/tiptap-icons/chevron-down-icon';
 
 // --- Tiptap UI ---
 import type {
@@ -15,54 +15,47 @@ import type {
   ColorItem,
   RecentColor,
   UseColorTextPopoverConfig,
-} from "@/components/tiptap-ui/color-text-popover"
+} from '@/components/tiptap-ui/color-text-popover';
 import {
   useColorTextPopover,
   useRecentColors,
   getColorByValue,
-} from "@/components/tiptap-ui/color-text-popover"
-import {
-  TEXT_COLORS,
-  ColorTextButton,
-} from "@/components/tiptap-ui/color-text-button"
+} from '@/components/tiptap-ui/color-text-popover';
+import { TEXT_COLORS, ColorTextButton } from '@/components/tiptap-ui/color-text-button';
 import {
   HIGHLIGHT_COLORS,
   ColorHighlightButton,
-} from "@/components/tiptap-ui/color-highlight-button"
+} from '@/components/tiptap-ui/color-highlight-button';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button, ButtonGroup } from "@/components/tiptap-ui-primitive/button"
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from "@/components/tiptap-ui-primitive/popover"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button, ButtonGroup } from '@/components/tiptap-ui-primitive/button';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/tiptap-ui-primitive/popover';
 import {
   Card,
   CardBody,
   CardGroupLabel,
   CardItemGroup,
-} from "@/components/tiptap-ui-primitive/card"
+} from '@/components/tiptap-ui-primitive/card';
 
 // --- Utils ---
-import { chunkArray } from "@/lib/tiptap-advanced-utils"
+import { chunkArray } from '@/lib/tiptap-advanced-utils';
 
 // --- Styles ---
-import "@/components/tiptap-ui/color-text-popover/color-text-popover.scss"
+import '@/components/tiptap-ui/color-text-popover/color-text-popover.scss';
 
 export interface RenderColorButtonProps extends ButtonProps {
-  colorObj: RecentColor
-  withLabel?: boolean
+  colorObj: RecentColor;
+  withLabel?: boolean;
   onColorChanged?: ({
     type,
     label,
     value,
   }: {
-    type: ColorType
-    label: string
-    value: string
-  }) => void
+    type: ColorType;
+    label: string;
+    value: string;
+  }) => void;
 }
 
 export const RecentColorButton: React.FC<RenderColorButtonProps> = ({
@@ -71,8 +64,8 @@ export const RecentColorButton: React.FC<RenderColorButtonProps> = ({
   onColorChanged,
   ...props
 }) => {
-  const colorSet = colorObj.type === "text" ? TEXT_COLORS : HIGHLIGHT_COLORS
-  const color = getColorByValue(colorObj.value, colorSet)
+  const colorSet = colorObj.type === 'text' ? TEXT_COLORS : HIGHLIGHT_COLORS;
+  const color = getColorByValue(colorObj.value, colorSet);
 
   const commonProps = {
     tooltip: color.label,
@@ -84,33 +77,29 @@ export const RecentColorButton: React.FC<RenderColorButtonProps> = ({
         value: color.value,
       }),
     ...props,
-  }
+  };
 
-  return colorObj.type === "text" ? (
-    <ColorTextButton
-      textColor={color.value}
-      label={color.label}
-      {...commonProps}
-    />
+  return colorObj.type === 'text' ? (
+    <ColorTextButton textColor={color.value} label={color.label} {...commonProps} />
   ) : (
     <ColorHighlightButton highlightColor={color.value} {...commonProps} />
-  )
-}
+  );
+};
 
 export interface ColorGroupProps {
-  type: ColorType
-  colors: ColorItem[][]
+  type: ColorType;
+  colors: ColorItem[][];
   onColorSelected: ({
     type,
     label,
     value,
   }: {
-    type: ColorType
-    label: string
-    value: string
-  }) => void
-  selectedIndex?: number
-  startIndexOffset: number
+    type: ColorType;
+    label: string;
+    value: string;
+  }) => void;
+  selectedIndex?: number;
+  startIndexOffset: number;
 }
 
 export const ColorGroup: React.FC<ColorGroupProps> = ({
@@ -121,25 +110,24 @@ export const ColorGroup: React.FC<ColorGroupProps> = ({
   startIndexOffset,
 }) => {
   return colors.map((group, groupIndex) => (
-    <ButtonGroup key={`${type}-group-${groupIndex}`} orientation="horizontal">
+    <ButtonGroup key={`${type}-group-${groupIndex}`} orientation='horizontal'>
       {group.map((color, colorIndex) => {
         const itemIndex =
           startIndexOffset +
           colors.slice(0, groupIndex).reduce((acc, g) => acc + g.length, 0) +
-          colorIndex
+          colorIndex;
 
-        const isHighlighted = selectedIndex === itemIndex
+        const isHighlighted = selectedIndex === itemIndex;
 
         const commonProps = {
           tooltip: color.label,
-          onApplied: () =>
-            onColorSelected({ type, label: color.label, value: color.value }),
+          onApplied: () => onColorSelected({ type, label: color.label, value: color.value }),
           tabIndex: isHighlighted ? 0 : -1,
-          "data-highlighted": isHighlighted,
-          "aria-label": `${color.label} ${type === "text" ? "text" : "highlight"} color`,
-        }
+          'data-highlighted': isHighlighted,
+          'aria-label': `${color.label} ${type === 'text' ? 'text' : 'highlight'} color`,
+        };
 
-        return type === "text" ? (
+        return type === 'text' ? (
           <ColorTextButton
             key={`${type}-${color.value}-${colorIndex}`}
             textColor={color.value}
@@ -152,24 +140,24 @@ export const ColorGroup: React.FC<ColorGroupProps> = ({
             highlightColor={color.value}
             {...commonProps}
           />
-        )
+        );
       })}
     </ButtonGroup>
-  ))
-}
+  ));
+};
 
 interface RecentColorsSectionProps {
-  recentColors: RecentColor[]
+  recentColors: RecentColor[];
   onColorSelected: ({
     type,
     label,
     value,
   }: {
-    type: ColorType
-    label: string
-    value: string
-  }) => void
-  selectedIndex?: number
+    type: ColorType;
+    label: string;
+    value: string;
+  }) => void;
+  selectedIndex?: number;
 }
 
 const RecentColorsSection: React.FC<RecentColorsSectionProps> = ({
@@ -177,12 +165,12 @@ const RecentColorsSection: React.FC<RecentColorsSectionProps> = ({
   onColorSelected,
   selectedIndex,
 }) => {
-  if (recentColors.length === 0) return null
+  if (recentColors.length === 0) return null;
 
   return (
     <CardItemGroup>
       <CardGroupLabel>Recently used</CardGroupLabel>
-      <ButtonGroup orientation="horizontal">
+      <ButtonGroup orientation='horizontal'>
         {recentColors.map((colorObj, index) => (
           <RecentColorButton
             key={`recent-${colorObj.type}-${colorObj.value}`}
@@ -194,21 +182,21 @@ const RecentColorsSection: React.FC<RecentColorsSectionProps> = ({
         ))}
       </ButtonGroup>
     </CardItemGroup>
-  )
-}
+  );
+};
 
 export interface TextStyleColorPanelProps {
-  maxColorsPerGroup?: number
-  maxRecentColors?: number
+  maxColorsPerGroup?: number;
+  maxRecentColors?: number;
   onColorChanged?: ({
     type,
     label,
     value,
   }: {
-    type: ColorType
-    label: string
-    value: string
-  }) => void
+    type: ColorType;
+    label: string;
+    value: string;
+  }) => void;
 }
 
 export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
@@ -216,101 +204,89 @@ export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
   maxRecentColors = 3,
   onColorChanged,
 }) => {
-  const { recentColors, addRecentColor, isInitialized } =
-    useRecentColors(maxRecentColors)
+  const { recentColors, addRecentColor, isInitialized } = useRecentColors(maxRecentColors);
 
-  const containerRef = React.useRef<HTMLDivElement>(null)
+  const containerRef = React.useRef<HTMLDivElement>(null);
 
   const textColorGroups = React.useMemo(
     () => chunkArray(TEXT_COLORS, maxColorsPerGroup),
-    [maxColorsPerGroup]
-  )
+    [maxColorsPerGroup],
+  );
 
   const highlightColorGroups = React.useMemo(
     () => chunkArray(HIGHLIGHT_COLORS, maxColorsPerGroup),
-    [maxColorsPerGroup]
-  )
+    [maxColorsPerGroup],
+  );
 
-  const allTextColors = React.useMemo(
-    () => textColorGroups.flat(),
-    [textColorGroups]
-  )
+  const allTextColors = React.useMemo(() => textColorGroups.flat(), [textColorGroups]);
 
   const allHighlightColors = React.useMemo(
     () => highlightColorGroups.flat(),
-    [highlightColorGroups]
-  )
+    [highlightColorGroups],
+  );
 
   const textColorStartIndex = React.useMemo(
     () => (isInitialized ? recentColors.length : 0),
-    [isInitialized, recentColors.length]
-  )
+    [isInitialized, recentColors.length],
+  );
 
   const highlightColorStartIndex = React.useMemo(
     () => textColorStartIndex + allTextColors.length,
-    [textColorStartIndex, allTextColors.length]
-  )
+    [textColorStartIndex, allTextColors.length],
+  );
 
   const menuItems = React.useMemo(() => {
-    const items = []
+    const items = [];
 
     if (isInitialized && recentColors.length > 0) {
       items.push(
         ...recentColors.map((color) => ({
           type: color.type,
           value: color.value,
-          label: `Recent ${color.type === "text" ? "text" : "highlight"} color`,
-          group: "recent",
-        }))
-      )
+          label: `Recent ${color.type === 'text' ? 'text' : 'highlight'} color`,
+          group: 'recent',
+        })),
+      );
     }
 
     items.push(
       ...allTextColors.map((color) => ({
-        type: "text" as ColorType,
+        type: 'text' as ColorType,
         value: color.value,
         label: color.label,
-        group: "text",
-      }))
-    )
+        group: 'text',
+      })),
+    );
 
     items.push(
       ...allHighlightColors.map((color) => ({
-        type: "highlight" as ColorType,
+        type: 'highlight' as ColorType,
         value: color.value,
         label: color.label,
-        group: "highlight",
-      }))
-    )
+        group: 'highlight',
+      })),
+    );
 
-    return items
-  }, [isInitialized, recentColors, allTextColors, allHighlightColors])
+    return items;
+  }, [isInitialized, recentColors, allTextColors, allHighlightColors]);
 
   const handleColorSelected = React.useCallback(
-    ({
-      type,
-      label,
-      value,
-    }: {
-      type: ColorType
-      label: string
-      value: string
-    }) => {
-      if (!containerRef.current) return false
+    ({ type, label, value }: { type: ColorType; label: string; value: string }) => {
+      if (!containerRef.current) return false;
 
       const highlightedElement = containerRef.current.querySelector(
-        '[data-highlighted="true"]'
-      ) as HTMLElement
+        '[data-highlighted="true"]',
+      ) as HTMLElement;
 
       if (highlightedElement) {
-        highlightedElement.click()
+        highlightedElement.click();
       }
 
-      addRecentColor({ type, label, value })
-      onColorChanged?.({ type, label, value })
+      addRecentColor({ type, label, value });
+      onColorChanged?.({ type, label, value });
     },
-    [addRecentColor, onColorChanged]
-  )
+    [addRecentColor, onColorChanged],
+  );
 
   const { selectedIndex } = useMenuNavigation({
     containerRef,
@@ -321,15 +297,15 @@ export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
           type: item.type,
           label: item.label,
           value: item.value,
-        })
+        });
       }
     },
-    orientation: "both",
+    orientation: 'both',
     autoSelectFirstItem: false,
-  })
+  });
 
   return (
-    <Card ref={containerRef} tabIndex={0} role="menu">
+    <Card ref={containerRef} tabIndex={0} role='menu'>
       <CardBody>
         {isInitialized && (
           <RecentColorsSection
@@ -342,7 +318,7 @@ export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
         <CardItemGroup>
           <CardGroupLabel>Text color</CardGroupLabel>
           <ColorGroup
-            type="text"
+            type='text'
             colors={textColorGroups}
             onColorSelected={handleColorSelected}
             selectedIndex={selectedIndex}
@@ -353,7 +329,7 @@ export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
         <CardItemGroup>
           <CardGroupLabel>Highlight color</CardGroupLabel>
           <ColorGroup
-            type="highlight"
+            type='highlight'
             colors={highlightColorGroups}
             onColorSelected={handleColorSelected}
             selectedIndex={selectedIndex}
@@ -362,11 +338,11 @@ export const TextStyleColorPanel: React.FC<TextStyleColorPanelProps> = ({
         </CardItemGroup>
       </CardBody>
     </Card>
-  )
-}
+  );
+};
 
 export interface ColorTextPopoverProps
-  extends Omit<ButtonProps, "type">,
+  extends Omit<ButtonProps, 'type'>,
     UseColorTextPopoverConfig {}
 
 /**
@@ -374,10 +350,7 @@ export interface ColorTextPopoverProps
  *
  * For custom popover implementations, use the `useColorTextPopover` hook instead.
  */
-export const ColorTextPopover = React.forwardRef<
-  HTMLButtonElement,
-  ColorTextPopoverProps
->(
+export const ColorTextPopover = React.forwardRef<HTMLButtonElement, ColorTextPopoverProps>(
   (
     {
       editor: providedEditor,
@@ -387,10 +360,10 @@ export const ColorTextPopover = React.forwardRef<
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const { editor } = useTiptapEditor(providedEditor)
-    const [isOpen, setIsOpen] = React.useState(false)
+    const { editor } = useTiptapEditor(providedEditor);
+    const [isOpen, setIsOpen] = React.useState(false);
     const {
       isVisible,
       canToggle,
@@ -403,29 +376,29 @@ export const ColorTextPopover = React.forwardRef<
       editor,
       hideWhenUnavailable,
       onColorChanged,
-    })
+    });
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        setIsOpen(!isOpen)
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        setIsOpen(!isOpen);
       },
-      [onClick, isOpen, setIsOpen]
-    )
+      [onClick, isOpen, setIsOpen],
+    );
 
     if (!isVisible) {
-      return null
+      return null;
     }
 
     return (
       <Popover open={isOpen} onOpenChange={setIsOpen}>
         <PopoverTrigger asChild>
           <Button
-            type="button"
-            data-style="ghost"
-            data-appearance="default"
-            role="button"
+            type='button'
+            data-style='ghost'
+            data-appearance='default'
+            role='button'
             aria-label={label}
             tooltip={label}
             disabled={!canToggle}
@@ -437,40 +410,36 @@ export const ColorTextPopover = React.forwardRef<
             {children ?? (
               <>
                 <span
-                  className="tiptap-button-color-text-popover"
+                  className='tiptap-button-color-text-popover'
                   style={
                     activeHighlight.color
                       ? ({
-                          "--active-highlight-color": activeHighlight.color,
+                          '--active-highlight-color': activeHighlight.color,
                         } as React.CSSProperties)
                       : ({} as React.CSSProperties)
                   }
                 >
                   <Icon
-                    className="tiptap-button-icon"
+                    className='tiptap-button-icon'
                     style={{
                       color: activeTextStyle.color || undefined,
                     }}
                   />
                 </span>
-                <ChevronDownIcon className="tiptap-button-dropdown-small" />
+                <ChevronDownIcon className='tiptap-button-dropdown-small' />
               </>
             )}
           </Button>
         </PopoverTrigger>
 
-        <PopoverContent
-          aria-label="Text color options"
-          side="bottom"
-          align="start"
-        >
+        <PopoverContent aria-label='Text color options' side='bottom' align='start'>
           <TextStyleColorPanel onColorChanged={handleColorChanged} />
         </PopoverContent>
       </Popover>
-    )
-  }
-)
+    );
+  },
+);
 
-ColorTextPopover.displayName = "ColorTextPopover"
+ColorTextPopover.displayName = 'ColorTextPopover';
 
-export default ColorTextPopover
+export default ColorTextPopover;

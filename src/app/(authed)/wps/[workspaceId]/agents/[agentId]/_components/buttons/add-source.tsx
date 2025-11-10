@@ -1,15 +1,12 @@
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AIFilesInput from '../inputs/ai-files-input';
 import { MuilSelectors } from '@/features/agents/ui/selectors/muil-selectors';
@@ -19,7 +16,7 @@ import { createSourceMutationOptions } from '@/features/agents/api/actions';
 import { toast } from 'sonner';
 import React from 'react';
 
-type AddFileFormProps = { params: { agentId: string; workspaceId: string } };
+// type AddFileFormProps = { params: { agentId: string; workspaceId: string } };
 
 type AddSourceButtonProps = { params: { agentId: string; workspaceId: string } };
 export const AddSourceButton = (props: AddSourceButtonProps) => {
@@ -37,7 +34,11 @@ export const AddSourceButton = (props: AddSourceButtonProps) => {
     }));
     setSelectedP([]);
     const toastId = toast.promise(
-      Promise.all(newSources.map((source) => addSource.mutateAsync(source))),
+      Promise.all(
+        newSources.map((source) =>
+          addSource.mutateAsync({ ...source, agentId: props.params.agentId }),
+        ),
+      ),
       {
         loading: 'Adding sources...',
         success: 'Sources added successfully!',

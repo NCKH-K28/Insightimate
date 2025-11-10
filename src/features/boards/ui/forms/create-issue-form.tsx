@@ -17,7 +17,7 @@ import { useForm } from 'react-hook-form';
 import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
 import z from 'zod';
 import React from 'react';
-import { Loader2, PlusIcon, X } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 

@@ -3,7 +3,7 @@
   --tiptap-comment-focused-border-color: var(--tt-brand-color-500);
   --tiptap-comment-border-color: var(--tt-gray-light-a-200);
 
-  [data-active-state="off"] {
+  [data-active-state='off'] {
     --tiptap-comment-input-bg-color: var(--tt-gray-light-a-50);
     --tiptap-comment-border-color: var(--tt-gray-light-a-100);
     --tiptap-comment-text-color: var(--tt-gray-light-a-400);
@@ -19,7 +19,7 @@
   --tiptap-comment-focused-border-color: var(--tt-brand-color-500);
   --tiptap-comment-border-color: var(--tt-gray-dark-a-200);
 
-  [data-active-state="off"] {
+  [data-active-state='off'] {
     --tiptap-comment-input-bg-color: var(--tt-gray-dark-100);
     --tiptap-comment-border-color: var(--tt-gray-dark-a-100);
     --tiptap-comment-text-color: var(--tt-gray-dark-a-400);
@@ -39,11 +39,11 @@
   gap: 0.375rem;
   padding: 0.375rem;
 
-  &[data-focused="true"] {
+  &[data-focused='true'] {
     border-color: var(--tiptap-comment-focused-border-color);
   }
 
-  &[data-floating="true"] {
+  &[data-floating='true'] {
     min-width: 360px;
     box-shadow:
       0px 2.39px 3.26px rgba(0, 0, 0, 0.0308),
@@ -63,7 +63,7 @@
   padding: 0.375rem 0.5rem;
 
   .tiptap.ProseMirror {
-    font-family: "Inter", sans-serif;
+    font-family: 'Inter', sans-serif;
   }
 
   .tiptap.ProseMirror p {
@@ -71,7 +71,7 @@
   }
 }
 
-[data-active-state="off"] {
+[data-active-state='off'] {
   &.tiptap-comment-input {
     height: 2.75rem;
     cursor: pointer;

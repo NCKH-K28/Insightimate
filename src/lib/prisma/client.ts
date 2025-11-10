@@ -1,30 +1,13 @@
-import { z } from 'zod';
 import { PrismaClient } from '@prisma/client';
-import { withTrigger } from './extensions/trigger-extension';
 
-const ZPrismaConfig = z.object({ DATABASE_URL: z.string().min(1) });
-
-const prismaConfig = ZPrismaConfig.parse(process.env);
+// import { z } from 'zod';
+// const ZPrismaConfig = z.object({ DATABASE_URL: z.string().min(1) });
+// const prismaConfig = ZPrismaConfig.parse(process.env);
 
 const getGlobalPrisma = () => {
   const globalForPrisma = globalThis as unknown as any;
   const { prisma } = globalForPrisma;
   if (prisma) return prisma as typeof client;
-
-  // const client = new PrismaClient({
-  //   datasources: { db: { url: prismaConfig.DATABASE_URL } },
-  // }).$extends(
-  //   withTrigger({
-  //     connectionString: prismaConfig.DATABASE_URL,
-  //     models: {
-  //       Project: {
-  //         channel: 'project_changes',
-  //         model: 'projects',
-  //         operations: { insert: true, update: true, delete: true },
-  //       },
-  //     },
-  //   }),
-  // );
 
   const client = new PrismaClient({});
 

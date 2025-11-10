@@ -9,10 +9,10 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
-import { ZProjectCreateInput } from '@/contracts/projects';
+import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/projects';
 import { createProjectMutationOptions } from '@/features/projects/api/actions';
 import { getMeQueryOptions } from '@/features/authn/api/actions'; // FIXME: move to a more appropriate place
 import { get } from 'lodash';
@@ -28,7 +28,7 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
   const router = useRouter();
   const createProject = useMutation(createProjectMutationOptions());
 
-  const form = useForm({
+  const form = useForm<ProjectCreateInput>({
     resolver: zodResolver(ZProjectCreateInput),
     mode: 'onChange',
     defaultValues: {

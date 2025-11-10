@@ -8,6 +8,7 @@ import Link from 'next/link';
 
 export default function Page() {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Missing params');
 
   return (
     <div className='size-full'>

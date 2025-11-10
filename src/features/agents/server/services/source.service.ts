@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { openfgaClient } from '@/lib/authz/openfga';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';

@@ -12,7 +12,6 @@ import {
   PROJECT_ROLE_PERMISSION_KEYS,
   ProjectCreateInput,
   ProjectRoleCreateInput,
-  ProjectRole as ProjectRoleType,
 } from '@/contracts/projects';
 
 type ProjectRole = ProjectRoleCreateInput & { id: string };
@@ -30,6 +29,7 @@ const normalizeRole = (r: Partial<ProjectRole>): ProjectRole => ({
   name: r.name ?? '',
   description: r.description ?? '',
   permissions: r.permissions ?? [],
+  projectId: r.projectId ?? '',
 });
 
 const PERMISSION_OPTIONS = PROJECT_ROLE_PERMISSION_KEYS.map((code) => ({
@@ -53,6 +53,7 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'product_owner',
     name: 'Product Owner',
     description: 'Responsible for defining project vision and managing the product backlog.',
+    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': true,
       'backlog:view': true,
@@ -68,6 +69,7 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'scrum_master',
     name: 'Scrum Master',
     description: 'Facilitates the Scrum process and removes impediments for the team.',
+    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': true,
       'backlog:view': true,
@@ -83,6 +85,7 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'developer',
     name: 'Developer',
     description: 'Works on tasks and contributes to the development of the product.',
+    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': false,
       'backlog:view': true,
@@ -98,6 +101,7 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'stakeholder',
     name: 'Stakeholder',
     description: 'Interested party who needs to stay informed about project progress.',
+    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': false,
       'backlog:view': true,
@@ -259,6 +263,7 @@ export const ProjectPermission = (props: {
               id,
               name: roleName,
               description: '',
+              projectId: '', //FIXME: check type
               permissions: buildPermission({
                 'backlog:manage': false,
                 'backlog:view': false,

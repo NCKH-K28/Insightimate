@@ -40,7 +40,7 @@ export const analyzeDocument = inngest.createFunction(
       if (!fileRef) return;
 
       const { Body } = await s3.send(
-        new GetObjectCommand({ Bucket: 'ai-files', Key: fileRef.fileURL }),
+        new GetObjectCommand({ Bucket: 'ai-files', Key: fileRef.key }),
       );
       if (!Body) return;
       // get file

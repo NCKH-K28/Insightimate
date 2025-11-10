@@ -18,7 +18,7 @@ const genProjectRoleId = () => `role_${createId()}`;
 
 export const writeProjectRoles = async (
   input: ProjectRoleWriteInput & { projectId: string },
-  ctx: { actorId: string },
+  _ctx: { actorId: string },
 ) => {
   // build trươc khi tạo transaction, đảm bao unique
   const createInputs = structuredClone(input.create || []);
@@ -171,7 +171,9 @@ export const writeProjectRoles = async (
         });
 
         // (5.1) DELETE tuples của ROLE (permission, membership template, v.v.)
-        deleteTuples.push(...rolesToDelete.flatMap((role) => buildProjectRoleTuples(role)));
+        deleteTuples.push(
+          ...rolesToDelete.flatMap((role) => buildProjectRoleTuples({ ...role, permissions: [] })),
+        );
 
         // (5.2) Xóa DB
         await tx.projectRole.deleteMany({

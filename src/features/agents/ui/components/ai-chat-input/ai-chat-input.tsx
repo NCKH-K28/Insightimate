@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { EditorContent, useEditor, EditorContext } from '@tiptap/react';
 import { Editor } from '@tiptap/core';
@@ -36,22 +36,21 @@ type AIChatInputProps = {
 //   HTMLAttributes: { class: 'tiptap-mention bg-blue-100 text-blue-800 rounded px-1' },
 // }),
 export const AIChatInput = (props: AIChatInputProps) => {
-  const extsRef = useRef([
-    Document,
-    Paragraph,
-    Text,
-    Mention.configure({
-      suggestions: mentionSuggestions,
-      // renderHTML: (props) => {
-      //   return ['span', {}, `[[${props.node.attrs.label}]]`];
-      // },
-      HTMLAttributes: { class: 'tiptap-mention bg-blue-100 text-blue-800 rounded px-1' },
-    }),
-  ]);
   const [textCount, setTextCount] = useState(0);
 
   const editor = useEditor({
-    extensions: extsRef.current,
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      Mention.configure({
+        suggestions: mentionSuggestions,
+        // renderHTML: (props) => {
+        //   return ['span', {}, `[[${props.node.attrs.label}]]`];
+        // },
+        HTMLAttributes: { class: 'tiptap-mention bg-blue-100 text-blue-800 rounded px-1' },
+      }),
+    ],
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       const text = editor.getText();

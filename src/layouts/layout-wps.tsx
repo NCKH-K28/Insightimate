@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { selectedWorkspaceIdAtom } from '@/hooks/atoms/workspace.atom';
 import { useSetAtom } from 'jotai';
-import { redirect, useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 import AppSidebar from '@/layouts/app-sidebar';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
@@ -19,7 +19,9 @@ import {
 import dynamic from 'next/dynamic';
 
 function WpsLayout({ children }: { children: React.ReactNode }) {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Params is undefined');
+  const { workspaceId } = params;
 
   if (!workspaceId) throw new Error('workspaceId is required');
 

@@ -1,45 +1,45 @@
-"use client"
+'use client';
 
-import * as React from "react"
+import * as React from 'react';
 
 // --- Lib ---
-import { parseShortcutKeys } from "@/lib/tiptap-utils"
+import { parseShortcutKeys } from '@/lib/tiptap-utils';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Tiptap UI ---
-import type { UseResetAllFormattingConfig } from "@/components/tiptap-ui/reset-all-formatting-button"
+import type { UseResetAllFormattingConfig } from '@/components/tiptap-ui/reset-all-formatting-button';
 import {
   RESET_ALL_FORMATTING_SHORTCUT_KEY,
   useResetAllFormatting,
-} from "@/components/tiptap-ui/reset-all-formatting-button"
+} from '@/components/tiptap-ui/reset-all-formatting-button';
 
 // --- UI Primitives ---
-import type { ButtonProps } from "@/components/tiptap-ui-primitive/button"
-import { Button } from "@/components/tiptap-ui-primitive/button"
-import { Badge } from "@/components/tiptap-ui-primitive/badge"
+import type { ButtonProps } from '@/components/tiptap-ui-primitive/button';
+import { Button } from '@/components/tiptap-ui-primitive/button';
+import { Badge } from '@/components/tiptap-ui-primitive/badge';
 
 export interface ResetAllFormattingButtonProps
-  extends Omit<ButtonProps, "type">,
+  extends Omit<ButtonProps, 'type'>,
     UseResetAllFormattingConfig {
   /**
    * Optional text to display alongside the icon.
    */
-  text?: string
+  text?: string;
   /**
    * Optional show shortcut keys in the button.
    * @default false
    */
-  showShortcut?: boolean
+  showShortcut?: boolean;
 }
 
 export function ResetAllFormattingShortcutBadge({
   shortcutKeys = RESET_ALL_FORMATTING_SHORTCUT_KEY,
 }: {
-  shortcutKeys?: string
+  shortcutKeys?: string;
 }) {
-  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>
+  return <Badge>{parseShortcutKeys({ shortcutKeys })}</Badge>;
 }
 
 /**
@@ -57,70 +57,62 @@ export const ResetAllFormattingButton = React.forwardRef<
       editor: providedEditor,
       text,
       hideWhenUnavailable = false,
-      preserveMarks = ["inlineThread"],
+      preserveMarks = ['inlineThread'],
       onResetAllFormatting,
       showShortcut = false,
       onClick,
       children,
       ...buttonProps
     },
-    ref
+    ref,
   ) => {
-    const { editor } = useTiptapEditor(providedEditor)
-    const {
-      isVisible,
-      canReset,
-      handleResetFormatting,
-      label,
-      shortcutKeys,
-      Icon,
-    } = useResetAllFormatting({
-      editor,
-      preserveMarks,
-      hideWhenUnavailable,
-      onResetAllFormatting,
-    })
+    const { editor } = useTiptapEditor(providedEditor);
+    const { isVisible, canReset, handleResetFormatting, label, shortcutKeys, Icon } =
+      useResetAllFormatting({
+        editor,
+        preserveMarks,
+        hideWhenUnavailable,
+        onResetAllFormatting,
+      });
 
     const handleClick = React.useCallback(
       (event: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(event)
-        if (event.defaultPrevented) return
-        handleResetFormatting()
+        onClick?.(event);
+        if (event.defaultPrevented) return;
+        handleResetFormatting();
       },
-      [handleResetFormatting, onClick]
-    )
+      [handleResetFormatting, onClick],
+    );
 
     if (!isVisible) {
-      return null
+      return null;
     }
 
     return (
       <Button
-        type="button"
-        data-style="ghost"
+        type='button'
+        data-style='ghost'
         disabled={!canReset}
         data-disabled={!canReset}
-        data-active-state="off"
-        role="button"
+        data-active-state='off'
+        role='button'
         tabIndex={-1}
         aria-label={label}
-        tooltip="Reset formatting"
+        tooltip='Reset formatting'
         onClick={handleClick}
         {...buttonProps}
         ref={ref}
       >
         {children ?? (
           <>
-            <Icon className="tiptap-button-icon" />
-            {text && <span className="tiptap-button-text">{text}</span>}
-            {showShortcut && (
-              <ResetAllFormattingShortcutBadge shortcutKeys={shortcutKeys} />
-            )}
+            <Icon className='tiptap-button-icon' />
+            {text && <span className='tiptap-button-text'>{text}</span>}
+            {showShortcut && <ResetAllFormattingShortcutBadge shortcutKeys={shortcutKeys} />}
           </>
         )}
       </Button>
-    )
-  }
-)
+    );
+  },
+);
 
-ResetAllFormattingButton.displayName = "ResetAllFormattingButton"
+ResetAllFormattingButton.displayName = 'ResetAllFormattingButton';

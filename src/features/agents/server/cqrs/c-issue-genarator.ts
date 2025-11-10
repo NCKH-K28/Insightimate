@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { elasticClient } from '@/lib/elastic';
 import { generateObject, generateText, Output, stepCountIs, tool } from 'ai';
 import { google } from '@ai-sdk/google';
@@ -101,8 +103,8 @@ const formatTextJSON = (text: string) => {
     firstCurly === -1
       ? firstSquare
       : firstSquare === -1
-      ? firstCurly
-      : Math.min(firstCurly, firstSquare);
+        ? firstCurly
+        : Math.min(firstCurly, firstSquare);
   const lastCurly = text.lastIndexOf('}');
   const lastSquare = text.lastIndexOf(']');
   const endIndex =

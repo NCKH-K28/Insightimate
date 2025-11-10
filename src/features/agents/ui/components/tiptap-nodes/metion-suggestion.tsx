@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { computePosition, flip, shift } from '@floating-ui/dom';
 import { Editor, posToDOMRect, ReactRenderer } from '@tiptap/react';
 

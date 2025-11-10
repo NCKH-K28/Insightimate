@@ -1,7 +1,9 @@
-import { UsersIcon } from 'lucide-react';
-import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { deleteTeamMutationOptions, getTeamQueryOptions } from '@/features/teams/api/actionts';
+/* eslint-disable react/display-name */
+
 import { Suspense, useMemo } from 'react';
+import { UsersIcon } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { deleteTeamMutationOptions, getTeamQueryOptions } from '@/features/teams/api/actionts';
 import { cn } from '@/lib/utils';
 import { TeamActions } from '@/features/teams/ui/components/team-actions';
 import { usePathname, useRouter } from 'next/navigation';
@@ -10,6 +12,7 @@ import { toast } from 'sonner';
 type TeamHeaderProps = { params: { workspaceId: string; teamId: string } };
 const TeamHeader = ({ params: { teamId } }: TeamHeaderProps) => {
   const pathname = usePathname();
+  if (!pathname) throw new Error('pathname is undefined');
   const router = useRouter();
 
   const deleteTeam = useMutation(deleteTeamMutationOptions(teamId));

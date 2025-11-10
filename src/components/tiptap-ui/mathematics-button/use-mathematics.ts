@@ -1,22 +1,19 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import { type Editor } from "@tiptap/react"
+import * as React from 'react';
+import { type Editor } from '@tiptap/react';
 
 // --- Hooks ---
-import { useTiptapEditor } from "@/hooks/use-tiptap-editor"
+import { useTiptapEditor } from '@/hooks/use-tiptap-editor';
 
 // --- Lib ---
-import {
-  isExtensionAvailable,
-  isNodeTypeSelected,
-} from "@/lib/tiptap-utils"
-import { getEditorExtension } from "@/lib/tiptap-advanced-utils"
+import { isExtensionAvailable, isNodeTypeSelected } from '@/lib/tiptap-utils';
+import { getEditorExtension } from '@/lib/tiptap-advanced-utils';
 
 // --- Icons ---
-import { SigmaIcon } from "@/components/tiptap-icons/sigma-icon"
+import { SigmaIcon } from '@/components/tiptap-icons/sigma-icon';
 
-export const MATHEMATICS_SHORTCUT_KEY = "mod+shift+m"
+export const MATHEMATICS_SHORTCUT_KEY = 'mod+shift+m';
 
 /**
  * Configuration for the mathematics functionality
@@ -25,77 +22,74 @@ export interface UseMathematicsConfig {
   /**
    * The Tiptap editor instance.
    */
-  editor?: Editor | null
+  editor?: Editor | null;
   /**
    * Optional mathematical formula to insert when triggered
    * If not provided, will insert delimiter from the extension options
    */
-  formula?: string
+  formula?: string;
   /**
    * Whether the button should hide when mathematics is not available.
    * @default false
    */
-  hideWhenUnavailable?: boolean
+  hideWhenUnavailable?: boolean;
   /**
    * Callback function called after a successful formula insertion.
    */
-  onInserted?: () => void
+  onInserted?: () => void;
 }
 
 /**
  * Checks if mathematics can be inserted in the current editor state
  */
 export function canInsertMathematics(editor: Editor | null): boolean {
-  if (!editor || !editor.isEditable) return false
-  if (
-    !isExtensionAvailable(editor, "Mathematics") ||
-    isNodeTypeSelected(editor, ["image"])
-  )
-    return false
+  if (!editor || !editor.isEditable) return false;
+  if (!isExtensionAvailable(editor, 'Mathematics') || isNodeTypeSelected(editor, ['image']))
+    return false;
 
-  const { selection } = editor.state
-  const { $from } = selection
+  const { selection } = editor.state;
+  const { $from } = selection;
 
   // Disable in code blocks
-  if ($from.parent.type.name === "codeBlock") return false
+  if ($from.parent.type.name === 'codeBlock') return false;
 
-  return true
+  return true;
 }
 
 /**
  * Checks if mathematics is currently active by detecting math elements in DOM
  */
 export function isMathematicsActive(editor: Editor | null): boolean {
-  if (!editor || !editor.isEditable) return false
+  if (!editor || !editor.isEditable) return false;
 
   try {
-    const { from } = editor.state.selection
-    const domAtPos = editor.view.domAtPos(from)
-    if (!domAtPos || !domAtPos.node) return false
+    const { from } = editor.state.selection;
+    const domAtPos = editor.view.domAtPos(from);
+    if (!domAtPos || !domAtPos.node) return false;
 
-    let currentNode = domAtPos.node as Node
+    let currentNode = domAtPos.node as Node;
 
     for (let i = 0; i < 5; i++) {
       if (
         currentNode instanceof Element &&
         currentNode.classList &&
-        (currentNode.classList.contains("Tiptap-mathematics-editor") ||
-          currentNode.closest(".Tiptap-mathematics-editor"))
+        (currentNode.classList.contains('Tiptap-mathematics-editor') ||
+          currentNode.closest('.Tiptap-mathematics-editor'))
       ) {
-        return true
+        return true;
       }
 
       if (currentNode.parentNode) {
-        currentNode = currentNode.parentNode
+        currentNode = currentNode.parentNode;
       } else {
-        break
+        break;
       }
     }
 
-    return false
+    return false;
   } catch (error) {
-    console.error("Failed to check mathematics active state:", error)
-    return false
+    console.error('Failed to check mathematics active state:', error);
+    return false;
   }
 }
 
@@ -103,47 +97,38 @@ export function isMathematicsActive(editor: Editor | null): boolean {
  * Extracts the delimiter character from a mathematical formula regex
  */
 function extractDelimiterFromRegex(regex: RegExp): string | undefined {
-  const regexSource = regex.source
-  const delimiterMatch = regexSource.match(/^(.)\(\[\^\1\]\*\)\1$/)
-  return delimiterMatch ? delimiterMatch[1] : undefined
+  const regexSource = regex.source;
+  const delimiterMatch = regexSource.match(/^(.)\(\[\^\1\]\*\)\1$/);
+  return delimiterMatch ? delimiterMatch[1] : undefined;
 }
 
 /**
  * Inserts a mathematical formula with appropriate delimiters
  */
-export function insertMathematicalFormula(
-  editor: Editor | null,
-  formula: string = ""
-): boolean {
-  if (!editor || !editor.isEditable) return false
-  if (!canInsertMathematics(editor)) return false
+export function insertMathematicalFormula(editor: Editor | null, formula: string = ''): boolean {
+  if (!editor || !editor.isEditable) return false;
+  if (!canInsertMathematics(editor)) return false;
 
   try {
     if (formula) {
-      return editor.chain().focus().insertContent(formula).run()
+      return editor.chain().focus().insertContent(formula).run();
     }
 
-    const extensionOptions = getEditorExtension(editor, "Mathematics")?.options
-    if (!extensionOptions) return false
+    const extensionOptions = getEditorExtension(editor, 'Mathematics')?.options;
+    if (!extensionOptions) return false;
 
-    let delimiter = "$"
+    let delimiter = '$';
 
     if (extensionOptions.regex instanceof RegExp) {
-      const extractedDelimiter = extractDelimiterFromRegex(
-        extensionOptions.regex
-      )
+      const extractedDelimiter = extractDelimiterFromRegex(extensionOptions.regex);
       if (extractedDelimiter) {
-        delimiter = extractedDelimiter
+        delimiter = extractedDelimiter;
       }
     }
 
-    return editor
-      .chain()
-      .focus()
-      .insertContent(`${delimiter} ${delimiter}`)
-      .run()
+    return editor.chain().focus().insertContent(`${delimiter} ${delimiter}`).run();
   } catch {
-    return false
+    return false;
   }
 }
 
@@ -151,19 +136,19 @@ export function insertMathematicalFormula(
  * Determines if the mathematics button should be shown
  */
 export function shouldShowButton(props: {
-  editor: Editor | null
-  hideWhenUnavailable: boolean
+  editor: Editor | null;
+  hideWhenUnavailable: boolean;
 }): boolean {
-  const { editor, hideWhenUnavailable } = props
+  const { editor, hideWhenUnavailable } = props;
 
-  if (!editor || !editor.isEditable) return false
-  if (!isExtensionAvailable(editor, "Mathematics")) return false
+  if (!editor || !editor.isEditable) return false;
+  if (!isExtensionAvailable(editor, 'Mathematics')) return false;
 
-  if (hideWhenUnavailable && !editor.isActive("code")) {
-    return canInsertMathematics(editor)
+  if (hideWhenUnavailable && !editor.isActive('code')) {
+    return canInsertMathematics(editor);
   }
 
-  return true
+  return true;
 }
 
 /**
@@ -206,49 +191,49 @@ export function shouldShowButton(props: {
 export function useMathematics(config?: UseMathematicsConfig) {
   const {
     editor: providedEditor,
-    formula = "",
+    formula = '',
     hideWhenUnavailable = false,
     onInserted,
-  } = config || {}
+  } = config || {};
 
-  const { editor } = useTiptapEditor(providedEditor)
-  const [isVisible, setIsVisible] = React.useState<boolean>(true)
-  const canInsert = canInsertMathematics(editor)
-  const isActive = isMathematicsActive(editor)
+  const { editor } = useTiptapEditor(providedEditor);
+  const [isVisible, setIsVisible] = React.useState<boolean>(true);
+  const canInsert = canInsertMathematics(editor);
+  const isActive = isMathematicsActive(editor);
 
   React.useEffect(() => {
-    if (!editor) return
+    if (!editor) return;
 
     const handleSelectionUpdate = () => {
-      setIsVisible(shouldShowButton({ editor, hideWhenUnavailable }))
-    }
+      setIsVisible(shouldShowButton({ editor, hideWhenUnavailable }));
+    };
 
-    handleSelectionUpdate()
+    handleSelectionUpdate();
 
-    editor.on("selectionUpdate", handleSelectionUpdate)
+    editor.on('selectionUpdate', handleSelectionUpdate);
 
     return () => {
-      editor.off("selectionUpdate", handleSelectionUpdate)
-    }
-  }, [editor, hideWhenUnavailable])
+      editor.off('selectionUpdate', handleSelectionUpdate);
+    };
+  }, [editor, hideWhenUnavailable]);
 
   const handleMathematics = React.useCallback(() => {
-    if (!editor) return false
+    if (!editor) return false;
 
-    const success = insertMathematicalFormula(editor, formula)
+    const success = insertMathematicalFormula(editor, formula);
     if (success) {
-      onInserted?.()
+      onInserted?.();
     }
-    return success
-  }, [editor, formula, onInserted])
+    return success;
+  }, [editor, formula, onInserted]);
 
   return {
     isVisible,
     isActive,
     handleMathematics,
     canInsert,
-    label: "Mathematics",
+    label: 'Mathematics',
     shortcutKeys: MATHEMATICS_SHORTCUT_KEY,
     Icon: SigmaIcon,
-  }
+  };
 }

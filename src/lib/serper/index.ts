@@ -8,7 +8,7 @@ const emailToKeys = {
 };
 
 const API_KEYS = Object.values(emailToKeys);
-let availableKeys = [...API_KEYS];
+const availableKeys = [...API_KEYS];
 let instance = createInstance(availableKeys[0]);
 
 function createInstance(key: string) {

@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { FallbackProps } from 'react-error-boundary';
 
-const Unauthorized: React.ComponentType<FallbackProps> = (props) => {
+const Unauthorized: React.ComponentType<FallbackProps> = () => {
   return (
     <div>
       401 - Unauthorized

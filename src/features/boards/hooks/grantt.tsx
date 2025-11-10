@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 'use client';
 import { DndContext, MouseSensor, useDraggable, useSensor } from '@dnd-kit/core';
 import { restrictToHorizontalAxis } from '@dnd-kit/modifiers';
@@ -998,7 +1000,7 @@ export const GanttProvider: FC<GanttProviderProps> = ({
         '--gantt-header-height': `${headerHeight}px`,
         '--gantt-row-height': `${rowHeight}px`,
         '--gantt-sidebar-width': `${sidebarWidth}px`,
-      } as CSSProperties),
+      }) as CSSProperties,
     [zoom, columnWidth, sidebarWidth],
   );
   useEffect(() => {

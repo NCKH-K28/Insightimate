@@ -9,7 +9,7 @@ export default function Page() {
 
   useEffect(() => {
     router.replace(pathname + '/foryou');
-  }, [pathname]);
+  }, [pathname, router]);
 
   return null;
 }

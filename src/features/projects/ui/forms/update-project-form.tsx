@@ -29,7 +29,7 @@ export const UpdateProjectForm = (props: UpdateProjectFormProps) => {
     ) as Partial<ProjectFormData>;
   };
 
-  const form = useForm({
+  const form = useForm<ProjectFormData>({
     resolver: zodResolver(ZProjectFormData),
     mode: 'onChange',
     defaultValues: { name: '', description: '', avatar: null, ...props.defaultValues },

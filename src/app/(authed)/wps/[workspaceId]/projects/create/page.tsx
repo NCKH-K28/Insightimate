@@ -13,7 +13,7 @@ const CreateProjectHeader = () => (
 
 export default function Page() {
   const params = useParams<{ workspaceId: string }>();
-  if (!params.workspaceId) return null;
+  if (!params) throw new Error('Page must be used within a route with workspaceId param');
 
   return (
     <div className='size-full grid grid-rows-[auto_1fr] gap-6 overflow-hidden'>

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { kafka } from '@/lib/kafka';
 import { prisma } from '@/lib/prisma';
 

@@ -73,7 +73,7 @@ const SelectorContent = ({ close, onSelect, selected }: SelectorContentProps) =>
         {isPending && <div className='p-2 text-center text-sm'>Loading...</div>}
         {!isPending && <CommandEmpty>Empty</CommandEmpty>}
 
-        {Object.entries(options).map(([group, items], index) => (
+        {Object.entries(options).map(([group, items]) => (
           <CommandGroup key={group} heading={group}>
             {items.map((option) => (
               <CommandItem

@@ -12,8 +12,8 @@ export type NextHandler<TParams = unknown> = (
 export type ApiContext<P> = { params: P };
 export type ApiRequest<Q = unknown, B = unknown, P = unknown> = NextRequest & {
   query: Q;
-  // _body: B;
   params: P;
+  _body?: B;
 };
 export type ApiHandler<TParams = unknown, TQuery = unknown, TBody = unknown> = (
   request: ApiRequest<TQuery, TBody, TParams>,
@@ -25,7 +25,7 @@ export const apiHandler = <TParams = unknown, TQuery = unknown, TBody = unknown>
 ): NextHandler<TParams> => {
   return async (req, ctx) => {
     try {
-      const getBody = async () => (req.method === 'GET' ? {} : await req.json());
+      // const getBody = async () => (req.method === 'GET' ? {} : await req.json());
       const [params] = await Promise.all([ctx.params]);
       const query = qs.parse(req.nextUrl.searchParams.toString());
       const nextReq = Object.assign(req, { query, params }) as ApiRequest<TQuery, TBody, TParams>;

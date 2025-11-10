@@ -1,4 +1,4 @@
-import { queryOptions, UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { UseQueryOptions, useQuery } from '@tanstack/react-query';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Command,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CheckIcon, UserMinus2, X } from 'lucide-react';
+import { CheckIcon, UserMinus2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -91,13 +91,11 @@ export const UserSelectors = ({
 }: UserSelectorsProps) => {
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
-  const uncontrolled = React.useRef(!value && !!defaultValue);
-  const [internal, setInternal] = React.useState<UserOption | null>(() =>
-    uncontrolled.current ? defaultValue || null : null,
-  );
-  const selected = useMemo(() => {
-    return uncontrolled.current ? internal : value || null;
-  }, [value, internal]);
+
+  const uncontrolled = React.useMemo(() => !value && !!defaultValue, [value, defaultValue]);
+  const [internal, setInternal] = React.useState<UserOption | null>(defaultValue || null);
+
+  const selected = value ?? (uncontrolled ? internal : null);
 
   const { data, isPending: isLoading } = useQuery({
     queryKey: ['__internal__', React.useId(), search],
@@ -121,10 +119,10 @@ export const UserSelectors = ({
 
   const commit = useCallback(
     (next: UserOption | null) => {
-      if (uncontrolled.current) setInternal(next);
+      if (uncontrolled) setInternal(next);
       onChange?.(next);
     },
-    [onChange],
+    [onChange, uncontrolled],
   );
 
   const TriggerElm = useMemo(
