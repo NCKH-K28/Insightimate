@@ -21,6 +21,7 @@ import { boardApi } from '@/features/boards/api/http';
 import { toast } from 'sonner';
 import z from 'zod';
 import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
+import Image from 'next/image';
 
 type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 
@@ -57,7 +58,6 @@ export const KanbanColumnHeader = ({
   iconURL,
   color,
   createParams,
-  onCreate,
 }: KanbanColumnHeaderProps) => {
   const raw = ((category ?? label) || '').toString().toLowerCase();
   const candidates = [raw, raw.replace(/[_\s-]+/g, '_'), raw.replace(/[_\s-]+/g, '')];
@@ -84,7 +84,7 @@ export const KanbanColumnHeader = ({
   if (!icon) {
     if (iconURL) {
       icon = (
-        <img
+        <Image
           src={iconURL}
           alt={`${label} icon`}
           className='size-[18px] rounded-sm object-cover'

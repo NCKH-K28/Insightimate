@@ -1,10 +1,5 @@
 import * as axios from 'axios';
 
-type Config = {
-  baseURL: string;
-  timeout: number;
-};
-
 // https://nhathuyyne-requirement-analyzer-api.hf.space/
 const instance = axios.default.create({
   baseURL: 'https://nhathuyyne-requirement-analyzer-api.hf.space/api',

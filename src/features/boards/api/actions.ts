@@ -1,6 +1,6 @@
 import { BoardIssueMoveInput, BoardIssueUpdateInput } from '@/contracts/boards/boards.input';
 import { createApiMutationFc } from '@/lib/utils/api';
-import { mutationOptions, queryOptions, useQueryClient } from '@tanstack/react-query';
+import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { boardApi } from './http';
 import { BoardIssueQueryParams } from '@/contracts/boards/boards.query';
 
@@ -38,18 +38,14 @@ export const getBoardIssueFacetsQueryOptions = (boardId: string) => {
 };
 
 export const createBoardIssueMutationOptions = (boardId: string) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', boardId, 'issues', 'create'],
     mutationFn: createApiMutationFc({ boardId }, boardApi.issues.create),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['boards', boardId, 'issues'] });
-    },
+    meta: { invalidateQueries: [['boards', boardId, 'issues']] },
   });
 };
 
 export const updateBoardIssueMutationOptions = (context: BoardIssueContext) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'issues', context.issueId, 'update'],
     mutationFn: (data: BoardIssueUpdateInput & { issueId?: string }) => {
@@ -57,25 +53,19 @@ export const updateBoardIssueMutationOptions = (context: BoardIssueContext) => {
       if (!issueId) throw new Error('Issue ID is required to update an issue');
       return boardApi.issues.update({ ...context, issueId }, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId, 'issues'] });
-    },
+    meta: { invalidateQueries: [['boards', context.boardId, 'issues']] },
   });
 };
 
 export const deleteBoardIssueMutationOptions = (context: BoardIssueContext) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'issues', context.issueId, 'delete'],
     mutationFn: createApiMutationFc(context, boardApi.issues.delete),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId, 'issues'] });
-    },
+    meta: { invalidateQueries: [['boards', context.boardId, 'issues']] },
   });
 };
 
 export const moveBoardIssueMutationOptions = (contex: { boardId: string; issueId?: string }) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', 'issues', 'move', contex.boardId, contex.issueId],
     mutationFn: (data: BoardIssueMoveInput & { issueId?: string }) => {
@@ -83,21 +73,16 @@ export const moveBoardIssueMutationOptions = (contex: { boardId: string; issueId
       if (!issueId) throw new Error('Issue ID is required to move an issue');
       return boardApi.issues.move({ boardId: contex.boardId, issueId }, data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', contex.boardId, 'issues'] });
-    },
+    meta: { invalidateQueries: [['boards', contex.boardId, 'issues']] },
   });
 };
 
 // ========= BOARD SPRINTS ==========
 export const createBoardSprintMutationOptions = (boardId: string) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', boardId, 'sprints', 'create'],
     mutationFn: createApiMutationFc({ boardId }, boardApi.sprints.create),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', boardId] });
-    },
+    meta: { invalidateQueries: [['boards', boardId]] },
   });
 };
 
@@ -105,13 +90,10 @@ export const updateBoardSprintMutationOptions = (context: {
   boardId: string;
   sprintId: string;
 }) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'sprints', context.sprintId, 'update'],
     mutationFn: createApiMutationFc(context, boardApi.sprints.update),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId] });
-    },
+    meta: { invalidateQueries: [['boards', context.boardId]] },
   });
 };
 
@@ -119,24 +101,18 @@ export const deleteBoardSprintMutationOptions = (context: {
   boardId: string;
   sprintId: string;
 }) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'sprints', context.sprintId, 'delete'],
     mutationFn: createApiMutationFc(context, boardApi.sprints.delete),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId] });
-    },
+    meta: { invalidateQueries: [['boards', context.boardId]] },
   });
 };
 
 export const startBoardSprintMutationOptions = (context: { boardId: string; sprintId: string }) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'sprints', context.sprintId, 'start'],
     mutationFn: createApiMutationFc(context, boardApi.sprints.start),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId] });
-    },
+    meta: { invalidateQueries: [['boards', context.boardId]] },
   });
 };
 
@@ -144,13 +120,14 @@ export const completeBoardSprintMutationOptions = (context: {
   boardId: string;
   sprintId: string;
 }) => {
-  const queryClient = useQueryClient();
   return mutationOptions({
     mutationKey: ['boards', context.boardId, 'sprints', context.sprintId, 'complete'],
     mutationFn: createApiMutationFc(context, boardApi.sprints.complete),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId] });
-      queryClient.invalidateQueries({ queryKey: ['boards', context.boardId, 'issues'] });
+    meta: {
+      invalidateQueries: [
+        ['boards', context.boardId],
+        ['boards', context.boardId, 'issues'],
+      ],
     },
   });
 };

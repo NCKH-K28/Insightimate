@@ -1,3 +1,5 @@
+ 
+
 import { elasticClient, SearchQuery } from '@/lib/elastic';
 import { QueryOutput, QueryParams, ZQueryOutput } from '@/contracts/query/schema-v2';
 

@@ -41,7 +41,7 @@ const runSeed = async () => {
   if (process.env.NODE_ENV !== 'development') return;
   if (typeof window !== 'undefined') return;
   const mockEmail = 'dangnhatminh@gmail.com';
-  let user = await prisma.user.findFirst({ where: { email: mockEmail } });
+  const user = await prisma.user.findFirst({ where: { email: mockEmail } });
   if (!user) {
     const users = await Promise.all([
       signUp({

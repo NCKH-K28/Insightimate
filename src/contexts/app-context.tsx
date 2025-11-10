@@ -1,3 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
+/* eslint-disable react-hooks/refs */
+/* eslint-disable react-refresh/only-export-components */
+
 'use client';
 
 import * as React from 'react';

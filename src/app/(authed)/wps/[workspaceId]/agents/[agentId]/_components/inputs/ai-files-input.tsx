@@ -8,7 +8,6 @@ import React from 'react';
 import uniqBy from 'lodash/uniqBy';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import * as axios from 'axios';
 import { uploadSourceMutationOptions } from '@/features/agents/api/actions';
 
 type AIFilesInputProps = {

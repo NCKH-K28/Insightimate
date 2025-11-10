@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { MessageCircle, Heart, Share2 } from 'lucide-react';
-import ReplyModal from './reply-modal-issue';
 import CommentInput from './comment-input-issue';
 import socket from '@/lib/socket-io';
 
@@ -102,9 +101,6 @@ export default function CommentList({ issueId }: CommentListProps) {
     };
   }, []);
 
-  const handleNewComment = (newComment: Comment) => {
-    setComments((prev) => [newComment, ...prev]);
-  };
   return (
     <div className='space-y-4 pb-30'>
       <CommentInput issueId={issueId} />

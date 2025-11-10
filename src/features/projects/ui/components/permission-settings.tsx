@@ -269,7 +269,7 @@ export const PermissionSettings: React.FC<{ projectId: string }> = ({ projectId 
     });
 
     return data;
-  }, [roles]);
+  }, [roles, projectId]);
 
   useEffect(() => {
     form.setValue('create', formData.create, { shouldDirty: true, shouldValidate: true });
@@ -360,8 +360,8 @@ export const PermissionSettings: React.FC<{ projectId: string }> = ({ projectId 
                 {form.formState.isSubmitting
                   ? 'Saving...'
                   : form.formState.isDirty
-                    ? 'Save Changes'
-                    : 'No Changes'}
+                  ? 'Save Changes'
+                  : 'No Changes'}
               </Button>
             </div>
           </div>

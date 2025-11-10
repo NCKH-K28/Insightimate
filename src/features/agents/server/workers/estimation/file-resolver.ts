@@ -1,4 +1,5 @@
-// src/workers/analyze-document/file-resolver.ts
+ 
+
 import { prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';

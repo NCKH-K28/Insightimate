@@ -17,12 +17,7 @@ import { checkResourcesMapped } from '@/lib/authz/cerbos';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { genProjectId } from './configs/id-generators';
 import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
-import {
-  projectResourceFactory,
-  loadPrincipal,
-  workspaceResourceFactory,
-  ensureCan,
-} from '@/features/authz/server/pip';
+import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
 import { listStatuses } from './project-field.service';
 import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues/issues.status';
 import z from 'zod';
@@ -194,7 +189,8 @@ const listProjects = async (
 const createProject = async (input: ProjectCreateInput, context: ProjectContext) => {
   const workspace = await prisma.workspace.findUnique({ where: { id: input.workspaceId } });
   if (!workspace) throw new Error('Workspace not found');
-  const resource = workspaceResourceFactory(workspace);
+
+  // const resource = workspaceResourceFactory(workspace);
   // await ensureCan('projects:create', resource, context); FIXME: BUG (loi khi tao project voi WS_AMDIN role)
 
   const templateConfig = templateConfigs['SCRUM'];
@@ -353,8 +349,8 @@ const getProjectById = async (projectId: string, ctx: ProjectContext) => {
 };
 
 const getProjectsFacets = async (
-  projectId: string,
-  options: { workspaceId?: string } = {},
+  _projectId: string,
+  _options: { workspaceId?: string } = {},
   context: ProjectContext,
 ) => {
   const { objects } = await openfgaClient.listObjects({
@@ -365,16 +361,16 @@ const getProjectsFacets = async (
   const projectIds = objects.map((obj) => obj.replace('project:', ''));
   if (projectIds.length === 0) return {};
 
-  const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
-  const grouped = await prisma.project.groupBy({
-    where,
-    by: ['type', 'leadId'],
-    _count: { type: true, leadId: true },
-  });
+  // const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
+  // const grouped = await prisma.project.groupBy({
+  //   where,
+  //   by: ['type', 'leadId'],
+  //   _count: { type: true, leadId: true },
+  // });
 };
 
 // Project Actor
-const listProjectActors = async (params: { projectId: string }, context: ProjectContext) => {
+const listProjectActors = async (params: { projectId: string }) => {
   const { projectId } = params;
   const actors = await prisma.projectActor.findMany({
     where: { projectId },
@@ -481,7 +477,7 @@ const updateActor = async (
 };
 
 const listMembers = async (params: { projectId: string }, context: ProjectContext) => {
-  const actors = await listProjectActors({ projectId: params.projectId }, context);
+  const actors = await listProjectActors({ projectId: params.projectId });
   const userIds = actors.data.filter((a) => a.actorType === 'USER').map((a) => a.actorId);
   const teamIds = actors.data.filter((a) => a.actorType === 'TEAM').map((a) => a.actorId);
   const teams = await prisma.team.findMany({ where: { id: { in: teamIds } } });

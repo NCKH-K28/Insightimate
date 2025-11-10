@@ -22,9 +22,7 @@ export const useComposedRef = <T extends HTMLElement>(
 
   return React.useCallback(
     (instance: T | null) => {
-      if (libRef && 'current' in libRef) {
-        (libRef as { current: T | null }).current = instance;
-      }
+      if (libRef) libRef.current = instance;
 
       if (prevUserRef.current) {
         updateRef(prevUserRef.current, null);

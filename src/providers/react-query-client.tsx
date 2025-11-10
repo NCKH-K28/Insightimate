@@ -7,6 +7,9 @@ import get from 'lodash/get';
 const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onSettled(_data, _error, _variables, _context, mutation) {
+      const isClear = get(mutation.meta, 'clear', false);
+      if (isClear) queryClient.clear();
+
       const invalidateQueries = get(mutation.meta, 'invalidateQueries', []);
       if (!Array.isArray(invalidateQueries)) return;
       invalidateQueries.forEach((queryKey: unknown) => {
@@ -22,7 +25,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       throwOnError: true,
-      retry(failureCount, error) {
+      retry() {
         return false;
         // return false;
         // // FIXME: improve retry logic

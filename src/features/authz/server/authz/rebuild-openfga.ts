@@ -3,8 +3,6 @@ import { TupleKey } from '@openfga/sdk';
 import { loadAuthorizationModelFile, openfgaClient } from '@/lib/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { set } from 'lodash';
-import * as path from 'path';
-import * as fs from 'fs/promises';
 import { buildProjectTuples, buildTeamTuples, buildWorkspaceTuples } from './tuple-factory';
 
 const rebuildWorkspaces = async (options?: { storeId?: string; authorizationModelId?: string }) => {
@@ -30,7 +28,16 @@ const rebuildProjects = async (options?: { storeId?: string; authorizationModelI
     include: { roles: { include: { actors: true } } },
   });
 
-  const tuples: TupleKey[] = projects.flatMap(buildProjectTuples);
+  const tuples: TupleKey[] = projects.flatMap((project) =>
+    buildProjectTuples({
+      ...project,
+      roles: project.roles.map((role) => ({
+        ...role,
+        permissions: JSON.parse(JSON.stringify(role.permissions || ({} as any[]))),
+      })),
+      permissions: [], // FIXME: add project-level permissions later
+    }),
+  );
 
   if (tuples.length > 0) await openfgaClient.writeTuples(tuples, options);
   return { writes: tuples.length };
@@ -46,7 +53,7 @@ const clearAuthorizationModel = async (options?: {
 };
 
 export const rebuildAuthzData = async () => {
-  let result: Record<string, any> = {};
+  const result: Record<string, any> = {};
 
   // const currentStoreId = openfgaClient.storeId;
   // const newStore = await openfgaClient.createStore({ name: `rebuild-${Date.now()}` });

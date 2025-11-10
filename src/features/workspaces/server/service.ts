@@ -6,30 +6,16 @@ import {
   WorkspaceMember,
   WORKSPACE_ACTIONS,
   ZWorkspaceItem,
-  WORKSPACE_MEMBER_ACTIONS,
-  WsMemberAddInput,
   WorkspaceActionKey,
-  ZWsMemberList,
 } from '@/contracts/workspaces';
 import { prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
 import { openfgaClient } from '@/lib/authz/openfga';
-import { cerbosEdge, checkResourcesMapped, mapCerbosActionsToBooleans } from '@/lib/authz/cerbos';
+import { cerbosEdge, mapCerbosActionsToBooleans } from '@/lib/authz/cerbos';
 import get from 'lodash/get';
-import {
-  WorkspacePermissionError,
-  WorkspaceNotFoundError,
-  WorkspaceError,
-} from '@/lib/http/errors';
-import {
-  loadPrincipal,
-  workspaceMemberResourceFactory,
-  workspaceResourceFactory,
-} from '@/features/authz/server/pip';
-import {
-  buildWorkspaceTuples,
-  buildWorkspaceMemberTuples,
-} from '@/features/authz/api/tuple-factory';
+import { WorkspacePermissionError, WorkspaceNotFoundError } from '@/lib/http/errors';
+import { loadPrincipal, workspaceResourceFactory } from '@/features/authz/server/pip';
+import { buildWorkspaceTuples } from '@/features/authz/api/tuple-factory';
 
 // =============================== Utilities
 const genWorkspaceCuid = init({ length: 10, fingerprint: 'workspace' });

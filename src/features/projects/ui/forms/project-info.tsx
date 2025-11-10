@@ -72,7 +72,7 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
                   placeholder='Enter project name'
                   className='h-10 sm:h-11'
                   {...field}
-                  onBlur={(e) => {
+                  onBlur={() => {
                     field.onBlur();
 
                     // ====

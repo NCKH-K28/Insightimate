@@ -1,4 +1,6 @@
-import { UseMutateFunction, useMutation } from '@tanstack/react-query';
+ 
+
+import { useMutation } from '@tanstack/react-query';
 import {
   Form,
   FormControl,
@@ -108,7 +110,7 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
           )}
         />
 
-        <DurationPresetSelectors value={'custom'} onValueChange={(v) => {}} disabled />
+        <DurationPresetSelectors value={'custom'} onValueChange={() => {}} disabled />
 
         <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2', 'items-start')}>
           <FormField

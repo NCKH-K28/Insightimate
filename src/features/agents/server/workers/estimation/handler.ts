@@ -1,4 +1,5 @@
-// src/workers/analyze-document/handler.ts
+ 
+
 import { prisma } from '@/lib/prisma';
 import { insightAI } from '@/lib/insight-ai';
 import { AnalysisMsg } from './schema';

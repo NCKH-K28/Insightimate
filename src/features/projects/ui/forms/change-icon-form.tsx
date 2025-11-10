@@ -26,12 +26,11 @@ export const PREDEFINED_ICONS: PredefinedIcon[] = [
 
 export const ChangeIconForm = ({
   onchangeIcon,
-  icon,
 }: {
   onchangeIcon?: (icon: PredefinedIcon) => void;
   icon?: PredefinedIcon;
 }) => {
-  const [predefinedIcons, setPredefinedIcons] = useState(PREDEFINED_ICONS);
+  const [predefinedIcons] = useState(PREDEFINED_ICONS);
   const [selectedIcon, setSelectedIcon] = useState<PredefinedIcon | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);

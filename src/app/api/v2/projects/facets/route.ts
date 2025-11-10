@@ -1,11 +1,8 @@
-import { ProjectAction } from '@/contracts/auth';
-import { ZProjectQueryParams, ZProjectListRes, ZProjectFacets } from '@/contracts/projects';
+import { ZProjectQueryParams, ZProjectFacets } from '@/contracts/projects';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/auth';
 import { authenticated } from '@/lib/auth/guards';
-import { cerbosEdge } from '@/lib/authz/cerbos';
 import { prisma } from '@/lib/prisma';
-import { ZProjectFacetsRes } from '../../../../../../.temp/schemas/project.schema';
 import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
@@ -48,11 +45,11 @@ export const GET = middlewareHandler([authenticated], async (req) => {
     orderBy: [{ leadId: 'desc' }, { createdAt: 'desc' }],
   });
 
-  const sortedProjects = projects.sort((a, b) => {
-    if (a.leadId === auth.user.id) return -1;
-    if (b.leadId === auth.user.id) return 1;
-    return 0;
-  });
+  // const sortedProjects = projects.sort((a, b) => {
+  //   if (a.leadId === auth.user.id) return -1;
+  //   if (b.leadId === auth.user.id) return 1;
+  //   return 0;
+  // });
 
   const [typeRows, leadRows] = await Promise.all([
     prisma.project.groupBy({ by: ['type'], where, _count: { _all: true } }),

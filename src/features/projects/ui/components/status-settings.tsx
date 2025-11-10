@@ -1,3 +1,5 @@
+ 
+
 import { useQuery } from '@tanstack/react-query';
 import { listProjectStatusesQueryOptions } from '../../api/actions';
 import { Button } from '@/components/ui/button';
@@ -202,13 +204,10 @@ export const StatusSettings = (props: StatusSettingsProps) => {
     console.log('Added new status to category:', category);
   };
 
-  const statusesByCategory = categories.reduce(
-    (acc, category) => {
-      acc[category] = localStatuses.filter((status) => status.category === category);
-      return acc;
-    },
-    {} as Record<string, Status[]>,
-  );
+  const statusesByCategory = categories.reduce((acc, category) => {
+    acc[category] = localStatuses.filter((status) => status.category === category);
+    return acc;
+  }, {} as Record<string, Status[]>);
 
   return (
     <div className='p-6 bg-gray-100 min-h-screen'>

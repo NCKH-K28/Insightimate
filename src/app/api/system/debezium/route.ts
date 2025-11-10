@@ -1,8 +1,10 @@
+ 
+
 import { seedDebeziumConnectors } from '@/lib/debezium/seed';
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import get from 'lodash/get';
-import set from 'lodash/set';
 import { elasticClient } from '@/lib/elastic';
+import { compose } from '@/lib/http/api-compose';
 
 // clear elast
 const clearEs = async () => {
@@ -12,7 +14,7 @@ const clearEs = async () => {
   });
 };
 
-export const GET = async (request: NextRequest) => {
+export const GET = compose(async () => {
   try {
     await clearEs();
     const result = await seedDebeziumConnectors();
@@ -24,6 +26,4 @@ export const GET = async (request: NextRequest) => {
     console.error('Detail:', detail);
     return NextResponse.json({ status: 'error', message: errorMessage, detail }, { status: 500 });
   }
-
-  // re push
-};
+});

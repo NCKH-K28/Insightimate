@@ -1,9 +1,11 @@
+ 
+
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
 
 type AgentsListProps = { params: { workspaceId: string } };
-export const AgentsList = (props: AgentsListProps) => {
+export const AgentsList = (_props: AgentsListProps) => {
   const { data: agents } = useQuery({
     queryKey: ['agents'],
     queryFn: async () => {

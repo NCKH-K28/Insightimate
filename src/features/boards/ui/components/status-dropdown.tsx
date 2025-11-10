@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -31,7 +33,7 @@ export default function StatusDropdown({
   // keep internal state in sync when controlled `value` changes
   useEffect(() => {
     if (value !== undefined && value !== status) setStatus(value);
-  }, [value]);
+  }, [value, status]);
 
   const handleChange = (value: string) => {
     setStatus(value);

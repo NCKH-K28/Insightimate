@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -335,9 +335,9 @@ const StudioStats = ({ analyticsData }: { analyticsData: AnalyticsData[] }) => {
 
 export const StudioPanel = ({}: StudioPanelProps) => {
   const params = useParams<{ workspaceId: string; agentId: string }>();
+  if (!params) throw new Error('Params is undefined');
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [deletingIds, setDeletingIds] = useState<Set<string>>(new Set());
-  const queryClient = useQueryClient();
+  const [deletingIds] = useState<Set<string>>(new Set());
 
   const {
     data: analyticsData,

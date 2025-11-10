@@ -1,29 +1,26 @@
+ 
+
 'use client';
 
+import React from 'react';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-import { useParams, usePathname } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
-  Home,
   FolderKanban,
   Calendar,
   BarChart3,
   Settings,
-  X,
   Star,
-  GalleryVerticalEnd,
   HomeIcon,
   Users2Icon,
   BotIcon,
   SearchIcon,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -40,11 +37,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams<{ workspaceId: string }>();
   if (!params) throw new Error('Params is undefined');
   const { workspaceId } = params;
-
-  // const fetchRecentPlans = useQuery({
-  //   ...fetchPlansQueryOption(),
-  //   select: (data) => data.slice(0, 3),
-  // });
 
   const fetchRecentPlans = useQuery({
     queryKey: ['plans', 'recent', workspaceId],

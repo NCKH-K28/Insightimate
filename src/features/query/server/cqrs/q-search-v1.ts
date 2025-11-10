@@ -1,3 +1,5 @@
+ 
+
 import {
   SearchInput,
   SearchOutput,
@@ -95,7 +97,7 @@ function buildBreadcrumbs(row: any) {
 }
 
 // FIXME: thieu authz
-const search = async (input: SearchInput, context: { actorId: string }): Promise<SearchOutput> => {
+const search = async (input: SearchInput): Promise<SearchOutput> => {
   const q = input.q?.trim();
   if (!q || q.length === 0) return ZSearchOutput.parse({ data: [], meta: { total: 0 } });
 

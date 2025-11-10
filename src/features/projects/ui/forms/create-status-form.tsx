@@ -24,6 +24,7 @@ import { ZIssueStatusCreateInput } from '@/contracts/issues/issues.input';
 import z from 'zod';
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 const ZFormData = ZIssueStatusCreateInput;
 type FormData = z.infer<typeof ZFormData>;
@@ -175,7 +176,7 @@ export const CreateStatusForm = ({ onCancel, onSubmit }: CreateStatusFormProps) 
                         value={field.value ?? ''}
                       />
                       {field.value ? (
-                        <img
+                        <Image
                           src={field.value}
                           alt='icon preview'
                           className='h-10 w-10 rounded-sm object-cover border'

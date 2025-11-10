@@ -1,5 +1,4 @@
 import get from 'lodash/get';
-import merge from 'lodash/merge';
 import { NextRequest } from 'next/server';
 import { AuthContext, ZAuthContext } from '@/contracts/auth';
 

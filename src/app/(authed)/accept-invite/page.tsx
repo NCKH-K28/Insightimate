@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -36,6 +35,7 @@ import { toast } from 'sonner';
 
 export default function InvitePage() {
   const searchParams = useSearchParams();
+  if (!searchParams) throw new Error('Search params are not available');
   const router = useRouter();
 
   const token = searchParams.get('token') || undefined;

@@ -1,8 +1,11 @@
+ 
+
 import { NextRequest, NextResponse } from 'next/server';
 import get from 'lodash/get';
 import qs from 'qs';
 import { httpExceptionFilter } from '../http/filters';
-import { AccessTokenPayload } from '../services/auth';
+
+export type AccessTokenPayload = { id: string; email: string; roles?: string[] };
 
 // ======
 export type NextContext<TParams = unknown> = { params: Promise<TParams> };

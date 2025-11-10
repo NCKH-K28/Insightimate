@@ -1,3 +1,6 @@
+ 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { prisma } from '@/lib/prisma';
 
 type Context = { boardId: string };

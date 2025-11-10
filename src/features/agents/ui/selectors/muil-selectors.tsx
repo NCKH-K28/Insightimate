@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/command';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { QueryOptions, useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, UseQueryOptions } from '@tanstack/react-query';
 import { XIcon } from 'lucide-react';
 import debounce from 'lodash/debounce';
 
@@ -69,7 +69,7 @@ export const MuilSelectors = (props: MuilSelectorsProps) => {
         ? props.searchQueryOptions(q, props.excluded)
         : props.searchQueryOptions;
     return qOptions;
-  }, [props.searchQueryOptions, q, props.excluded, props.extended]);
+  }, [props, q]);
 
   const { data: options, isPending } = useQuery({ enabled: q.length > 0, ...searchQueryOptions });
 
@@ -108,8 +108,8 @@ export const MuilSelectors = (props: MuilSelectorsProps) => {
           {q.trim().length === 0
             ? 'Type to search options'
             : isPending
-              ? 'Loading options...'
-              : 'No options found.'}
+            ? 'Loading options...'
+            : 'No options found.'}
         </CommandEmpty>
         <CommandGroup
           className='max-h-60 overflow-y-auto'

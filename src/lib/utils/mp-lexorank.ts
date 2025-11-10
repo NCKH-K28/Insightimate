@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import Decimal from 'decimal.js';
 
 /** Public types */
@@ -156,7 +157,7 @@ export function build<T = unknown, RowType extends Row<T> = Row<T>>(
   const step = new Decimal(opts.rankSeed?.step ?? 1);
 
   const ranked = new Map<Id, RankType>();
-  for (const [parent, arr] of groups) {
+  for (const [, arr] of groups) {
     const sorted = [...arr].sort((a, b) => {
       if (opts.sortKey) {
         const ka = opts.sortKey(a);
@@ -519,7 +520,7 @@ export function delNodeOnly<T = unknown, NodeType extends Node<T> = Node<T>>(
   }
 
   const newParentId = nodeToDelete.parentId;
-  const newParentPath = newParentId ? (nodes.find((n) => n.id === newParentId)?.path ?? []) : [];
+  const newParentPath = newParentId ? nodes.find((n) => n.id === newParentId)?.path ?? [] : [];
 
   return nodes
     .filter((n) => n.id !== nodeId) // Remove the target node
@@ -545,10 +546,8 @@ export function reorder<T = unknown, NodeType extends Node<T> = Node<T>>(
   if (!node) return nodes;
 
   const siblings = nodes.filter((n) => n.parentId === node.parentId && n.id !== node.id);
-  const before = opts.beforeId
-    ? (siblings.find((s) => s.id === opts.beforeId)?.rank ?? null)
-    : null;
-  const after = opts.afterId ? (siblings.find((s) => s.id === opts.afterId)?.rank ?? null) : null;
+  const before = opts.beforeId ? siblings.find((s) => s.id === opts.beforeId)?.rank ?? null : null;
+  const after = opts.afterId ? siblings.find((s) => s.id === opts.afterId)?.rank ?? null : null;
 
   let newRank: RankType;
   if (!before && !after) {

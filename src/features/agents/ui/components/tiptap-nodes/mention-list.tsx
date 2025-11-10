@@ -1,3 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
+ 
+/* eslint-disable react/display-name */
+
 import React, { forwardRef, useEffect, useImperativeHandle, useState } from 'react';
 
 export type MentionListProps = {

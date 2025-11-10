@@ -26,9 +26,9 @@ export const POST = middlewareHandler<{ projectId: string }>(
   },
 );
 
-export const PUT = middlewareHandler<{ projectId: string }>(
-  [authenticated],
-  async (req, { params }) => {
-    throw new Error('Method not allowed');
-  },
-);
+// export const PUT = middlewareHandler<{ projectId: string }>(
+//   [authenticated],
+//   async (req, { params }) => {
+//     throw new Error('Method not allowed');
+//   },
+// );

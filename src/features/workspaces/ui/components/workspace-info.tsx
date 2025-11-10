@@ -1,3 +1,3 @@
 export const WorkspaceInfo = ({ workspaceId }: { workspaceId: string }) => {
-  return <></>;
+  return <div>Workspace Info Component for workspace ID: {workspaceId}</div>;
 };

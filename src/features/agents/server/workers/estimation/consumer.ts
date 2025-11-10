@@ -1,3 +1,6 @@
+ 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { kafka } from '@/lib/kafka';
 import { AnalysisMsg } from './schema';
 import { analyzeDocumentHandler } from './handler';

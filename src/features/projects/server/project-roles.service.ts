@@ -1,8 +1,9 @@
+ 
+
 import { createId } from '@paralleldrive/cuid2';
 import { ProjectRole, ProjectRoleCreateInput, ZProjectRole } from '@/contracts/projects';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
 import { writeProjectRoles } from './cqrs/c-project-roles-write';
 import {
   buildProjectRoleTuples,
@@ -27,6 +28,10 @@ export const projectRoleFactory = (input: Partial<ProjectRole> & ProjectRoleCrea
   return ZProjectRole.parse(data);
 };
 
+const jsonValueToObject = (value: any) => {
+  return JSON.parse(JSON.stringify(value));
+};
+
 // === Write
 const createProjectRole = async (input: ProjectRoleCreateInput, ctx: { actorId: string }) => {
   await projectsService.getProjectById(input.projectId, ctx); // ensure project exists and actor has access
@@ -35,7 +40,10 @@ const createProjectRole = async (input: ProjectRoleCreateInput, ctx: { actorId: 
       data: projectRoleFactory(input),
       include: { actors: true },
     });
-    const tuples = buildProjectRoleTuples(created);
+    const tuples = buildProjectRoleTuples({
+      ...created,
+      permissions: Array.from(jsonValueToObject(created.permissions)),
+    });
     if (tuples.length > 0) await openfgaClient.writeTuples(tuples);
     return created;
   });
@@ -52,20 +60,20 @@ const deleteProjectRole = async (roleId: string, ctx: { actorId: string }) => {
     });
 
     await tx.projectRole.delete({ where: { id: roleId } });
-    const tuples = buildProjectRoleTuples(role);
+    const tuples = buildProjectRoleTuples({ ...role, permissions: [] });
     await openfgaClient.deleteTuples(tuples);
 
     return { success: true };
   });
 };
 
-const updateProjectRole = async (
-  roleId: string,
-  input: Partial<ProjectRoleCreateInput>,
-  ctx: { actorId: string },
-) => {
-  throw new Error('Not implemented yet');
-};
+// const updateProjectRole = async (
+//   roleId: string,
+//   input: Partial<ProjectRoleCreateInput>,
+//   ctx: { actorId: string },
+// ) => {
+//   throw new Error('Not implemented yet');
+// };
 
 const addMemberToProjectRole = async (
   input: { roleId: string; userId: string },
@@ -144,13 +152,13 @@ const getProjectRoleById = async (roleId: string, ctx: { actorId: string }) => {
 };
 
 const listProjectActors = async (projectId: string, ctx: { actorId: string }) => {
-  const project = await projectsService.getProjectById(projectId, ctx);
+  await projectsService.getProjectById(projectId, ctx);
   const actors = await prisma.projectActor.findMany({ where: { projectId } });
   const data = actors;
   return { data, meta: { total: actors.length } };
 };
 
-const getProjectActorById = async (actorId: string, ctx: { actorId: string }) => {
+const getProjectActorById = async (actorId: string, _ctx: { actorId: string }) => {
   const exist = await prisma.projectActor.findUnique({ where: { id: actorId } });
   if (!exist) throw new Error('Actor not found');
   return exist;
@@ -160,7 +168,7 @@ export const projectRolesService = {
   // Write
   createProjectRole,
   deleteProjectRole,
-  updateProjectRole,
+  // updateProjectRole,
   addMemberToProjectRole,
   removeMemberFromProjectRole,
   // Read

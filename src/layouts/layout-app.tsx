@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import ReactQueryProvider from '@/providers/react-query-client';
 import JotaiProvider from '@/providers/jotai-provider';

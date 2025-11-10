@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
 import { ZProjectCreateInput } from '@/contracts/projects';

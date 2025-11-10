@@ -1,3 +1,5 @@
+ 
+
 import { useMemo, useCallback } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import groupBy from 'lodash/groupBy';
@@ -36,7 +38,7 @@ export const useIssuesToScrumRows = (
             ? { type: 'after', refId: relative.afterId }
             : { type: relative.position },
         from: { parentId: issue.sprintId },
-        to: { parentId: relative.rowId === BACKLOG_ROW_ID ? null : (relative.rowId ?? null) },
+        to: { parentId: relative.rowId === BACKLOG_ROW_ID ? null : relative.rowId ?? null },
       });
 
       toast.promise(movePromise, {
@@ -71,7 +73,7 @@ export const useIssuesToScrumRows = (
         return <RowSprint id={id} params={params} sprint={sprint} {...props} />;
       },
     }),
-    [grouped, createScrumItem],
+    [grouped, createScrumItem, params],
   );
 
   return useMemo(() => {

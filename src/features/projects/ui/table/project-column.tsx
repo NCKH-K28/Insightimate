@@ -2,7 +2,6 @@
 
 import { createColumnHelper } from '@tanstack/react-table';
 import Link from 'next/link';
-import { ProjectList } from '../../../../../.temp/schemas/project';
 import Image from 'next/image';
 import { format } from 'date-fns';
 import { Code2, LucideIcon } from 'lucide-react';
@@ -55,6 +54,8 @@ const hasPerm = (
 const ProjectActionsCell = (props: { project: ProjectItem }) => {
   const router = useRouter();
   const pathname = usePathname();
+  if (!pathname) throw new Error('Pathname is undefined');
+
   const { project } = props;
   const perm = project.permissions;
 
