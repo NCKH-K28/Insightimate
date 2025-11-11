@@ -19,17 +19,4 @@ const getSocketClient = (): Socket => {
 
 export const socketIO = getSocketClient();
 
-// Log socket events
-socketIO.on('connect', () => {
-  console.log('🔌 Socket đã kết nối, ID:', socketIO.id);
-});
-
-socketIO.on('connect_error', (error) => {
-  console.error('❌ Socket kết nối thất bại:', error);
-});
-
-socketIO.on('disconnect', (reason) => {
-  console.log('🔌 Socket bị ngắt kết nối:', reason);
-});
-
 export default socketIO;
