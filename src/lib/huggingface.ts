@@ -1,3 +1,5 @@
+import serverConfig from '@/configs/server';
 import { InferenceClient } from '@huggingface/inference';
 
-export const hfClient = new InferenceClient(process.env.HF_TOKEN);
+const hfConfig = serverConfig.hf;
+export const hfClient = new InferenceClient(hfConfig.apiKey);

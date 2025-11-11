@@ -1,5 +1,6 @@
 import z from 'zod';
 import * as jose from 'jose';
+import serverConfig from '@/configs/server';
 
 export const ZInviteTokenPayload = z.object({
   sub: z.string().min(1, 'Invalid token payload'),
@@ -7,11 +8,10 @@ export const ZInviteTokenPayload = z.object({
 });
 export type InviteTokenPayload = z.infer<typeof ZInviteTokenPayload>;
 
-const SECRET = process.env.INVITE_TOKEN_SECRET || 'dev-invite-secret';
-const secret = new TextEncoder().encode(SECRET);
+const jwtConfig = serverConfig.jwt;
+const secret = new TextEncoder().encode(jwtConfig.inviteSecret);
 
 const generateInviteToken = (payload: InviteTokenPayload) => {
-  if (!SECRET) throw new Error('INVITE_TOKEN_SECRET is not set');
   return new jose.SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -20,7 +20,6 @@ const generateInviteToken = (payload: InviteTokenPayload) => {
 };
 
 const verifyInviteToken = async (token: string) => {
-  if (!SECRET) throw new Error('INVITE_TOKEN_SECRET is not set');
   const { payload } = await jose.jwtVerify(token, secret);
   return ZInviteTokenPayload.parse(payload);
 };

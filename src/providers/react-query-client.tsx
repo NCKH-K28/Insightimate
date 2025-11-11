@@ -12,8 +12,8 @@ const queryClient = new QueryClient({
 
       const invalidateQueries = get(mutation.meta, 'invalidateQueries', []);
       if (Array.isArray(invalidateQueries)) {
-        queryClient.invalidateQueries({ queryKey: invalidateQueries });
-      }
+        invalidateQueries.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
+      } else console.warn("'invalidateQueries' meta should be an array of query keys.");
     },
   }),
   defaultOptions: {

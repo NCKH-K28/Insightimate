@@ -4,6 +4,7 @@ import { createId as generateCuid2 } from '@paralleldrive/cuid2';
 
 import { verifyPassword, hashPassword } from './password';
 import { generateToken } from '@/lib/auth/session';
+import serverConfig from '@/configs/server';
 
 const signIn = async (input: { email: string; password: string }) => {
   const acc = await prisma.account.findUnique({ where: { email: input.email } });
@@ -37,9 +38,8 @@ const signUp = async (input: { email: string; password: string; name: string }) 
 
 export const authService = { signIn, signUp };
 
+// ==== Seed data for development ====
 const runSeed = async () => {
-  if (process.env.NODE_ENV !== 'development') return;
-  if (typeof window !== 'undefined') return;
   const mockEmail = 'dangnhatminh@gmail.com';
   const user = await prisma.user.findFirst({ where: { email: mockEmail } });
   if (!user) {
@@ -70,6 +70,8 @@ const runSeed = async () => {
   }
 };
 
-await runSeed()
-  .then(() => console.log('Seed completed'))
-  .catch((error) => console.error('Error running seed:', error));
+const isDev = serverConfig.appEnv === 'development';
+if (isDev)
+  await runSeed()
+    .then(() => console.log('Seed completed'))
+    .catch((error) => console.error('Error running seed:', error));

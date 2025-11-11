@@ -1,10 +1,12 @@
+import serverConfig from '@/configs/server';
 import { AuthClaims, ZAuthClaims } from '@/contracts/auth';
 import * as jose from 'jose';
 
-const SECRET = new TextEncoder().encode(process.env.AUTH_JWT_SECRET ?? 'dev-secret');
+const authConfig = serverConfig.auth;
+const secret = new TextEncoder().encode(authConfig.secret);
 
 export async function verifyToken(token: string) {
-  const { payload } = await jose.jwtVerify(token, SECRET);
+  const { payload } = await jose.jwtVerify(token, secret);
   const parsed = ZAuthClaims.parse(payload);
   return parsed;
 }
@@ -15,6 +17,6 @@ export async function generateToken(claims: AuthClaims) {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('24h')
-    .sign(SECRET);
+    .sign(secret);
   return token;
 }

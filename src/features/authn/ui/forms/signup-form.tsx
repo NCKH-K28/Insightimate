@@ -52,7 +52,7 @@ export function SignUpForm(props: SignUpFormProps) {
     await toast
       .promise(signUp.mutateAsync(data), {
         loading: 'Creating your account...',
-        success: 'Account created successfully! Redirecting...',
+        success: 'Account created successfully! You can now sign in.',
         error: (err) => {
           if (err instanceof AxiosError) {
             const status = err.response?.status;
@@ -63,6 +63,7 @@ export function SignUpForm(props: SignUpFormProps) {
       })
       .unwrap()
       .then(() => {
+        form.reset();
         if (props.redirectTo) router.push(props.redirectTo);
       });
   });
@@ -88,7 +89,7 @@ export function SignUpForm(props: SignUpFormProps) {
                     <Input
                       placeholder='Enter your full name'
                       type='text'
-                      autoComplete='name'
+                      autoComplete={`user.${field.name}`}
                       disabled={form.formState.isSubmitting}
                       {...field}
                     />
@@ -107,7 +108,7 @@ export function SignUpForm(props: SignUpFormProps) {
                     <Input
                       placeholder='Enter your email'
                       type='email'
-                      autoComplete='email'
+                      autoComplete={`user.${field.name}`}
                       disabled={form.formState.isSubmitting}
                       {...field}
                     />
@@ -126,7 +127,7 @@ export function SignUpForm(props: SignUpFormProps) {
                     <Input
                       placeholder='Create a password'
                       type={'password'}
-                      autoComplete='new-password'
+                      autoComplete={`user.${field.name}`}
                       disabled={form.formState.isSubmitting}
                       {...field}
                     />
@@ -145,7 +146,6 @@ export function SignUpForm(props: SignUpFormProps) {
                     <Input
                       placeholder='Confirm your password'
                       type='password'
-                      autoComplete='new-password'
                       disabled={form.formState.isSubmitting}
                       {...field}
                     />

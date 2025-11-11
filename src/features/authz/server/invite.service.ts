@@ -7,13 +7,16 @@ import { inviteToken, InviteTokenPayload } from './invite-token';
 import { InviteNotFoundError } from '@/lib/http/errors';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { buildWorkspaceMemberTuples } from '../api/tuple-factory';
+import serverConfig from '@/configs/server';
+
+const authConfig = serverConfig.auth;
 
 // === Configuration ===
 const CONFIG = {
   INVITE_EXPIRY_DAYS: 7,
   TOKEN_ALGORITHM: 'HS256' as const,
   SEARCH_LIMIT: 5,
-  SECRET: new TextEncoder().encode(process.env.AUTH_JWT_SECRET ?? 'dev-secret'),
+  SECRET: new TextEncoder().encode(authConfig.secret),
 } as const;
 
 // === Utilities ===
