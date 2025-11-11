@@ -4,7 +4,6 @@ import { NextResponse } from 'next/server';
 import merge from 'lodash/merge';
 
 import z from 'zod';
-import { SourceListInput, ZSourceCreateInput, ZSourceListInput } from '@/contracts/agents';
 import { compose } from '@/lib/http/api-compose';
 import {
   getZodBody,
@@ -14,22 +13,24 @@ import {
   zodParamsPipe,
   zodQueryPipe,
 } from '@/lib/http/zod-pipes';
+import { ZDataSourceCreateInput } from '@/contracts/agents/agents.input';
+import { ZDataSourceListInput } from '@/contracts/agents/agents.query';
 
 const ZSourceParams = z.object({ agentId: z.string() });
-const ZSourceCreateBody = ZSourceCreateInput.omit({ agentId: true });
+const ZSourceCreateBody = ZDataSourceCreateInput.omit({ agentId: true });
 
 export const GET = compose(
   authenticatedV2,
   zodParamsPipe(ZSourceParams),
-  zodQueryPipe(ZSourceListInput),
+  zodQueryPipe(ZDataSourceListInput),
   async (req) => {
     const auth = await getAuthFromRequest(req);
     const actorId = auth.user.id;
 
     const params = getZodParams(req, ZSourceParams);
-    const query = getZodQuery(req, ZSourceListInput);
+    const query = getZodQuery(req, ZDataSourceListInput);
 
-    const input: SourceListInput = merge({}, query, { filter: { agentId: params.agentId } });
+    const input = merge({}, query, { filter: { agentId: params.agentId } });
     const result = await sourceService.list(input, { actorId });
 
     return NextResponse.json(result);

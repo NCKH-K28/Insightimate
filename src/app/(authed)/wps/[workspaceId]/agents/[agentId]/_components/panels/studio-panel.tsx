@@ -36,13 +36,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import {
-  deleteAgentAnalysisMutationOptions,
   listAgentAnalysesQueryOptions,
+  deleteAgentAnalysisMutationOptions,
 } from '@/features/agents/api/actions';
-import { AnalysisItemOutput } from '@/contracts/agents';
+import { AnalysisItemOutput } from '@/contracts/agents/agents.query';
 
 // Updated type alias to use AnalysisItemOutput
-type AnalyticsData = AnalysisItemOutput;
+type AnalyticsData = AnalysisItemOutput['data'];
 
 type StudioPanelProps = { params: { agentId: string } };
 

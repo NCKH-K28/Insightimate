@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { elasticClient } from '@/lib/elastic';
-import { generateObject, generateText, Output, stepCountIs, tool } from 'ai';
+import { generateText, stepCountIs, tool } from 'ai';
 import { google } from '@ai-sdk/google';
 import { hfClient } from '@/lib/huggingface';
 import { z } from 'zod';

@@ -411,6 +411,9 @@ importers:
       '@tailwindcss/typography':
         specifier: ^0.5.19
         version: 0.5.19(tailwindcss@4.1.17)
+      '@tanstack/eslint-plugin-query':
+        specifier: ^4.39.1
+        version: 4.39.1(eslint@9.39.1(jiti@2.6.1))
       '@types/express':
         specifier: ^5.0.5
         version: 5.0.5
@@ -3123,6 +3126,11 @@ packages:
     resolution: {integrity: sha512-w31dd8HOx3k9vPtcQh5QHP9GwKcgbMp87j58qi6xgiBnFFtKEAgCWnDw4qUT8aHwkCp8bKvb/KGKWWHedP0AAg==}
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders || >=4.0.0-alpha.20 || >=4.0.0-beta.1'
+
+  '@tanstack/eslint-plugin-query@4.39.1':
+    resolution: {integrity: sha512-5YDX4mdRC0hllHKp531CnScFWZU7aFrJ1aTyyuaB6+z0/i0JfcKuckSTYaji3vUk82GALM90eWwHFVRAch+7tQ==}
+    peerDependencies:
+      eslint: ^6.0.0 || ^7.0.0 || ^8.0.0
 
   '@tanstack/query-core@5.90.7':
     resolution: {integrity: sha512-6PN65csiuTNfBMXqQUxQhCNdtm1rV+9kC9YwWAIKcaxAauq3Wu7p18j3gQY3YIBJU70jT/wzCCZ2uqto/vQgiQ==}
@@ -10437,6 +10445,10 @@ snapshots:
     dependencies:
       postcss-selector-parser: 6.0.10
       tailwindcss: 4.1.17
+
+  '@tanstack/eslint-plugin-query@4.39.1(eslint@9.39.1(jiti@2.6.1))':
+    dependencies:
+      eslint: 9.39.1(jiti@2.6.1)
 
   '@tanstack/query-core@5.90.7': {}
 

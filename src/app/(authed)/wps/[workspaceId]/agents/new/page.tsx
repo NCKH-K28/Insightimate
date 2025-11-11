@@ -1,6 +1,6 @@
 'use client';
 
-import { CreateAgentForm } from '@/features/agents/ui/components/create-agent-form';
+import { CreateAgentForm } from '@/features/agents/ui/forms/create-agent-form';
 import { redirect, useParams } from 'next/navigation';
 
 export default function NewAgentPage() {
@@ -8,8 +8,7 @@ export default function NewAgentPage() {
   if (!params) throw new Error('Missing params');
   const { workspaceId } = params;
   return (
-    <div>
-      <div className='text-2xl font-semibold p-6 border-b'>Create New Agent</div>
+    <div className='size-full overflow-auto'>
       <CreateAgentForm
         values={{ workspaceId }}
         onSuccess={(data) => {

@@ -152,6 +152,7 @@
     "@next/eslint-plugin-next": "^16.0.1",
     "@tailwindcss/postcss": "^4",
     "@tailwindcss/typography": "^0.5.19",
+    "@tanstack/eslint-plugin-query": "^4.39.1",
     "@types/express": "^5.0.5",
     "@types/is-hotkey": "^0.1.10",
     "@types/json-schema": "^7.0.15",

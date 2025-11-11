@@ -7,7 +7,7 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Prisma } from '@prisma/client';
 import z from 'zod';
 import { genDataSourceId } from '../../utils/id-generator';
-import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents';
+import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents/agents.input';
 
 // ========================== Service Methods ==========================
 export const projectToSource = (project: { id: string; name: string; avatar?: string | null }) => ({
