@@ -38,5 +38,5 @@ export async function resolveFileRef(sourceId: string) {
   if (!fileRef) throw new Error(`FileReference not found for source: ${sourceId}`);
 
   const bucket = s3Config.bucketName;
-  return { bucket, key: fileRef.key };
+  return { bucket, key: fileRef.key, filename: fileRef.filename };
 }

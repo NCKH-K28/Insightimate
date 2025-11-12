@@ -6,7 +6,7 @@ const instance = axios.default.create({
 });
 
 const textEstimate = async (text: string) => {
-  const response = await instance.post('/estimate', { text });
+  const response = await instance.post('/estimate', { text }, { timeout: 0 });
   return response.data;
 };
 
