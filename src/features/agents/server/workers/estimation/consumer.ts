@@ -36,6 +36,7 @@ export default async function startAnalyzeDocumentConsumer() {
 
         await analyzeDocumentHandler(parsed);
       } catch (e) {
+        console.error('Error processing analyze document message', e);
         const msg = e instanceof Error ? e.message : 'Unknown error';
         logger.error({ message: 'Error processing analyze document message', error: msg });
         if (msg.includes('[not-found]')) await commit();

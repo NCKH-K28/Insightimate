@@ -7,6 +7,9 @@ import { Upload } from '@aws-sdk/lib-storage';
 import z from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getZodParams, zodParamsPipe } from '@/lib/http/zod-pipes';
+import serverConfig from '@/configs/server';
+
+const s3Config = serverConfig.s3;
 
 const ZSourceParams = z.object({ agentId: z.string() });
 const genFileId = () => `reqfile_${Math.random().toString(36).substring(2, 15)}`;
@@ -35,7 +38,7 @@ export const POST = compose(
     const body = file.stream() as any;
     const up = new Upload({
       client: s3,
-      params: { Bucket: 'ai-files', Key: key, Body: body, ContentType: file.type },
+      params: { Bucket: s3Config.bucketName, Key: key, Body: body, ContentType: file.type },
       queueSize: 4, // tùy chọn
       leavePartsOnError: false,
     });
