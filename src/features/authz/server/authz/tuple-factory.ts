@@ -11,7 +11,7 @@ const asUser = (id: UserId) => `user:${id}`;
 const asWs = (id: WorkspaceId) => `workspace:${id}`;
 const asTeam = (id: string) => `team:${id}`;
 const asProj = (id: ProjectId) => `project:${id}`;
-const asProjPerm = (projectId: string, perm: string) => `project_permission:${projectId}:${perm}`;
+// const asProjPerm = (projectId: string, perm: string) => `project_permission:${projectId}:${perm}`;
 const asProjRole = (id: ProjectRoleId) => `project_role:${id}`;
 
 export type ProjectActorInput = {
@@ -76,14 +76,14 @@ export const buildProjectRoleTuples = (input: ProjectRoleInput): TupleKey[] => {
   // the role itself
   tuples.push({ user: asProjRole(input.id), relation: R.CHILD, object: asProj(input.projectId) });
 
-  // permissions granted to this role
-  input.permissions.forEach((perm) => {
-    tuples.push({
-      user: asProjRole(input.id),
-      relation: R.GRANTS,
-      object: asProjPerm(input.projectId, perm),
-    });
-  });
+  // // permissions granted to this role
+  // input.permissions.forEach((perm) => {
+  //   tuples.push({
+  //     user: asProjRole(input.id),
+  //     relation: R.GRANTS,
+  //     object: asProjPerm(input.projectId, perm),
+  //   });
+  // });
 
   // actors of this role
   input.actors.flatMap(buildProjectActorTuples).forEach((t) => tuples.push(t));
@@ -100,12 +100,12 @@ export const buildProjectTuples = (input: ProjectInput): TupleKey[] => {
   // project lead
   tuples.push({ user: asUser(input.leadId), relation: 'PROJ_LEAD', object: asProj(input.id) });
 
-  // project permissions
-  input.permissions.forEach((perm) => ({
-    user: asProj(input.id),
-    relation: R.PARENT,
-    object: asProjPerm(input.id, perm),
-  }));
+  // // project permissions
+  // input.permissions.forEach((perm) => ({
+  //   user: asProj(input.id),
+  //   relation: R.PARENT,
+  //   object: asProjPerm(input.id, perm),
+  // }));
 
   // project roles
   input.roles.flatMap(buildProjectRoleTuples).forEach((t) => tuples.push(t));

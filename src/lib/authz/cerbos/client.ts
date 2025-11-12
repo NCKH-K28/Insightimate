@@ -6,7 +6,7 @@ import set from 'lodash/set';
 const cerbosConfig = serverConfig.cerbos;
 
 // == Cerbos Client
-const getCerbos = (): HTTP => {
+export const getCerbos = (): HTTP => {
   const key = '__cerbos__';
   const cerbos = get(globalThis, key) as HTTP | undefined;
   if (cerbos) return cerbos;

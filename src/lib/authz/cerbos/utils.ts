@@ -4,12 +4,7 @@ import {
   CerbosCheckResourcesResponse,
   CheckResourcesResult,
 } from './types';
-
-export const getCerbosGlobal = () => {
-  const { cerbos } = globalThis as unknown as { cerbos: HTTP | undefined };
-  if (!cerbos) throw new Error('Cerbos client not initialized in globalThis');
-  return cerbos;
-};
+import { getCerbos } from './client';
 
 // == Helpers
 export const mapCerbosActionsToBooleans = (actions: Record<string, string>) => {
@@ -35,7 +30,7 @@ export const mapCerbosCheckResourcesResults = (results: Results) => {
 
 export const checkResourcesMapped = async (
   req: CerbosCheckResourcesRequest,
-  client: HTTP = getCerbosGlobal(),
+  client: HTTP = getCerbos(),
 ): Promise<{
   results: ReturnType<typeof mapCerbosCheckResourcesResults>;
   raw: CerbosCheckResourcesResponse;

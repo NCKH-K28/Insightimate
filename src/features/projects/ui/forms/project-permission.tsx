@@ -14,7 +14,9 @@ import {
   ProjectRoleCreateInput,
 } from '@/contracts/projects';
 
-type ProjectRole = ProjectRoleCreateInput & { id: string };
+type ProjectRole = Omit<ProjectRoleCreateInput, 'projectId' | 'createdAt' | 'updatedAt'> & {
+  id: string;
+};
 
 // ------- Helpers -------
 const formatPermLabel = (code: string) => {
@@ -29,7 +31,6 @@ const normalizeRole = (r: Partial<ProjectRole>): ProjectRole => ({
   name: r.name ?? '',
   description: r.description ?? '',
   permissions: r.permissions ?? [],
-  projectId: r.projectId ?? '',
 });
 
 const PERMISSION_OPTIONS = PROJECT_ROLE_PERMISSION_KEYS.map((code) => ({
@@ -53,13 +54,10 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'product_owner',
     name: 'Product Owner',
     description: 'Responsible for defining project vision and managing the product backlog.',
-    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': true,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': true,
-      'kanban:view': true,
       'kanban:manage': true,
       'kanban.column:manage': true,
       'kanban.issue:manage': true,
@@ -69,13 +67,10 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'scrum_master',
     name: 'Scrum Master',
     description: 'Facilitates the Scrum process and removes impediments for the team.',
-    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': true,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': true,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': false,
@@ -85,13 +80,10 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'developer',
     name: 'Developer',
     description: 'Works on tasks and contributes to the development of the product.',
-    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': false,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': false,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': true,
@@ -101,13 +93,10 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     id: 'stakeholder',
     name: 'Stakeholder',
     description: 'Interested party who needs to stay informed about project progress.',
-    projectId: '', //FIXME: check type
     permissions: buildPermission({
       'backlog:manage': false,
-      'backlog:view': true,
       'backlog.issue:manage': false,
       'backlog.sprint:manage': false,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': false,
@@ -263,13 +252,10 @@ export const ProjectPermission = (props: {
               id,
               name: roleName,
               description: '',
-              projectId: '', //FIXME: check type
               permissions: buildPermission({
                 'backlog:manage': false,
-                'backlog:view': false,
                 'backlog.issue:manage': false,
                 'backlog.sprint:manage': false,
-                'kanban:view': false,
                 'kanban:manage': false,
                 'kanban.column:manage': false,
                 'kanban.issue:manage': false,

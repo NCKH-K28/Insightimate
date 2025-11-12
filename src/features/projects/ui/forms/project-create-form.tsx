@@ -6,39 +6,41 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 
 import { useRouter } from 'next/navigation';
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
 import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/projects';
 import { createProjectMutationOptions } from '@/features/projects/api/actions';
-import { getMeQueryOptions } from '@/features/authn/api/actions'; // FIXME: move to a more appropriate place
-import { get } from 'lodash';
+import get from 'lodash/get';
+import { z } from 'zod';
 
-// const ZProjectCreateForm = ZProjectCreateInput.omit({ workspaceId: true });
-// type ProjectCreateFormData = z.infer<typeof ZProjectCreateForm>;
+const ZCreateFormData = ZProjectCreateInput;
+type CreateFormData = z.infer<typeof ZCreateFormData>;
 
-type ProjectCreateFormProps = { workspaceId: string };
+type ProjectCreateFormProps = {
+  onSuccess?: (data: { id: string }) => void;
+  onValueChange?: (data: Partial<CreateFormData>) => void;
+  value: { workspaceId: string; leadId: string };
+  defaultValue?: Partial<ProjectCreateInput>;
+};
 export function ProjectCreateForm(props: ProjectCreateFormProps) {
-  const { data: me } = useSuspenseQuery(getMeQueryOptions());
-
-  const { workspaceId } = props;
   const router = useRouter();
   const createProject = useMutation(createProjectMutationOptions());
 
-  const form = useForm<ProjectCreateInput>({
-    resolver: zodResolver(ZProjectCreateInput),
+  const form = useForm<CreateFormData>({
+    resolver: zodResolver(ZCreateFormData),
     mode: 'onChange',
     defaultValues: {
-      leadId: me?.id || '',
+      leadId: props.value.leadId,
+      workspaceId: props.value.workspaceId,
       name: '',
       key: '',
       description: '',
       type: 'SOFTWARE',
       avatar: '/icons/project/1000.svg',
-      workspaceId,
       roles: [],
     },
   });
@@ -50,6 +52,7 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
           loading: 'Creating project...',
           success: 'Project created successfully!',
           error: (err) => {
+            //FIXME: cần chuẩn hóa lỗi từ backend
             const msg = get(err, 'response.data.error', `Error creating project: ${err.message}`);
             return msg;
           },
@@ -65,6 +68,18 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
     },
   );
 
+  // const watchedValues = useWatch<CreateFormData>({ control: form.control });
+  // useEffect(() => {
+  //   if (props.onValueChange)
+  //     props.onValueChange({
+  //       name: watchedValues.name,
+  //       key: watchedValues.key,
+  //       description: watchedValues.description,
+  //       type: watchedValues.type,
+  //       avatar: watchedValues.avatar,
+  //     });
+  // }, [watchedValues, props]);
+
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className={cn('container mx-auto max-w-2xl', 'space-y-6')}>
@@ -72,23 +87,18 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
 
         <ProjectPermission form={form} />
 
-        <div className='flex items-center justify-end gap-2'>
+        <div
+          className={cn(
+            'flex items-center justify-end gap-2 py-2',
+            'sticky bottom-0 bg-white dark:bg-gray-800',
+          )}
+        >
           <Button hidden type='button' variant='outline'>
             Cancel
           </Button>
-          <Button
-            type='submit'
-            className='w-full sm:w-auto'
-            disabled={form.formState.isSubmitting || !form.formState.isValid}
-          >
-            {form.formState.isSubmitting ? (
-              <>
-                <Loader2 className='mr-2 h-4 w-4 animate-spin' />
-                Creating...
-              </>
-            ) : (
-              'Create Project'
-            )}
+          <Button type='submit' disabled={form.formState.isSubmitting || !form.formState.isValid}>
+            {(form.formState.isSubmitting && <Loader2 className='animate-spin' />) || <Plus />}
+            {form.formState.isSubmitting ? 'Creating...' : 'Create Project'}
           </Button>
         </div>
       </form>

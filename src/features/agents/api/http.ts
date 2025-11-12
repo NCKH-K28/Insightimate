@@ -65,7 +65,11 @@ export const agentApi = {
     delete: (ctx: SourceCtx) => baseApi.delete(AgentEndpoints.sources.delete, ctx),
     update: (ctx: SourceCtx, data: any) => baseApi.patch(AgentEndpoints.sources.update, data, ctx),
     upload: (ctx: AgentCtx, data: FormData, options?: any) =>
-      baseApi.post(AgentEndpoints.sources.upload, data, ctx, options),
+      baseApi.post(AgentEndpoints.sources.upload, data, ctx, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 0,
+        ...options,
+      }),
   },
 
   analyses: {
