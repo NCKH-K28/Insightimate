@@ -25,7 +25,7 @@ export async function analyzeDocumentHandler(input: AnalysisMsg) {
     await prisma.analysis.update({
       where: { id: analysisId },
       data: {
-        output: analysisResult,
+        output: JSON.parse(JSON.stringify(analysisResult)),
         processedAt: new Date(),
         runStatus: 'COMPLETED',
       },
