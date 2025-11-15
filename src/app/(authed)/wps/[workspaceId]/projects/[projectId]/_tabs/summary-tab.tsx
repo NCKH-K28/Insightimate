@@ -32,6 +32,9 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useQuery } from "@tanstack/react-query"
+import { fetchProjectSummaryQueryOptions } from "@/features/projects/api/actions"
+import SummaryLoading from '@/components/summary-loading'
 
 // ========================
 // DỮ LIỆU DEMO
@@ -54,28 +57,6 @@ const priorityChartData = [
   { priority: "highest", issues: 2 },
 ]
 
-// Burndown/Burnup (demo)
-const burndownData = [
-  { day: "Day 1", remaining: 40 },
-  { day: "Day 3", remaining: 34 },
-  { day: "Day 5", remaining: 28 },
-  { day: "Day 7", remaining: 20 },
-  { day: "Day 9", remaining: 12 },
-  { day: "Day 10", remaining: 8 },
-]
-
-const burnupData = [
-  { day: "Day 1", completed: 0 },
-  { day: "Day 3", completed: 8 },
-  { day: "Day 5", completed: 16 },
-  { day: "Day 7", completed: 25 },
-  { day: "Day 9", completed: 32 },
-  { day: "Day 10", completed: 40 },
-]
-
-// ========================
-// CONFIG CHART
-// ========================
 
 // Config cho Pie (status)
 const statusChartConfig = {
@@ -96,9 +77,6 @@ const priorityChartConfig = {
   highest: { label: "Highest", color: "var(--chart-5)" },
 } satisfies ChartConfig
 
-// ========================
-// COMPONENTS PHỤ
-// ========================
 function StatCard({
   title,
   value,
@@ -121,21 +99,29 @@ function StatCard({
   )
 }
 
-// ========================
-// MAIN
-// ========================
-export const SummaryTab: React.FC = () => {
+export const SummaryTab: React.FC<{params : {projectId: string; workspaceId: string; boardId: string}}> = ({params}) => {
+
+  const { projectId } = params;
+
+  const {data, isLoading, isError} = useQuery(fetchProjectSummaryQueryOptions({ projectId }));
+
+  const totalIssues = data?.totalIssues || 0;
+  const totalToDo = data?.todo || 0;
+  const totalInProgress = data?.inProgress || 0;
+  const totalDone = data?.done || 0;
+  if (isLoading) return <SummaryLoading />
+  if (isError) return <div className="p-4">Failed to load summary</div>
+  
+  
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-      {/* MAIN CONTENT */}
       <div className="lg:col-span-2 flex flex-col gap-6">
 
-        {/* SIMPLE NUM STATS */}
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-          <StatCard title="Total Issues" value={49} delta="Last 30 days" />
-          <StatCard title="To Do" value={12} delta="Currently open" />
-          <StatCard title="In Progress" value={8} delta="Active items" />
-          <StatCard title="Completed" value={24} delta="Closed this month" />
+          <StatCard title="Total Issues" value={totalIssues} delta="Last 30 days" />
+          <StatCard title="To Do" value={totalToDo} delta="Currently open" />
+          <StatCard title="In Progress" value={totalInProgress} delta="Active items" />
+          <StatCard title="Done" value={totalDone} delta="Closed this month" />
         </div>
 
         {/* CHARTS: STATUS (PIE) + PRIORITY (BAR) */}
