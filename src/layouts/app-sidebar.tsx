@@ -122,8 +122,8 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
 
-          <SidebarMenuItem className='opacity-50 pointer-events-none'>
-            <SidebarMenuButton asChild disabled={true}>
+          <SidebarMenuItem >
+            <SidebarMenuButton asChild >
               <Link href={`/wps/${workspaceId}/starred`}>
                 <Star />
                 <span>Starred</span>
