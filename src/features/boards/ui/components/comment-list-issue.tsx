@@ -13,6 +13,7 @@ interface Comment {
   issueId: string;
   content: string;
   createdAt: string;
+  parentId?: string | null;
 }
 
 interface CommentListProps {
@@ -23,26 +24,36 @@ export default function CommentList({ issueId }: CommentListProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch danh sách comments ban đầu
-  // Fetch danh sách comments ban đầu
-  useEffect(() => {
-    const fetchComments = async () => {
-      if (!issueId) return;
+  // Modal Reply
+  const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
+  const [selectedComment, setSelectedComment] = useState<Comment | null>(null);
+  const [replies, setReplies] = useState<Comment[]>([]);
 
+  // -------------------------------------
+  // 1. FETCH COMMENTS BAN ĐẦU
+  // -------------------------------------
+  useEffect(() => {
+    if (!issueId) return;
+
+    const fetchComments = async () => {
       try {
         setLoading(true);
-        console.log('🔍 Đang fetch comments cho issue:', issueId);
+        console.log('🔍 Fetch comments cho issue:', issueId);
 
         const response = await fetch(`/api/v2/issues/${issueId}/comments`);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error('Không load được comments');
 
         const data = await response.json();
-        console.log('📜 Danh sách comments ban đầu:', data);
-        setComments(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error('❌ Lỗi khi lấy danh sách comments:', error);
+
+        const rootComments = Array.isArray(data)
+          ? data.filter((c) => c.parentId === null)
+          : [];
+
+        console.log('📜 Comments ban đầu:', rootComments);
+
+        setComments(rootComments);
+      } catch (err) {
+        console.error('❌ Lỗi load comments:', err);
         setComments([]);
       } finally {
         setLoading(false);
@@ -52,62 +63,70 @@ export default function CommentList({ issueId }: CommentListProps) {
     fetchComments();
   }, [issueId]);
 
-  // Xử lý socket events
+  // -------------------------------------
+  // 2. SOCKET IO — NHẬN COMMENT MỚI
+  // -------------------------------------
   useEffect(() => {
-    // Đăng ký các sự kiện socket
-    const handleConnect = () => {
-      console.log('🔌 Socket đã kết nối, ID:', socket.id);
-    };
+    if (!socket.connected) socket.connect();
 
-    const handleError = (error: Error) => {
-      console.error('❌ Socket error:', error);
-    };
-
-    const handleDisconnect = (reason: string) => {
-      console.log('🔌 Socket bị ngắt kết nối:', reason);
-      if (reason === 'io server disconnect') {
-        // Server đã ngắt kết nối, thử kết nối lại
-        socket.connect();
-      }
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('connect_error', handleError);
-    socket.on('disconnect', handleDisconnect);
-
-    // Kết nối khi component mount
-    if (!socket.connected) {
-      socket.connect();
-    }
-
-    // Nhận comment từ server
-    socket.on('receive-comment', (data: Comment) => {
+    const handleReceiveComment = (data: Comment) => {
       console.log('📨 Nhận comment mới từ socket:', data);
 
-      // Kiểm tra xem comment đã tồn tại chưa
-      setComments((prevComments) => {
-        const commentExists = prevComments.some((comment) => comment.id === data.id);
-        if (commentExists) {
-          console.log('🔄 Comment đã tồn tại, không thêm lại');
-          return prevComments;
-        }
+      // Nếu là reply → không thêm vào comments gốc
+      if (data.parentId) {
+        console.log('↩️ Đây là reply → bỏ qua ở CommentList');
+        return;
+      }
 
-        console.log('➕ Thêm comment mới vào danh sách');
-        return [data, ...prevComments];
+      // Nếu là root comment thì thêm vào danh sách
+      setComments((prev) => {
+        if (prev.some((c) => c.id === data.id)) return prev;
+        return [data, ...prev];
       });
-    });
+    };
+
+    socket.on('receive-comment', handleReceiveComment);
 
     return () => {
-      socket.off('receive-comment');
+      socket.off('receive-comment', handleReceiveComment);
     };
   }, []);
 
+  // -------------------------------------
+  // 3. MỞ MODAL REPLY
+  // -------------------------------------
+  const handleOpenReply = async (comment: Comment) => {
+    setSelectedComment(comment);
+    setIsReplyModalOpen(true);
+
+    try {
+      const res = await fetch(
+        `/api/v2/issues/${comment.issueId}/comments/${comment.id}/replies`
+      );
+      const data = await res.json();
+      setReplies(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Lỗi load replies:', err);
+      setReplies([]);
+    }
+  };
+
+  // -------------------------------------
+  // 4. CALLBACK KHI TẠO COMMENT CHA
+  // -------------------------------------
   const handleNewComment = (newComment: Comment) => {
+    if (newComment.parentId) return; // reply thì không thêm
+
     setComments((prev) => [newComment, ...prev]);
   };
+
+  // -------------------------------------
+  // 5. RENDER UI
+  // -------------------------------------
   return (
     <div className='space-y-4 pb-30'>
-      <CommentInput issueId={issueId} />
+      {/* Form comment cha */}
+      <CommentInput issueId={issueId} onSuccess={handleNewComment} />
 
       {loading ? (
         <p className='text-center text-gray-500'>Đang tải...</p>
@@ -121,7 +140,7 @@ export default function CommentList({ issueId }: CommentListProps) {
           >
             <div className='flex items-center space-x-3 mb-2'>
               <div className='w-9 h-9 rounded-full bg-gray-200 flex items-center justify-center font-semibold text-gray-600'>
-                {comment.userId.slice(0, 1).toUpperCase()}
+                {comment.userName.slice(0, 1).toUpperCase()}
               </div>
               <div>
                 <p className='text-sm font-semibold'>{comment.userName}</p>
@@ -140,14 +159,30 @@ export default function CommentList({ issueId }: CommentListProps) {
               <button className='flex items-center gap-1 hover:text-red-500 transition'>
                 <Heart size={16} /> Like
               </button>
-              <button className='flex items-center gap-1 hover:text-blue-500 transition'>
+
+              <button
+                className='flex items-center gap-1 hover:text-blue-500 transition'
+                onClick={() => handleOpenReply(comment)}
+              >
                 <MessageCircle size={16} /> Reply
               </button>
+
               <Share2 size={16} className='hover:text-gray-700 cursor-pointer' />
             </div>
           </div>
         ))
       )}
+
+      {/* Modal trả lời */}
+      <ReplyModal
+  isOpen={isReplyModalOpen}
+  onClose={() => setIsReplyModalOpen(false)}
+  parentComment={selectedComment}
+  replies={replies}
+  onReplyAdded={(newReply) => {
+    setReplies((prev) => [...prev, newReply]); // ⭐ cập nhật ngay UI modal
+  }}
+/>
     </div>
   );
 }

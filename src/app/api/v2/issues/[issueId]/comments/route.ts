@@ -18,14 +18,21 @@ export async function GET(req: NextRequest, { params }: { params: { issueId: str
   }
 }
 
-export async function POST(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: { issueId: string } }) {
   try {
-    const { content, userId, userName } = await req.json();
+    const { content, userId, userName, parentId } = await req.json(); // ⭐ Thêm parentId
 
-    const { issueId } = await params;
+    const { issueId } = params;
 
     const comment = await prisma.comment.create({
-      data: { id: createId(), content, userId, userName, issueId },
+      data: {
+        id: createId(),
+        content,
+        userId,
+        userName,
+        issueId,
+        parentId: parentId ?? null,   // ⭐ Gán parentId (nếu không có thì để null)
+      },
     });
 
     return Response.json(comment, { status: 201 });
@@ -34,3 +41,4 @@ export async function POST(req: NextRequest, { params }: { params: { issueId: st
     return new Response('Error creating comment', { status: 500 });
   }
 }
+

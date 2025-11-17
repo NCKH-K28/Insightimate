@@ -128,7 +128,7 @@ const createDefaultBoard = async (
           name: status.name,
           sequence: index,
           statuses: {
-            create: { id: `colst_${createId()}`, statusId: status.id },
+            create: {statusId: status.id },
           },
         })),
       },

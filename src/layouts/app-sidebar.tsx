@@ -68,7 +68,7 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 className='flex justify-start'
                 size='sm'
                 renderTrigger={(props) => (
-                  <Button variant='ghost' {...props}>
+                  <Button variant='ghost' className={props.className}>
                     <SearchIcon />
                     <span>Search</span>
                   </Button>

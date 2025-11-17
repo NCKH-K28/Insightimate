@@ -10,68 +10,67 @@ const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
 
 interface CommentInputProps {
   issueId: string;
-  parentId?: string; // Thêm parentId nếu cần
+  parentId?: string;
+  onSuccess?: (newComment: any) => void;
 }
 
-export default function CommentInput({ issueId }: CommentInputProps) {
+export default function CommentInput({ issueId, parentId, onSuccess }: CommentInputProps) {
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
 
-  // ✅ Lấy thông tin người dùng hiện tại
+  // Lấy user
   useEffect(() => {
     const fetchUser = async () => {
       try {
         const res = await fetch('/api/v2/auth/me');
         const data = await res.json();
-        setCurrentUser({
-          id: data.id,
-          name: data.name,
-        });
-        console.log('👤 Current user:', data);
+        setCurrentUser({ id: data.id, name: data.name });
       } catch (error) {
-        console.error('Lỗi khi lấy thông tin người dùng:', error);
+        console.error('❌ Lỗi lấy thông tin user:', error);
       }
     };
     fetchUser();
   }, []);
 
-  // ✅ Gửi bình luận
+  // Gửi comment / reply
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!content.trim() || !currentUser) return;
-
-    console.log('🚀 Đang gửi comment:', {
-      content,
-      userId: currentUser.id,
-      userName: currentUser.name,
-    });
+    if (!content || !currentUser) return;
 
     setLoading(true);
     try {
+      const bodyToSend: any = {
+        content,
+        userId: currentUser.id,
+        userName: currentUser.name,
+      };
+
+      if (parentId) bodyToSend.parentId = parentId;
+
       const response = await fetch(`/api/v2/issues/${issueId}/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: content,
-          userId: currentUser.id,
-          userName: currentUser.name,
-        }),
+        body: JSON.stringify(bodyToSend),
       });
 
-      console.log('📥 Response status:', response.status);
       const data = await response.json();
-      console.log('📦 Response data:', data);
 
       if (response.ok) {
-        console.log('🎯 Chuẩn bị emit new-comment với data:', data);
-        // Emit sự kiện new-comment qua socket
+        console.log('📨 API tạo comment thành công:', data);
+
+        // ⭐ Gọi callback cho ReplyModal hoặc CommentList
+        onSuccess?.(data);
+
+        // Gửi realtime
         socket.emit('new-comment', data);
-        console.log('✨ Đã emit new-comment');
+
         setContent('');
+      } else {
+        console.error('❌ API Error:', data);
       }
     } catch (error) {
-      console.error('Lỗi khi gửi comment:', error);
+      console.error('❌ Lỗi khi gửi comment:', error);
     } finally {
       setLoading(false);
     }
@@ -79,37 +78,34 @@ export default function CommentInput({ issueId }: CommentInputProps) {
 
   const modules = {
     toolbar: [
-      [{ font: [] }],
       [{ size: ['small', false, 'large', 'huge'] }],
       ['bold', 'italic', 'underline'],
-      [{ color: [] }, { background: [] }],
-      [{ align: [] }],
+      [{ color: [] }],
       [{ list: 'ordered' }, { list: 'bullet' }],
-      ['link', 'blockquote', 'code-block'],
-      ['clean'],
+      ['link', 'clean'],
     ],
   };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className='mt-6 bg-white p-4 border border-gray-200 rounded-2xl shadow-sm'
+      className="mt-6 bg-white p-4 border border-gray-200 rounded-2xl shadow-sm"
     >
       <ReactQuill
-        theme='snow'
+        theme="snow"
         value={content}
         onChange={setContent}
         modules={modules}
-        placeholder='Write a comment...'
-        className='mb-4'
+        placeholder={parentId ? "Write a reply..." : "Write a comment..."}
+        className="mb-4"
       />
 
       <Button
-        type='submit'
+        type="submit"
         disabled={loading || !currentUser}
-        className='text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50 flex justify-end  '
+        className="text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
       >
-        {loading ? 'Sending...' : 'Send Comment'}
+        {loading ? "Sending..." : parentId ? "Send Reply" : "Send Comment"}
       </Button>
     </form>
   );
