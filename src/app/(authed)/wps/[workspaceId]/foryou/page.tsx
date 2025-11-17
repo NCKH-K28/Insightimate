@@ -1,56 +1,26 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { fetchRecentProjectsQueryOptions } from '@/features/projects/api/actions';
 import Link from 'next/link';
-import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
+import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
-  ChevronDown,
   ExternalLink,
   LayoutGrid,
   SquareStack,
   KanbanSquare,
   CheckSquare,
-  Dot,
   Star,
   Users2,
   Rocket,
   FolderKanban,
 } from 'lucide-react';
 
-/**
- * Jira "For you" inspired page
- * - Recent spaces: grid of project cards
- * - Work streams with tabs and a Today list
- *
- * Replace the mocked data with your own fetcher.
- */
-
-// -------------------- Mock Data --------------------
-const recentSpaces = [
-  {
-    id: 'np',
-    name: 'NCKH prj',
-    type: 'Team-managed software',
-    color: 'bg-sky-400',
-    openItems: 0,
-    doneItems: 0,
-    boards: 1,
-  },
-  {
-    id: 'test',
-    name: 'test project',
-    type: 'Team-managed software',
-    color: 'bg-violet-500',
-    openItems: 0,
-    doneItems: 0,
-    boards: 1,
-  },
-];
+import ProjectCard from '@/components/for-you/project-card';
 
 const todayItems = [
   {
@@ -90,78 +60,6 @@ const todayItems = [
   },
 ];
 
-// -------------------- UI Primitives --------------------
-function ProjectCard({
-  name,
-  type,
-  color,
-  openItems,
-  doneItems,
-  boards,
-}: {
-  name: string;
-  type: string;
-  color: string; // tailwind bg-*
-  openItems: number;
-  doneItems: number;
-  boards: number;
-}) {
-  return (
-    <Card className='relative overflow-hidden group border-muted/60 hover:border-muted transition-colors p-2'>
-      {/* Color stripe */}
-      <div className={`absolute left-0 top-0 h-full w-1 ${color}`} />
-
-      <CardHeader className='pb-0.5'>
-        <div className='flex items-center gap-1.5'>
-          <Avatar className='h-5 w-5 shadow-sm'>
-            <AvatarFallback className='text-[10px]'>
-              {name.substring(0, 2).toUpperCase()}
-            </AvatarFallback>
-          </Avatar>
-          <div className='min-w-0'>
-            <h3 className='text-sm font-medium leading-tight truncate'>{name}</h3>
-            <p className='text-[11px] text-muted-foreground truncate'>{type}</p>
-          </div>
-        </div>
-      </CardHeader>
-
-      <CardContent className='space-y-0.5'>
-        <div>
-          <p className='text-[11px] font-medium text-muted-foreground'>Quick links</p>
-          <div className='mt-1 grid grid-cols-1 sm:grid-cols-2 gap-1'>
-            <QuickLink label='My open work items' count={openItems} />
-            <QuickLink label='Done work items' count={doneItems} />
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter className='flex items-center justify-between pt-0'>
-        <div className='text-[11px] text-muted-foreground flex items-center gap-1'>
-          <FolderKanban className='h-3 w-3' />
-          <span className='text-[11px]'>
-            {boards} board{boards !== 1 ? 's' : ''}
-          </span>
-          <ChevronDown className='h-3 w-3' />
-        </div>
-        <Button variant='ghost' size='sm' className='h-6 px-2 text-xs'>
-          Open <ExternalLink className='ml-1 h-3 w-3' />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-}
-
-function QuickLink({ label, count }: { label: string; count?: number }) {
-  return (
-    <button className='flex items-center justify-between rounded-xl border bg-card px-3 py-2 text-left text-sm hover:bg-accent/40'>
-      <span className='truncate'>{label}</span>
-      <Badge variant='secondary' className='ml-2'>
-        {count ?? 0}
-      </Badge>
-    </button>
-  );
-}
-
 function TodayRow({
   title,
   meta,
@@ -191,41 +89,46 @@ function TodayRow({
   );
 }
 
-// -------------------- Page --------------------
 export default function MyWorkPage() {
-  const assignedCount = 0; // replace with real data
+  const assignedCount = 0; 
 
   const today = useMemo(() => todayItems, []);
 
+  const fetchRecent = useQuery(fetchRecentProjectsQueryOptions());
+  const recentSpaces = fetchRecent.data ?? [];
+  const params = useParams();
+  const workspaceId = (params as any)?.workspaceId as string | undefined;
+
   return (
     <div className='mx-auto w-full px-6 py-6 md:py-8'>
-      {/* Header */}
       <div className='flex items-center justify-between'>
-        {/* <h1 className="text-2xl md:text-3xl font-semibold tracking-tight">For you</h1> */}
         <div className='text-2xl md:text-3xl font-semibold tracking-tight'>
           <h1 className='text-2xl font-bold'>For you</h1>
-          <p className='text-gray-400 text-sm'>A personalized view of your recent projects, boards, and work items.</p>
+          <p className='text-gray-400 text-sm'>
+            A personalized view of your recent projects, boards, and work items.
+          </p>
         </div>
         <Button asChild variant='ghost' size='sm' className='gap-1'>
-          <Link href='#'>
+          <Link href={`/wps/${workspaceId}/projects`}>
             View all spaces <ExternalLink className='h-4 w-4' />
           </Link>
         </Button>
       </div>
 
-      {/* divider under title */}
       <div className='mt-4 border-t border-slate-200' />
 
-      {/* Recent spaces */}
       <section className='mt-6'>
         <div className='flex items-center justify-between'>
           <h2 className='text-sm font-medium text-muted-foreground'>Recent spaces</h2>
         </div>
 
         <div className='mt-3 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2'>
-          {recentSpaces.map((p) => (
+          {recentSpaces.map((p: any) => (
             <ProjectCard
               key={p.id}
+              id={p.id}
+              workspaceId={workspaceId}
+              avatar={p.avatar}
               name={p.name}
               type={p.type}
               color={p.color}
@@ -237,7 +140,6 @@ export default function MyWorkPage() {
         </div>
       </section>
 
-      {/* Work filters */}
       <section className='mt-8'>
         <Tabs defaultValue='viewed' className='w-full'>
           <TabsList className='grid w-full grid-cols-5'>
