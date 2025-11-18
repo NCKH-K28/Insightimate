@@ -6,7 +6,7 @@ import { AuthContext } from '@/contracts/auth';
 import { verifyToken } from '@/lib/auth/session';
 import { HandleRequest, Middleware } from '../http/api-compose';
 
-export const authenticated: GuardHandler = async (request, ctx) => {
+export const authenticated: GuardHandler = async (request) => {
   const cookieStore = await cookies();
   try {
     const token = cookieStore.get('access_token')?.value;

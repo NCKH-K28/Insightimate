@@ -1,47 +1,68 @@
+import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { genAgentId } from '@/features/agents/utils/id-generator';
-import { AIAgentCreateInput, AIAgentListInput } from '@/contracts/agents';
-import z from 'zod';
-import { AuthzFacade } from '@/features/authzV2/types';
+import { AIAgentCreateInput, AIAgentUpdateInput } from '@/contracts/agents/agents.input';
+import { AIAgentListInput } from '@/contracts/agents/agents.query';
+import { Prisma } from '@prisma/client';
 
-export const ZAgentContext = z.object({ actorId: z.string().min(1, 'Actor ID is required') });
+export const ZAgentContext = z.object({ actorId: z.string() });
 export type AgentContext = z.infer<typeof ZAgentContext>;
-const authz: AuthzFacade = {} as any;
 
-export const createAgent = async (input: AIAgentCreateInput, context: AgentContext) => {
-  const { actorId } = context;
-  return await prisma.$transaction(async (tx) => {
-    const agent = await tx.aIAgent.create({
-      data: {
-        id: genAgentId(),
-        name: input.name,
-        description: input.description,
-        instructions: input.instructions,
-        ownerId: actorId,
-        workspaceId: input.workspaceId,
-      },
-      include: { dataSources: true },
-    });
+const listAgents = async (input: AIAgentListInput, context: AgentContext) => {
+  const where: Prisma.AIAgentWhereInput = { ownerId: context.actorId };
 
-    return { data: agent };
-  });
-};
-
-export const listAgents = async (input: AIAgentListInput) => {
-  const whereClause: any = {};
-  if (input.filter?.workspaceId) {
-    whereClause.workspaceId = input.filter.workspaceId;
-  }
+  if (input.filter?.workspaceId) where.workspaceId = input.filter.workspaceId;
 
   const agents = await prisma.aIAgent.findMany({
-    where: whereClause,
+    where,
+    include: { dataSources: true, owner: true },
+  });
+  return { data: agents, meta: { total: agents.length } };
+};
+
+const getAgent = async (context: AgentContext & { agentId: string }) => {
+  const agent = await prisma.aIAgent.findFirst({
+    where: { id: context.agentId, ownerId: context.actorId },
     include: { dataSources: true },
   });
 
-  return { data: agents };
+  return { data: agent };
+};
+
+const createAgent = async (input: AIAgentCreateInput, context: AgentContext) => {
+  const { actorId } = context;
+  const agent = await prisma.aIAgent.create({
+    data: { ...input, id: genAgentId(), ownerId: actorId },
+    include: { dataSources: true },
+  });
+
+  return { data: agent };
+};
+
+const updateAgent = async (
+  input: AIAgentUpdateInput,
+  context: AgentContext & { agentId: string },
+) => {
+  const agent = await prisma.aIAgent.updateMany({
+    where: { id: context.agentId, ownerId: context.actorId },
+    data: { ...input },
+  });
+
+  return { data: agent };
+};
+
+const deleteAgent = async (context: AgentContext & { agentId: string }) => {
+  const agent = await prisma.aIAgent.deleteMany({
+    where: { id: context.agentId, ownerId: context.actorId },
+  });
+
+  return { data: agent };
 };
 
 export const aiAgentService = {
-  create: createAgent,
+  get: getAgent,
   list: listAgents,
+  create: createAgent,
+  update: updateAgent,
+  delete: deleteAgent,
 };

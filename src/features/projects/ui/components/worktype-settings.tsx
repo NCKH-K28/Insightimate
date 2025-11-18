@@ -1,9 +1,3 @@
-const categories = [
-  'task',
-  'subtask',
-  //
-];
-
 const worktypes = [
   { id: '1', name: 'Bug' },
   { id: '2', name: 'Feature' },

@@ -15,7 +15,7 @@ export const GET = middlewareHandler([authenticated], async (req) => {
     return NextResponse.json({ error: 'Missing workspaceId in query params' }, { status: 400 });
   }
 
-  const result = await projectsService.listProjects(
+  const result = await projectsService.list(
     { filter: { workspaceId } },
     { actorId },
     { include: { permissions: true } },
@@ -27,7 +27,7 @@ export const POST = middlewareHandler([authenticated], async (req) => {
   const auth = await getAuthFromRequest(req);
   const body = await req.json();
   const input = ZProjectCreateInput.parse({ ...body, leadId: auth.user.id });
-  const result = await projectsService.createProject(input, { actorId: auth.user.id });
+  const result = await projectsService.create(input, { actorId: auth.user.id });
 
   return NextResponse.json(result, { status: 201 });
 });

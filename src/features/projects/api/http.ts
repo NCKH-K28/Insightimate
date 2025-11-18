@@ -143,15 +143,17 @@ export const projectApi = {
   },
 
   issueStatuses: {
-    list: (ctx: PrjCtx) => baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.issueStatuses.list, ctx),
+    list: (ctx: PrjCtx) =>
+      baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.issueStatuses.list, ctx),
     create: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.issueStatuses.create, data, ctx),
-    delete: (ctx: PrjCtx, statusId: string) => 
+    delete: (ctx: PrjCtx, statusId: string) =>
       baseApi.delete(`${PrjEndpoints.issueStatuses.delete}?statusId=${statusId}`, ctx),
   },
 
   fields: {
     statuses: {
-      list: (ctx: PrjCtx) => baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.fields.statuses, ctx),
+      list: (ctx: PrjCtx) =>
+        baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.fields.statuses, ctx),
     },
     priorities: {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.priorities, ctx),

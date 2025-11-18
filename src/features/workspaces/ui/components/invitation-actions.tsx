@@ -1,11 +1,10 @@
-import { DeleteIcon, EllipsisVertical, LogOut, MailIcon, Trash2 } from 'lucide-react';
+import { DeleteIcon, EllipsisVertical, MailIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,7 @@ type InvitationActionsProps = {
   params: { workspaceId: string; invitationId: string };
   invitation: { id: string };
 };
-export const InvitationActions = ({ params, invitation }: InvitationActionsProps) => {
+export const InvitationActions = ({ params }: InvitationActionsProps) => {
   const revokeInvitation = useMutation(revokeInviteMutationOptions(params));
   const resendInvitation = useMutation(resendInviteMutationOptions(params));
 

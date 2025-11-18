@@ -1,27 +1,7 @@
 'use client';
 
-import { createTeamMutationOptions } from '@/features/teams/api/actionts';
-import { listWsMembersQueryOptions } from '@/features/workspaces/api/actions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from '@/components/ui/command';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import React from 'react';
 import { CreateTeamForm } from '../forms/create-team-form';
 

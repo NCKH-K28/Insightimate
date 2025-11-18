@@ -9,6 +9,7 @@ import { ChatPanel } from './_components/panels/chat-panel';
 
 export default function Page() {
   const params = useParams<{ workspaceId: string; agentId: string }>();
+  if (!params) throw new Error('Params not found');
 
   return (
     <div

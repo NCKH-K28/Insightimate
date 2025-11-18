@@ -7,11 +7,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import {
-  createAgentAnalysisMutationOptions,
   deleteSourceMutationOptions,
+  createAgentAnalysisMutationOptions,
 } from '@/features/agents/api/actions';
 
 type SourceActionsProps = { agentId: string; id: string };
@@ -37,7 +37,7 @@ export const SourceActions = (props: SourceActionsProps) => {
     e.preventDefault();
     e.stopPropagation();
     if (deleteSource.isPending) return;
-    toast.promise(deleteSource.mutateAsync({ sourceId: props.id }), {
+    toast.promise(deleteSource.mutateAsync(), {
       loading: 'Deleting source...',
       success: 'Source deleted successfully!',
       error: 'Failed to delete source.',

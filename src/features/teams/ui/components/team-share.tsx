@@ -3,19 +3,9 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
-import { Suspense, useMemo } from 'react';
-import { UserInvite } from '../../../users/ui/user-invite';
+import { Suspense } from 'react';
 import {
   addTeamMembershipMutationOptions,
   getTeamQueryOptions,
@@ -26,6 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ZTeamMemberAddInput } from '@/contracts/teams';
 import { get } from 'lodash';
 import { TeamMemberActions } from './team-member-actionts';
+import { UserInvite } from '@/features/users/ui/user-invite';
 
 type TeamShareProps = { teamId: string };
 export function TeamShare({ teamId }: TeamShareProps) {

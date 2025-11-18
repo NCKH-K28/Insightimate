@@ -124,8 +124,8 @@ export const UserInvite = (props: UserInviteProps) => {
               {search.trim().length === 0
                 ? 'Type to search users'
                 : isPending
-                ? 'Loading users...'
-                : 'No users found.'}
+                  ? 'Loading users...'
+                  : 'No users found.'}
             </CommandEmpty>
             <CommandGroup>
               {users?.map((user) => (

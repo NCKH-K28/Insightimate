@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,10 +13,8 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2Icon, PlusIcon, X } from 'lucide-react';
+import { Loader2Icon, PlusIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +52,7 @@ export const AddRoleButton: React.FC<AddRoleButtonProps> = ({ disabled, onConfir
     defaultValues: { name: '', description: '', permissions: [], projectId: params.projectId },
   });
 
-  const permissions = form.watch('permissions');
+  const permissions = useMemo(() => form.getValues('permissions'), [form]);
 
   const permissionsSet = useMemo(() => new Set(permissions), [permissions]);
   const isPermissionAssigned = React.useCallback(
@@ -65,14 +63,11 @@ export const AddRoleButton: React.FC<AddRoleButtonProps> = ({ disabled, onConfir
   const togglePermission = React.useCallback(
     (perm: ProjectRolePermissionKey) => {
       const permissions = new Set(form.getValues('permissions'));
-      if (permissions.has(perm)) {
-        permissions.delete(perm);
-      } else {
-        permissions.add(perm);
-      }
+      if (permissions.has(perm)) permissions.delete(perm);
+      else permissions.add(perm);
       form.setValue('permissions', Array.from(permissions));
     },
-    [form, permissionsSet, isPermissionAssigned],
+    [form],
   );
 
   const handleSubmit = form.handleSubmit(

@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { z } from 'zod';
 
-export const IssueStatusCategoryEnum = z.enum(["TODO", "IN_PROGRESS", "DONE"]);
+export const IssueStatusCategoryEnum = z.enum(['TODO', 'IN_PROGRESS', 'DONE']);
 
 export const ZIssueStatus = z.object({
   id: z.string(),

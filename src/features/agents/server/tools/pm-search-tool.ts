@@ -8,5 +8,5 @@ export const pmSearchTool = tool({
     'Search your project management knowledge base for relevant information about issues, projects, sprints',
   inputSchema: ZSearchInput,
   outputSchema: ZSearchOutput,
-  execute: (input) => queryService.search(input, { actorId: 'system' }),
+  execute: (input) => queryService.search(input),
 });

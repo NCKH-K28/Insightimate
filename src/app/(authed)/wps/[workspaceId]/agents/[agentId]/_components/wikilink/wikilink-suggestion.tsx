@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+
 'use client';
 
 import { Editor, Extension } from '@tiptap/core';

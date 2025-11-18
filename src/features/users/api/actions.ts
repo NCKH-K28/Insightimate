@@ -8,7 +8,7 @@ export const searchUsersQueryOptions = (
   return queryOptions({
     queryKey: ['users', 'search', search],
     queryFn: () => userApi.search({ search, ...options }),
-    select: (res) => res.data,
+    select: (res: any) => res.data,
     enabled: search.length > 0,
   });
 };

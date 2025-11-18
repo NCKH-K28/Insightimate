@@ -1,34 +1,21 @@
+import serverConfig from '@/configs/server';
 import nodemailer from 'nodemailer';
 
 // == SMTP server configuration (Ethereal Email for testing) ==
-const SMTP_SERVER_HOST = 'smtp.ethereal.email';
-const SMTP_SERVER_USERNAME = 'vincenza.hane@ethereal.email';
-const SMTP_SERVER_PASSWORD = 'FPTcmSR2hbvugy1VYR';
-// ============================================================
-const SITE_MAIL_RECIEVER = 'your_email@example.com';
-const SITE_MAIL_SENDER = 'your_email@example.com';
+const smtp = serverConfig.smtp;
+const defaultFrom = serverConfig.appEmail || `no-reply@${serverConfig.host}`;
 
 const transporter = nodemailer.createTransport({
-  host: SMTP_SERVER_HOST,
-  port: 587,
+  host: smtp.host,
+  port: smtp.port,
   secure: false, // true for 465, false for other ports
-  auth: {
-    user: SMTP_SERVER_USERNAME,
-    pass: SMTP_SERVER_PASSWORD,
-  },
+  auth: { user: smtp.username, pass: smtp.password },
 });
 
-type MailOptions = {
-  from?: string;
-  to?: string;
-  subject: string;
-  text: string;
-  html?: string;
-};
-
+type MailOptions = { from?: string; to?: string; subject: string; text: string; html?: string };
 export async function sendMail({
-  from: email = SITE_MAIL_SENDER,
-  to: sendTo = SITE_MAIL_RECIEVER,
+  from: email = defaultFrom,
+  to: sendTo,
   subject,
   text,
   html,
@@ -38,13 +25,7 @@ export async function sendMail({
   console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info) || 'N/A');
 }
 
-export const mailSender = {
-  sendMail,
-};
-
-if (!process.env.APP_URL) {
-  console.warn('Warning: APP_URL environment variable is not set.');
-}
+export const mailSender = { sendMail };
 
 // === Email Service ===
 export class EmailService {
@@ -54,10 +35,7 @@ export class EmailService {
     resourceType: string;
     expiresAt: Date;
   }): Promise<void> {
-    const appUrl = process.env.APP_URL || 'http://localhost:3000';
-    if (!appUrl) {
-      throw new Error('APP_URL environment variable is not configured');
-    }
+    const appUrl = serverConfig.appURL;
 
     const inviteUrl = `${appUrl}/accept-invite?token=${invitation.token}`;
 

@@ -1,9 +1,11 @@
 model AIAgent {
-    id            String  @id
+    id            String   @id
     name          String
     description   String?
-    ownerId       String  @map("owner_id")
-    workspaceId   String  @map("workspace_id")
+    ownerId       String   @map("owner_id")
+    workspaceId   String   @map("workspace_id")
+    tags          String[] @default([])
+    model         String?
     instructions  String?
     configuration Json?
 

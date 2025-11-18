@@ -34,10 +34,29 @@ const rebuildProjects = async (options?: { storeId?: string; authorizationModelI
   const projects = await prisma.project.findMany({
     include: { roles: { include: { actors: true } } },
   });
-  const first = projects[0];
-  const t = first ? buildProjectTuples(first) : [];
 
-  const tuples: TupleKey[] = projects.flatMap(buildProjectTuples);
+  // const first = projects[0];
+  // const t = first
+  //   ? buildProjectTuples({
+  //       ...first,
+  //       permissions: [],
+  //       roles: first.roles.map((role) => ({
+  //         ...role,
+  //         permissions: JSON.parse(JSON.stringify(role.permissions || ({} as any[]))),
+  //       })),
+  //     })
+  //   : [];
+
+  const tuples: TupleKey[] = projects.flatMap((project) =>
+    buildProjectTuples({
+      ...project,
+      permissions: [],
+      roles: project.roles.map((role) => ({
+        ...role,
+        permissions: JSON.parse(JSON.stringify(role.permissions || ({} as any[]))),
+      })),
+    }),
+  );
 
   if (tuples.length > 0) await openfgaClient.writeTuples(tuples, options);
   return { writes: tuples.length };
@@ -53,7 +72,7 @@ const clearAuthorizationModel = async (options?: {
 };
 
 export const rebuildAuthzData = async () => {
-  let result: Record<string, any> = {};
+  const result: Record<string, any> = {};
 
   // const currentStoreId = openfgaClient.storeId;
   // const newStore = await openfgaClient.createStore({ name: `rebuild-${Date.now()}` });

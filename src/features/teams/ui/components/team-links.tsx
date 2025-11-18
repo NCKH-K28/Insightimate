@@ -1,3 +1,6 @@
+/* eslint-disable react/display-name */
+'use client';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Suspense, useMemo } from 'react';
@@ -8,6 +11,8 @@ import { Button } from '@/components/ui/button';
 
 const TeamLinks = (props: { teamId: string }) => {
   const pathname = usePathname();
+  if (!pathname) throw new Error('Pathname is undefined');
+
   const { data: team } = useSuspenseQuery(getTeamQueryOptions(props.teamId));
   const { data: links } = useQuery(listTeamLinksQueryOptions(props.teamId));
 

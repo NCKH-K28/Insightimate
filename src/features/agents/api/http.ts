@@ -1,15 +1,17 @@
+import { baseApi, PathParams } from '@/lib/api';
 import {
-  AgentItemOutput,
-  ListAgentOutput,
-  ListDataSourceOutput,
-  DataSourceItemOutput,
-  ListAnalysisOutput,
-  AnalysisItemOutput,
   AIAgentCreateInput,
   AnalysisCreateInput,
   DataSourceCreateInput,
-} from '@/contracts/agents';
-import { baseApi, PathParams } from '@/lib/api';
+} from '@/contracts/agents/agents.input';
+import {
+  AIAgentItemOutput,
+  AIAgentListOutput,
+  AnalysisItemOutput,
+  AnalysisListOutput,
+  DataSourceItemOutput,
+  DataSourceListOutput,
+} from '@/contracts/agents/agents.query';
 
 const AgentBaseURL = 'v2/agents' as const;
 const AgentItemURL = `${AgentBaseURL}/{agentId}` as const;
@@ -48,25 +50,30 @@ export type AgentCtx = PathParams<typeof AgentItemURL>;
 export type SourceCtx = PathParams<typeof SourceItemURL>;
 
 export const agentApi = {
-  list: () => baseApi.get<ListAgentOutput>(AgentEndpoints.list),
-  get: (ctx: AgentCtx) => baseApi.get<AgentItemOutput>(AgentEndpoints.get, ctx),
-  create: (data: AIAgentCreateInput) => baseApi.post<AgentItemOutput>(AgentEndpoints.create, data),
+  list: () => baseApi.get<AIAgentListOutput>(AgentEndpoints.list),
+  get: (ctx: AgentCtx) => baseApi.get<AIAgentItemOutput>(AgentEndpoints.get, ctx),
+  create: (data: AIAgentCreateInput) =>
+    baseApi.post<AIAgentItemOutput>(AgentEndpoints.create, data),
   delete: (ctx: AgentCtx) => baseApi.delete(AgentEndpoints.delete, ctx),
   update: (ctx: AgentCtx, data: any) =>
-    baseApi.patch<AgentItemOutput>(AgentEndpoints.update, data, ctx),
+    baseApi.patch<AIAgentItemOutput>(AgentEndpoints.update, data, ctx),
 
   sources: {
-    list: (ctx: AgentCtx) => baseApi.get<ListDataSourceOutput>(AgentEndpoints.sources.list, ctx),
+    list: (ctx: AgentCtx) => baseApi.get<DataSourceListOutput>(AgentEndpoints.sources.list, ctx),
     create: (ctx: AgentCtx, data: DataSourceCreateInput, options?: any) =>
       baseApi.post<DataSourceItemOutput>(AgentEndpoints.sources.create, data, ctx, options),
     delete: (ctx: SourceCtx) => baseApi.delete(AgentEndpoints.sources.delete, ctx),
     update: (ctx: SourceCtx, data: any) => baseApi.patch(AgentEndpoints.sources.update, data, ctx),
     upload: (ctx: AgentCtx, data: FormData, options?: any) =>
-      baseApi.post(AgentEndpoints.sources.upload, data, ctx, options),
+      baseApi.post(AgentEndpoints.sources.upload, data, ctx, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: 0,
+        ...options,
+      }),
   },
 
   analyses: {
-    list: (ctx: AgentCtx) => baseApi.get<ListAnalysisOutput>(AgentEndpoints.analyses.list, ctx),
+    list: (ctx: AgentCtx) => baseApi.get<AnalysisListOutput>(AgentEndpoints.analyses.list, ctx),
     get: (ctx: PathParams<typeof AnalysisItemURL>) =>
       baseApi.get<AnalysisItemOutput>(AgentEndpoints.analyses.get, ctx),
     create: (ctx: AgentCtx, data: AnalysisCreateInput) =>
@@ -74,6 +81,6 @@ export const agentApi = {
     delete: (ctx: PathParams<typeof AnalysisItemURL>) =>
       baseApi.delete(AgentEndpoints.analyses.delete, ctx),
     update: (ctx: PathParams<typeof AnalysisItemURL>, data: any) =>
-      baseApi.patch(AgentEndpoints.analyses.update, data, ctx),
+      baseApi.patch<AnalysisItemOutput>(AgentEndpoints.analyses.update, data, ctx),
   },
 };

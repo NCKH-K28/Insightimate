@@ -1,14 +1,22 @@
-import z from 'zod';
 import { HTTP } from '@cerbos/http';
+import serverConfig from '@/configs/server';
+import get from 'lodash/get';
+import set from 'lodash/set';
 
-const ZCerbosConfig = z.object({ CERBOS_API_URL: z.url() });
-const cerbosConfig = ZCerbosConfig.parse(process.env);
+const cerbosConfig = serverConfig.cerbos;
 
 // == Cerbos Client
+export const getCerbos = (): HTTP => {
+  const key = '__cerbos__';
+  const cerbos = get(globalThis, key) as HTTP | undefined;
+  if (cerbos) return cerbos;
+  const newCerbos = new HTTP(cerbosConfig.apiURL);
+  set(globalThis, key, newCerbos);
+  return newCerbos;
+};
 
-const globalForCerbos = globalThis as unknown as { cerbos: HTTP | undefined };
-if (!globalForCerbos.cerbos) globalForCerbos.cerbos = new HTTP(cerbosConfig.CERBOS_API_URL);
-export const cerbosEdge = globalForCerbos.cerbos;
+export const cerbosEdge = getCerbos();
+export const cerbosClient = cerbosEdge;
 
 // // == Health Check
 await cerbosEdge.checkHealth().catch((err) => {

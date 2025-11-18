@@ -1,36 +1,27 @@
-import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
+import { compose } from '@/lib/http/api-compose';
 
-export async function GET(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
-  try {
-    const { issueId } = await params;
+export const GET = compose<{ issueId: string }>(async (req) => {
+  const params = req.params;
+  const issueId = params.issueId;
 
-    const comments = await prisma.comment.findMany({
-      where: { issueId },
-      orderBy: { createdAt: 'desc' },
-    });
+  const comments = await prisma.comment.findMany({
+    where: { issueId },
+    orderBy: { createdAt: 'desc' },
+  });
 
-    return Response.json(comments);
-  } catch (error) {
-    console.error('Error fetching comments:', error);
-    return new Response('Error fetching comments', { status: 500 });
-  }
-}
+  return Response.json(comments);
+});
 
-export async function POST(req: NextRequest, { params }: { params: { issueId: string } | Promise<{ issueId: string }> }) {
-  try {
-    const { content, userId, userName } = await req.json();
+export const POST = compose<{ issueId: string }>(async (req) => {
+  const params = req.params;
+  const issueId = params.issueId;
+  const { content, userId, userName } = await req.json();
 
-    const { issueId } = await params;
+  const comment = await prisma.comment.create({
+    data: { id: createId(), content, userId, userName, issueId },
+  });
 
-    const comment = await prisma.comment.create({
-      data: { id: createId(), content, userId, userName, issueId },
-    });
-
-    return Response.json(comment, { status: 201 });
-  } catch (error) {
-    console.error('Error creating comment:', error);
-    return new Response('Error creating comment', { status: 500 });
-  }
-}
+  return Response.json(comment, { status: 201 });
+});

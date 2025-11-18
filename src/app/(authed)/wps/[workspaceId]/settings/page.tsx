@@ -12,7 +12,9 @@ import { MembersList } from '@/features/workspaces/ui/components/members-list';
 import { InvitationsList } from '@/features/workspaces/ui/components/invitations-list';
 
 export default function SettingsPage() {
-  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('SettingsPage must be used within a route with workspaceId param');
+  const { workspaceId } = params;
 
   const { data: workspace, isError } = useSuspenseQuery(getWorkspaceQueryOptions({ workspaceId }));
 

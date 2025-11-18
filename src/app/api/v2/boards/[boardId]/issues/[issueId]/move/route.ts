@@ -1,4 +1,4 @@
-import { ZBoardIssueMoveInput, ZBoardIssueRankUpdate } from '@/contracts/boards/boards.input';
+import { ZBoardIssueMoveInput } from '@/contracts/boards/boards.input';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { boardsService } from '@/features/boards/server/service';
 import { NextResponse } from 'next/server';

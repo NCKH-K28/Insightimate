@@ -40,7 +40,7 @@ export default function DemoSocket() {
  */
 
 export const config = { api: { bodyParser: false } };
-export default function handler(req: any, res: any) {
+export default function handler(_req: any, res: any) {
   if (!res.socket.server.io) {
     const io = new IOServer(res.socket.server, {
       path: '/api/socket',

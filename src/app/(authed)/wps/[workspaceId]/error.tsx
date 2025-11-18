@@ -50,6 +50,10 @@ export default function Error({ error, reset }: ErrorProps) {
           <Button
             className='cursor-pointer'
             onClick={() => {
+              if (!params) {
+                console.error('Missing params');
+                return;
+              }
               redirect(`/wps/${params.workspaceId}/projects`);
             }}
           >

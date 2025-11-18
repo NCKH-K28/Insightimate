@@ -1,4 +1,4 @@
-import { authenticated, getAuthFromRequest } from '@/lib/auth';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';
@@ -25,7 +25,7 @@ const DateFilter = z
   .union([DateRange, DateOperator])
   .describe('Date filter which can be a range or an operator-based filter');
 
-export const IssueFilter = z.object({
+const IssueFilter = z.object({
   q: z.string().min(1).optional().describe('Keyword search in issue summary and description'),
   assigneeIds: z.array(z.string()).min(1).optional().describe('Filter by assignee IDs'),
   statusCategories: z.array(z.enum(['TODO', 'IN_PROGRESS', 'DONE'])).optional(),
@@ -34,17 +34,17 @@ export const IssueFilter = z.object({
   dueDate: DateFilter.optional().describe('Filter by due date'),
 });
 
-export const Order = z.object({
+const Order = z.object({
   field: z.enum(['createdAt', 'dueDate', 'updatedAt']),
   direction: z.enum(['asc', 'desc']).default('desc'),
 });
 
-export const ZPagination = z.object({
+const ZPagination = z.object({
   take: z.number().int().min(1).max(50).default(20).optional(),
   cursor: z.string().optional().describe('Cursor ID for pagination'),
 });
 
-export const ZListIssuesInput = z.object({
+const ZListIssuesInput = z.object({
   filter: IssueFilter.optional(),
   pagination: ZPagination.optional(),
   order: Order.optional(),
@@ -53,15 +53,15 @@ export const ZListIssuesInput = z.object({
     .optional(),
 });
 
-export const ZListIssuesOutput = z.object({
-  data: z.array(z.any()),
-  meta: z.object({ nextCursor: z.string().optional() }),
-});
+// const ZListIssuesOutput = z.object({
+//   data: z.array(z.any()),
+//   meta: z.object({ nextCursor: z.string().optional() }),
+// });
 
 type IssueFilter = z.infer<typeof IssueFilter>;
 
-export type ListIssuesInput = z.infer<typeof ZListIssuesInput>;
-export type ListIssuesOutput = z.infer<typeof ZListIssuesOutput>;
+type ListIssuesInput = z.infer<typeof ZListIssuesInput>;
+// type ListIssuesOutput = z.infer<typeof ZListIssuesOutput>;
 
 const allowedProjectIds = async (input: ListIssuesInput, context: { actorId: string }) => {
   const { projectIds } = input.filter || {};
@@ -123,10 +123,7 @@ const buildIssueWhere = (filter: IssueFilter): Prisma.IssueWhereInput => {
   return where;
 };
 
-export const listIssues = async (
-  input: ListIssuesInput,
-  context: { actorId: string },
-): Promise<ListIssuesOutput> => {
+const listIssues = async (input: ListIssuesInput, context: { actorId: string }) => {
   const allowedIds = await allowedProjectIds(input, context);
   if (allowedIds.length === 0) return { data: [], meta: {} };
   const where = buildIssueWhere({ ...input.filter, projectIds: allowedIds });
@@ -145,19 +142,16 @@ export const listIssues = async (
   return { data, meta: { nextCursor: nextCursor ?? undefined } };
 };
 
-export const GET = compose(
-  (req) => authenticated(req, req.params),
-  async (req) => {
-    const auth = await getAuthFromRequest(req);
-    const actorId = auth.user.id;
+export const GET = compose(authenticatedV2, async (req) => {
+  const auth = await getAuthFromRequest(req);
+  const actorId = auth.user.id;
 
-    const input = ZListIssuesInput.strict().parse(req.query);
-    // og
-    console.log('List Issues Input:', input);
-    if (!actorId) throw new Error('Unauthorized');
+  const input = ZListIssuesInput.strict().parse(req.query);
+  // og
+  console.log('List Issues Input:', input);
+  if (!actorId) throw new Error('Unauthorized');
 
-    const result = await listIssues(input, { actorId });
+  const result = await listIssues(input, { actorId });
 
-    return NextResponse.json(result);
-  },
-);
+  return NextResponse.json(result);
+});

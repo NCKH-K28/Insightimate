@@ -50,14 +50,6 @@ model Issue {
     @@map("issues")
 }
 
-// enum IssueTypeCategory {
-//     EPIC
-//     STORY
-//     BUG
-//     TASK
-//     SUB_TASK
-// }
-
 enum IssueStatusCategory {
     TODO
     IN_PROGRESS
@@ -86,11 +78,11 @@ model IssueLink {
 model IssueType {
     id          String  @id
     sequence    Int     @default(0)
-    // category    IssueTypeCategory
     name        String
     description String?
     iconURL     String? @map("icon_url")
     color       String?
+    hierarchy   Int     @default(0)
 
     projectId String @map("project_id")
 

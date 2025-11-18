@@ -125,9 +125,10 @@ type FunctionFromEndpoint<N extends EndpointNode<any, any>> = N['method'] extend
       config?: WriteConfig,
     ) => Promise<TResult>;
 
-type ApiFromConfig<C> = C extends EndpointNode<any, any>
-  ? FunctionFromEndpoint<C>
-  : { [K in keyof C]: ApiFromConfig<C[K]> };
+type ApiFromConfig<C> =
+  C extends EndpointNode<any, any>
+    ? FunctionFromEndpoint<C>
+    : { [K in keyof C]: ApiFromConfig<C[K]> };
 
 /* ---------- Public builder ---------- */
 export function buildApi<C extends ConfigTree>(config: C): ApiFromConfig<C> {
