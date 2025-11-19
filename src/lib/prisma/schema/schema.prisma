@@ -3,20 +3,20 @@
 
 // rest: pnpm prisma migrate dev --schema=src/lib/prisma/schema
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["postgresqlExtensions"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
-    provider   = "postgresql"
-    url        = env("DATABASE_URL")
-    extensions = [vector]
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model DebeziumSignal {
-    id   String @id @default(uuid())
-    type String
-    data Json?
+  id   String @id @default(uuid())
+  type String
+  data Json?
 
-    @@map("debezium_signal")
+  @@map("debezium_signal")
 }

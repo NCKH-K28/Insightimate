@@ -1,53 +1,53 @@
 model Team {
-    id          String   @id
-    name        String
-    description String?
-    avatar      String?
-    workspaceId String
-    createdAt   DateTime @default(now())
-    updatedAt   DateTime @updatedAt
-    leadId      String
+  id          String   @id
+  name        String
+  description String?
+  avatar      String?
+  workspaceId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  leadId      String
 
-    members   TeamMember[] @relation("TeamMembers")
-    workspace Workspace    @relation("WorkspaceTeams", fields: [workspaceId], references: [id], onDelete: Cascade)
-    lead      User         @relation("UserLedTeams", fields: [leadId], references: [id], onDelete: Cascade)
-    outbox    TeamOutbox[] @relation("TeamOutbox")
+  members   TeamMember[] @relation("TeamMembers")
+  workspace Workspace    @relation("WorkspaceTeams", fields: [workspaceId], references: [id], onDelete: Cascade)
+  lead      User         @relation("UserLedTeams", fields: [leadId], references: [id], onDelete: Cascade)
+  outbox    TeamOutbox[] @relation("TeamOutbox")
 }
 
 model TeamMember {
-    id        String   @id @default(cuid())
-    teamId    String
-    userId    String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  id        String   @id @default(cuid())
+  teamId    String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    team   Team         @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Cascade)
-    user   User         @relation("UserTeams", fields: [userId], references: [id], onDelete: Cascade)
-    outbox TeamOutbox[] @relation("TeamOutbox")
+  team   Team         @relation("TeamMembers", fields: [teamId], references: [id], onDelete: Cascade)
+  user   User         @relation("UserTeams", fields: [userId], references: [id], onDelete: Cascade)
+  outbox TeamOutbox[] @relation("TeamOutbox")
 
-    @@unique([teamId, userId], name: "team_user_unique")
-    @@map("team_members")
+  @@unique([teamId, userId], name: "team_user_unique")
+  @@map("team_members")
 }
 
 // per domain outbox trasactions
 enum OutboxState {
-    PENDING
-    PROCESSING
-    PROCESSED
-    FAILED
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
 }
 
 model TeamOutbox {
-    id          String      @id @default(cuid())
-    subjectType String
-    subjectId   String
-    eventType   String
-    payload     Json
-    createdAt   DateTime    @default(now())
-    state       OutboxState @default(PENDING)
+  id          String      @id @default(cuid())
+  subjectType String
+  subjectId   String
+  eventType   String
+  payload     Json
+  createdAt   DateTime    @default(now())
+  state       OutboxState @default(PENDING)
 
-    team   Team?       @relation("TeamOutbox", fields: [subjectId], references: [id], onDelete: Cascade, map: "team_outbox_teamId_fkey")
-    member TeamMember? @relation("TeamOutbox", fields: [subjectId], references: [id], onDelete: Cascade, map: "team_outbox_memberId_fkey")
+  team   Team?       @relation("TeamOutbox", fields: [subjectId], references: [id], onDelete: Cascade, map: "team_outbox_teamId_fkey")
+  member TeamMember? @relation("TeamOutbox", fields: [subjectId], references: [id], onDelete: Cascade, map: "team_outbox_memberId_fkey")
 
-    @@map("team_outbox")
+  @@map("team_outbox")
 }

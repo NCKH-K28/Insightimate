@@ -1,35 +1,35 @@
 enum ActionType {
-    READ
-    CREATE
-    UPDATE
-    DELETE
+  READ
+  CREATE
+  UPDATE
+  DELETE
 }
 
 enum EntityType {
-    PROJECT
-    PLAN
+  PROJECT
+  PLAN
 }
 
 model ActivityLog {
-    id         String     @id
-    actorId    String
-    action     ActionType
-    entityType EntityType
-    entityId   String
+  id         String     @id
+  actorId    String
+  action     ActionType
+  entityType EntityType
+  entityId   String
 
-    // -- Change details
-    fieldName   String? // -- Which field was changed (optional)
-    oldValue    Json? // -- Previous value
-    newValue    Json? // -- New value
-    description String? // -- Human-readable description
+  // -- Change details
+  fieldName   String? // -- Which field was changed (optional)
+  oldValue    Json? // -- Previous value
+  newValue    Json? // -- New value
+  description String? // -- Human-readable description
 
-    // -- Context
-    context Json? // -- Additional context (e.g., project, issue)
+  // -- Context
+  context Json? // -- Additional context (e.g., project, issue)
 
-    // -- Metadata
-    // userAgent String? // -- Browser/client info
-    // ipAddress String? // -- IP address
-    // timestamp DateTime @default(now())
+  // -- Metadata
+  // userAgent String? // -- Browser/client info
+  // ipAddress String? // -- IP address
+  // timestamp DateTime @default(now())
 
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 }

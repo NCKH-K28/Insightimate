@@ -15,6 +15,10 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { listProjectMembersQueryOptions } from '@/features/projects/api/actions';
 
+// ⭐ THÊM MỚI
+import { IssueStarButton } from '@/components/issue-star-button';
+
+
 export default function IssueSidePanel({
   issue,
   project,
@@ -31,22 +35,28 @@ export default function IssueSidePanel({
   projectId: string;
 }) {
   const [storyPoints, setStoryPoints] = useState(issue.storyPoints ?? '');
-
+  
   return (
     <div
       className={cn(
         'flex-1 max-h-screen overflow-y-auto p-6 border-l border-gray-200 bg-white space-y-6',
       )}
     >
+
       {/* Header */}
       <div className='flex items-center justify-between'>
-        <StatusDropdown
-          defaultStatus={issue?.status?.name ?? 'To Do'}
-          onChange={(statusName) => {
-            const statusObj = project?.statuses?.find((s: any) => s.name === statusName);
-            if (statusObj?.id) onUpdate({ statusId: statusObj.id });
-          }}
-        />
+        <div className='flex items-center gap-2'>
+          <StatusDropdown
+            defaultStatus={issue?.status?.name ?? 'To Do'}
+            onChange={(statusName) => {
+              const statusObj = project?.statuses?.find((s: any) => s.name === statusName);
+              if (statusObj?.id) onUpdate({ statusId: statusObj.id });
+            }}
+          />
+
+          {/* ⭐ NÚT STAR BUTTON ĐƯỢC CHÈN Ở ĐÂY */}
+        <IssueStarButton issueId={issue.id} />
+        </div>
 
         <div className='flex items-center gap-2'>
           <button
@@ -73,6 +83,7 @@ export default function IssueSidePanel({
             </AccordionTrigger>
 
             <AccordionContent className='px-4 py-3 space-y-4 text-sm'>
+              
               {/* Assignee */}
               <div>
                 <h4 className='font-medium text-gray-800'>Assignee</h4>
@@ -133,7 +144,7 @@ export default function IssueSidePanel({
                 onChange={(d) => onUpdate({ dueDate: d ? d.toISOString() : null })}
               />
 
-              {/* Sprint */}
+              {/* Sprint + Story Points */}
               <div className='mt-4 flex gap-4'>
                 <div className='flex-1'>
                   <h4 className='font-medium text-gray-800'>Sprint</h4>
@@ -174,6 +185,7 @@ export default function IssueSidePanel({
                   </div>
                 </div>
               </div>
+
             </AccordionContent>
           </AccordionItem>
         </Accordion>

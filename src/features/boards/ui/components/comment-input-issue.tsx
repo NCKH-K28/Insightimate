@@ -100,13 +100,15 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
         className="mb-4"
       />
 
-      <Button
-        type="submit"
-        disabled={loading || !currentUser}
-        className="text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
-      >
-        {loading ? "Sending..." : parentId ? "Send Reply" : "Send Comment"}
-      </Button>
+      <div className="flex justify-end">
+        <Button
+          type="submit"
+          disabled={loading || !currentUser}
+          className="text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+        >
+          {loading ? "Sending..." : parentId ? "Send Reply" : "Send Comment"}
+        </Button>
+      </div>
     </form>
   );
 }

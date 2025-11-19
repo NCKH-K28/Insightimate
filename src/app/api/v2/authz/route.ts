@@ -5,3 +5,4 @@ export const GET = async (request: Request) => {
   const result = await rebuildAuthzData();
   return NextResponse.json({ result });
 };
+ 

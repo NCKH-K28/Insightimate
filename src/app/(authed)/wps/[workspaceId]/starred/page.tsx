@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -20,62 +20,82 @@ interface StarredIssue {
     id: string;
     name: string;
     avatar?: string;
-  };
+  } | null;
 }
 
 export default function StarredPage() {
   const params = useParams<{ workspaceId: string }>();
   const workspaceId = params?.workspaceId;
-  const [selectedIssueId, setSelectedIssueId] = useState<string | null>(null);
 
-  // Giả lập fetch starred issues (thay bằng API thực tế)
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // 🟦 FETCH USER ID
+  useEffect(() => {
+    let isMounted = true; // Prevent memory leak
+    
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/v2/auth/me');
+        
+        // ✅ Check response status
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+        }
+        
+        const data = await res.json();
+        
+        // ✅ Check if component still mounted & data valid
+        if (isMounted && data?.id) {
+          setUserId(data.id);
+        }
+      } catch (err) {
+        console.error("Error fetching user:", err);
+        // ✅ Set null on error to indicate fetch failed
+        if (isMounted) {
+          setUserId(null);
+        }
+      }
+    };
+    
+    fetchUser();
+    
+    // ✅ Cleanup function
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // ⛔ Khi chưa có userId → chưa query API
+  const enabled = !!workspaceId && !!userId;
+
+  // ⭐ Fetch starred issues FROM REAL API
   const { data: starredIssues, isLoading, error, refetch } = useQuery({
     queryKey: ['starred-issues', workspaceId],
+    enabled,
     queryFn: async () => {
-      // TODO: Replace với API thực tế
-      // const response = await fetch(`/api/v2/issues/starred`);
-      // return response.json();
+      const res = await fetch(`/api/v2/star`, {
+        headers: { 'x-user-id': userId ?? '' }
+      });
+
+      if (!res.ok) throw new Error("Failed to fetch starred issues");
+
+      const response = await res.json();
       
-      // Mock data for now
-      return [
-        {
-          id: 'issue-1',
-          key: 'PROJ-123',
-          summary: 'Fix critical login bug',
-          projectId: 'proj-1',
-          status: 'In Progress',
-          priority: 'High',
-          assignee: {
-            id: 'user-1',
-            name: 'Alice',
-            avatar: 'https://i.pravatar.cc/32?u=alice',
-          },
-        },
-        {
-          id: 'issue-2',
-          key: 'PROJ-456',
-          summary: 'Design new homepage layout',
-          projectId: 'proj-1',
-          status: 'Open',
-          priority: 'Medium',
-          assignee: {
-            id: 'user-2',
-            name: 'Bob',
-            avatar: 'https://i.pravatar.cc/32?u=bob',
-          },
-        },
-        {
-          id: 'issue-3',
-          key: 'PROJ-789',
-          summary: 'Database optimization for performance',
-          projectId: 'proj-2',
-          status: 'Open',
-          priority: 'High',
-          assignee: null,
-        },
-      ] as StarredIssue[];
-    },
-    enabled: !!workspaceId,
+      // Transform response to match StarredIssue interface
+      return response.data.map((star: any) => ({
+        id: star.issue.id,
+        key: star.issue.key,
+        summary: star.issue.summary,
+        projectId: star.issue.projectId,
+        status: star.issue.status?.name,
+        priority: star.issue.priority?.name,
+        assignee: star.issue.assignee ? {
+          id: star.issue.assignee.id,
+          name: star.issue.assignee.name,
+          avatar: star.issue.assignee.avatar,
+        } : null,
+      })) as StarredIssue[];
+    }
   });
 
   if (!workspaceId) {
@@ -86,8 +106,18 @@ export default function StarredPage() {
     );
   }
 
+  // Không render gì cho đến khi có userId
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="animate-spin text-gray-400" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 space-y-6 p-6">
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -102,36 +132,33 @@ export default function StarredPage() {
           </div>
         </div>
 
-        {starredIssues && starredIssues.length > 0 && (
+        {starredIssues && (
           <div className="text-right">
             <div className="text-3xl font-bold text-yellow-600">
               {starredIssues.length}
             </div>
-            <p className="text-xs text-gray-500">issue{starredIssues.length !== 1 ? 's' : ''}</p>
+            <p className="text-xs text-gray-500">
+              issue{starredIssues.length !== 1 ? 's' : ''}
+            </p>
           </div>
         )}
       </div>
 
-      {/* Loading State */}
+      {/* Loading */}
       {isLoading && (
-        <div className="flex flex-col items-center justify-center py-12">
+        <div className="flex flex-col items-center py-12">
           <Loader2 className="animate-spin text-gray-400 mb-2" size={32} />
           <p className="text-gray-500">Loading starred issues...</p>
         </div>
       )}
 
-      {/* Error State */}
+      {/* Error */}
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load starred issues. Please try again.
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => refetch()}
-              className="ml-4"
-            >
+            Failed to load starred issues.
+            <Button size="sm" variant="outline" onClick={() => refetch()} className="ml-4">
               Retry
             </Button>
           </AlertDescription>
@@ -140,53 +167,45 @@ export default function StarredPage() {
 
       {/* Empty State */}
       {!isLoading && !error && (!starredIssues || starredIssues.length === 0) && (
-        <div className="flex flex-col items-center justify-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+        <div className="flex flex-col items-center py-12 bg-gray-50 border-2 border-dashed rounded-lg">
           <Star className="text-gray-400 mb-3" size={48} />
-          <h2 className="text-lg font-semibold text-gray-700 mb-2">
-            No starred issues yet
-          </h2>
-          <p className="text-gray-500 text-sm mb-4 max-w-xs text-center">
-            Star your favorite issues to keep track of them. Click the star icon on any issue to add it here.
+          <h2 className="text-lg font-semibold text-gray-700">No starred issues yet</h2>
+          <p className="text-gray-500 text-sm max-w-xs text-center mb-4">
+            Star your favorite issues to keep track of them.
           </p>
           <Link href={`/wps/${workspaceId}/projects`}>
-            <Button variant="default" size="sm">
-              Browse Issues
-            </Button>
+            <Button>Browse Issues</Button>
           </Link>
         </div>
       )}
 
-      {/* Issues List */}
+      {/* List */}
       {!isLoading && !error && starredIssues && starredIssues.length > 0 && (
         <div className="grid gap-3">
-          {starredIssues.map((issue) => (
-            <div
+          {starredIssues.map(issue => (
+            <Link
               key={issue.id}
-              className="group bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all hover:border-yellow-300 cursor-pointer"
-              onClick={() => setSelectedIssueId(issue.id)}
+              href={`/wps/${workspaceId}/projects/${issue.projectId}/issues/${issue.id}`}
+              className="block group bg-white border rounded-lg p-4 hover:shadow-md hover:border-yellow-300 cursor-pointer transition"
             >
-              <div className="flex items-start justify-between gap-4">
-                {/* Left: Issue Info */}
+              <div className="flex items-start justify-between">
+                
+                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-2">
-                    <Link
-                      href={`/wps/${workspaceId}/projects/${issue.projectId}/board?issue=${issue.id}`}
-                      className="text-sm font-semibold text-blue-600 hover:text-blue-800 truncate"
-                    >
+                    <span className="text-sm font-semibold text-blue-600 group-hover:text-blue-800 truncate">
                       {issue.key}
-                    </Link>
+                    </span>
 
-                    {/* Status Badge */}
                     {issue.status && (
-                      <span className="inline-block px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700">
+                      <span className="px-2 py-0.5 text-xs bg-blue-100 text-blue-700 rounded-full">
                         {issue.status}
                       </span>
                     )}
 
-                    {/* Priority Badge */}
                     {issue.priority && (
                       <span
-                        className={`inline-block px-2 py-0.5 text-xs font-medium rounded-full ${
+                        className={`px-2 py-0.5 text-xs rounded-full ${
                           issue.priority === 'High'
                             ? 'bg-red-100 text-red-700'
                             : issue.priority === 'Medium'
@@ -199,11 +218,10 @@ export default function StarredPage() {
                     )}
                   </div>
 
-                  <h3 className="text-base font-semibold text-gray-900 line-clamp-2 group-hover:text-blue-600">
+                  <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-600 line-clamp-2">
                     {issue.summary}
                   </h3>
 
-                  {/* Assignee */}
                   {issue.assignee && (
                     <div className="flex items-center gap-2 mt-2 text-xs text-gray-600">
                       {issue.assignee.avatar && (
@@ -218,34 +236,31 @@ export default function StarredPage() {
                   )}
                 </div>
 
-                {/* Right: Star Button */}
-                <div className="flex-shrink-0">
+                {/* Star Button */}
+                <div 
+                  onClick={(e) => e.preventDefault()} 
+                  className="flex-shrink-0"
+                >
                   <IssueStarButton
                     issueId={issue.id}
-                    userId="user-current" // TODO: Get from session/auth
                     initialIsStarred={true}
                     initialStarCount={1}
                     variant="icon-only"
                     size="md"
-                    onStarToggle={(isStarred) => {
-                      if (!isStarred) {
-                        // Remove from list
-                        refetch();
-                      }
-                    }}
+                    onStarToggle={() => refetch()}
                   />
                 </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       )}
 
-      {/* Footer Info */}
-      {!isLoading && starredIssues && starredIssues.length > 0 && (
-        <div className="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+      {/* Footer */}
+      {starredIssues && starredIssues.length > 0 && (
+        <div className="mt-8 p-4 bg-blue-50 border rounded-lg">
           <p className="text-sm text-blue-800">
-            💡 <strong>Tip:</strong> Star issues to mark them as favorites. You can quickly access all starred issues from this page.
+            💡 <strong>Tip:</strong> Star issues to keep them easily accessible.
           </p>
         </div>
       )}
