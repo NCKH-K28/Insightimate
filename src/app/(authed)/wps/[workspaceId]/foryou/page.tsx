@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchRecentProjectsQueryOptions } from '@/features/projects/api/actions';
+import { fetchAssignedItemsQueryOptions } from '@/features/foryou/api/actions';
 import WorkedTab from '@/components/for-you/worked-tab';
 import ViewedTab from '@/components/for-you/viewed-tab';
 import AssignedTab from '@/components/for-you/assigned-tab';
@@ -15,7 +16,6 @@ import { Badge } from '@/components/ui/badge';
 import {
   ExternalLink,
   LayoutGrid,
-  CheckSquare,
   Star,
   Users2,
   Rocket,
@@ -25,11 +25,11 @@ import {
 import RecentSpaces from '@/components/for-you/recent-spaces';
 
 export default function MyWorkPage() {
-  const assignedCount = 0;
-
   const params = useParams();
   const workspaceId = (params as any)?.workspaceId as string | undefined;
 
+  const assignedQuery = useQuery(fetchAssignedItemsQueryOptions(workspaceId));
+  const assignedCount = assignedQuery.data?.length ?? 0;
   const fetchRecent = useQuery(fetchRecentProjectsQueryOptions());
   const recentSpaces = fetchRecent.data ?? [];
 

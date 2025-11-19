@@ -37,7 +37,7 @@ const axiosInstance = axios.create({
   baseURL: '/api',
   // headers: { 'Content-Type': 'application/json' },
   withCredentials: true, // FIXME: cân nhắc token-based
-  timeout: 15000,
+  timeout: 60000,
   paramsSerializer: (params) =>
     qs.stringify(params, {
       arrayFormat: 'brackets',
