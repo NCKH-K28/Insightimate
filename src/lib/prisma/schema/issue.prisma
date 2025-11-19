@@ -23,11 +23,13 @@ model Issue {
 
     createdAt DateTime @default(now()) @map("created_at")
     updatedAt DateTime @updatedAt @map("updated_at")
+    createdBy String? @map("created_by")
+    updatedBy String? @map("updated_by")
 
     // ====== Custom Fields ======
     storyPoints Float? @map("story_points")
 
-    originalEstimate Float? @map("original_estimate")
+    originalEstimate Float? @map("original_estimate") 
     timeSpent        Float? @map("time_spent")
 
     // ===========================
@@ -38,6 +40,8 @@ model Issue {
     reporter     User?            @relation("IssueReporter", fields: [reporterId], references: [id], onDelete: Cascade)
     assignee     User?            @relation("IssueAssignee", fields: [assigneeId], references: [id], onDelete: Cascade)
     archivedUser User?            @relation("IssueArchivedBy", fields: [archivedBy], references: [id], onDelete: Cascade)
+    createdByUser User?            @relation("IssueCreatedBy", fields: [createdBy], references: [id], onDelete: Cascade)
+    updatedByUser User?            @relation("IssueUpdatedBy", fields: [updatedBy], references: [id], onDelete: Cascade)
     type         IssueType        @relation("IssueType", fields: [typeId], references: [id], onDelete: Cascade)
     status       IssueStatus      @relation("IssueStatus", fields: [statusId], references: [id], onDelete: Cascade)
     priority     IssuePriority    @relation("IssuePriority", fields: [priorityId], references: [id], onDelete: Cascade)

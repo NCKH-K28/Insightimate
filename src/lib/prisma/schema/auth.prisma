@@ -29,6 +29,8 @@ model User {
     issuesReported   Issue[]           @relation("IssueReporter")
     issuesAssigned   Issue[]           @relation("IssueAssignee")
     issuesArchived   Issue[]           @relation("IssueArchivedBy")
+    issuesCreated    Issue[]           @relation("IssueCreatedBy")
+    issuesUpdated    Issue[]           @relation("IssueUpdatedBy")
     projectsLead     Project[]         @relation("ProjectLead")
     teamsLed         Team[]            @relation("UserLedTeams")
     invitesSent      Invitation[]      @relation("UserInvites")

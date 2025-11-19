@@ -44,7 +44,8 @@ model ProjectRole {
     id          String   @id
     name        String
     description String?
-    permissions String[]
+    // permissions stored as JSON (array of permission keys). Use Json to match Postgres `jsonb`.
+    permissions Json    @db.Json
     projectId   String
 
     createdAt DateTime @default(now()) @map("created_at")
