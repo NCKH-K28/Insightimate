@@ -73,9 +73,6 @@ export const GET = middlewareHandler<{ }>([authenticated], async (req) => {
     }),
   );
 
-  console.log("check res :", JSON.stringify(mapped, null, 2));
-  
-
   return NextResponse.json({ data: mapped }, { status: 200 });
 });
 
