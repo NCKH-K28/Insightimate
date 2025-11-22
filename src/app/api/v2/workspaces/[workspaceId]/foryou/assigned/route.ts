@@ -31,12 +31,12 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   if (projectIds.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
 
-  // select only necessary fields to reduce DB and network overhead
   const issues = await prisma.issue.findMany({
     where: { projectId: { in: projectIds }, assigneeId: actorId },
     include: {
       project: { select: { id: true, name: true } },
       status: { select: { id: true, name: true, category: true } },
+      type: { select: { id: true, name: true, iconURL: true } },
     },
     orderBy: { updatedAt: 'desc' },
     take: 50,
@@ -44,16 +44,12 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   const items = issues.map((i) => ({
     id: i.id,
-    iconName: i.archived ? 'CheckSquare' : 'LayoutGrid',
+    iconName: i.type?.iconURL,
     title: i.summary ?? 'Untitled',
     meta: `${i.key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
-    // the UI only needs status for the Assigned tab; avoid extra fields
     status: i.status ? { id: i.status.id, name: i.status.name, category: i.status.category } : null,
     occurredAt: i.updatedAt?.toISOString?.(),
   }));
-
-//   console.log(">>>>>>>>>>check : " + JSON.stringify(items));
-  
 
   return NextResponse.json({ items }, { status: 200 });
 });

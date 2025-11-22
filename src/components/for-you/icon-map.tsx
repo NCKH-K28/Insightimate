@@ -7,6 +7,7 @@ import {
   Rocket,
   FolderKanban,
 } from 'lucide-react';
+import React from 'react';
 
 export const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   CheckSquare,
@@ -18,8 +19,23 @@ export const iconMap: Record<string, React.ComponentType<{ className?: string }>
   ExternalLink,
 };
 
+function createUrlIcon(url: string): React.ComponentType<{ className?: string }> {
+  return ({ className }) => (
+    React.createElement('img', {
+      src: url,
+      alt: '',
+      className: `${className ?? ''} rounded`,
+      style: { objectFit: 'cover' },
+    })
+  );
+}
+
 export function resolveIcon(name?: string) {
   if (!name) return CheckSquare;
+
+  const isUrl = typeof name === 'string' && /^(https?:\/\/|data:|\/)/i.test(name);
+  if (isUrl) return createUrlIcon(name as string);
+
   return iconMap[name] ?? CheckSquare;
 }
 

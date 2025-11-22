@@ -41,16 +41,16 @@ export const GET = middlewareHandler([authenticated], async (req) => {
         { updatedAt: { gte: startOfDay } },
       ],
     },
-    include: { project: true },
+    include: { project: true, type: true },
     orderBy: { updatedAt: 'desc' },
     take: 20,
   });
 
   const items = issues.map((i) => ({
     id: i.id,
-    iconName: i.archived ? 'CheckSquare' : 'LayoutGrid',
-    title: (i as any).summary ?? (i as any).subject ?? 'Untitled',
-    meta: `${(i as any).key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
+    iconName: i.type?.iconURL ,
+    title: i.summary,
+    meta: `${i.key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
     checked: (i as any).status?.category === 'DONE',
     action:
       i.updatedAt && i.createdAt && new Date(i.updatedAt).getTime() > new Date(i.createdAt).getTime()
