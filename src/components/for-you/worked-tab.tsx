@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchWorkedItemsQueryOptions } from '@/features/foryou/api/actions';
 import TodayRow from './today-row';
@@ -10,6 +11,7 @@ import { resolveIcon } from './icon-map';
 export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
   const query = useQuery(fetchWorkedItemsQueryOptions(workspaceId));
   const items = query.data ?? [];
+  const router = useRouter();
 
   return (
     <div>
@@ -26,6 +28,10 @@ export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
               Icon={resolveIcon(item.iconName)}
               action={item.action}
               actor={item.actor}
+              onClick={() => {
+                if (!workspaceId || !item.projectId) return;
+                router.push(`/wps/${workspaceId}/projects/${item.projectId}/issues/${item.id}`);
+              }}
             />
           ))
         )}

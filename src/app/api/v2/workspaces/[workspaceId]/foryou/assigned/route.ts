@@ -45,6 +45,7 @@ export const GET = middlewareHandler([authenticated], async (req) => {
   const items = issues.map((i) => ({
     id: i.id,
     iconName: i.type?.iconURL,
+    projectId: i.projectId,
     title: i.summary ?? 'Untitled',
     meta: `${i.key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
     status: i.status ? { id: i.status.id, name: i.status.name, category: i.status.category } : null,

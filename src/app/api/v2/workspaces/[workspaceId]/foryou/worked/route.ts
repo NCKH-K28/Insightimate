@@ -49,6 +49,7 @@ export const GET = middlewareHandler([authenticated], async (req) => {
   const items = issues.map((i) => ({
     id: i.id,
     iconName: i.type?.iconURL ,
+    projectId: i.projectId,
     title: i.summary,
     meta: `${i.key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
     checked: (i as any).status?.category === 'DONE',

@@ -6,10 +6,12 @@ import { fetchAssignedItemsQueryOptions } from '@/features/foryou/api/actions';
 import EmptyState from './empty-state';
 import AssignedRow from './assigned-row';
 import { resolveIcon } from './icon-map';
+import { useRouter } from 'next/navigation';
 
 export default function AssignedTab({ workspaceId }: { workspaceId?: string }) {
   const query = useQuery(fetchAssignedItemsQueryOptions(workspaceId));
   const items = query.data ?? [];
+  const router = useRouter();
 
   return (
     <div>
@@ -25,6 +27,9 @@ export default function AssignedTab({ workspaceId }: { workspaceId?: string }) {
               meta={item.meta}
               Icon={resolveIcon(item.iconName)}
               status={item.status}
+              onClick={()=>{
+                router.push(`/wps/${workspaceId}/projects/${item.projectId}/issues/${item.id}`);
+              }}
             />
           ))
         )}
