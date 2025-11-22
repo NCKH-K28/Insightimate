@@ -4,13 +4,14 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { deleteBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
 
 import IssueMainPanel from '@/features/boards/ui/components/issue-main-panel';
 import IssueSidePanel from '@/features/boards/ui/components/issue-side-panel';
+import { viewItem } from '@/features/foryou/api/actions';
 
 export default function Page() {
   const params = useParams<{
@@ -37,6 +38,16 @@ export default function Page() {
     deleteBoardIssueMutationOptions({ boardId: boardId ?? '', issueId: params.issueId }),
   );
 
+  const viewMutation = useMutation<{ ok: boolean }, Error, { type: 'ISSUE' | 'PROJECT'; entityId: string; context?: any }>(
+    {
+      mutationFn: (data: { type: 'ISSUE' | 'PROJECT'; entityId: string; context?: any }) =>
+        viewItem(params.workspaceId, data),
+    },
+  );
+
+  // ensure we only send view once per issue id during this component lifecycle
+  const sentViewRef = useRef<Set<string>>(new Set());
+
   const handleUpdate = useCallback(
     (data: any) => {
       if (updateMutation.isPending) return;
@@ -58,6 +69,19 @@ export default function Page() {
     });
     router.push(`/wps/${params.workspaceId}/projects/${params.projectId}`);
   };
+
+  // Always register effect hook (not conditionally) to keep hooks order stable.
+  useEffect(() => {
+    if (!issue) return;
+    // fire-and-forget: record that current user viewed this issue
+    if (sentViewRef.current.has(issue.id)) return;
+    sentViewRef.current.add(issue.id);
+    try {
+      viewMutation.mutate({ type: 'ISSUE', entityId: issue.id, context: { projectId: params.projectId } });
+    } catch (e) {
+      // ignore
+    }
+  }, [issue?.id, params.workspaceId, params.projectId, viewMutation]);
 
   if (!issue) return null;
 

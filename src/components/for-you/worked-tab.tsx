@@ -4,7 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchWorkedItemsQueryOptions } from '@/features/foryou/api/actions';
-import TodayRow from './today-row';
+import ActivityRow from './activity-row';
 import EmptyState from './empty-state';
 import { resolveIcon } from './icon-map';
 
@@ -21,7 +21,7 @@ export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
           <EmptyState label='No recent activity' />
         ) : (
           items.map((item: any) => (
-            <TodayRow
+            <ActivityRow
               key={item.id}
               title={item.title}
               meta={item.meta}

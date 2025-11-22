@@ -1,0 +1,16 @@
+enum ViewedType {
+  ISSUE
+  PROJECT
+}
+
+model ViewedItem {
+  id         String      @id @default(cuid())
+  userId     String
+  workspaceId String?    
+  type       ViewedType
+  entityId   String
+  context    Json?
+  createdAt  DateTime    @default(now())
+
+  @@index([userId, workspaceId, createdAt])
+}

@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 
-export function TodayRow({
+export function ActivityRow({
   title,
   meta,
   Icon,
@@ -55,4 +55,4 @@ export function TodayRow({
   );
 }
 
-export default TodayRow;
+export default ActivityRow;

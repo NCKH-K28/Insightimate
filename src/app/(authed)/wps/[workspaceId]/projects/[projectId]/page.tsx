@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { viewItem } from '@/features/foryou/api/actions';
 import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
@@ -62,6 +63,28 @@ const tabs = {
 const tabArr = Object.entries(tabs);
 
 export default function ProjectWithViewModePage() {
+  const params = useParams<{ projectId: string; workspaceId: string }>();
+  if (!params) throw new Error('Params not found');
+
+  const { data: projectForView } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
+
+  const viewMutation = useMutation<{ ok: boolean }, Error, { type: 'ISSUE' | 'PROJECT'; entityId: string; context?: any }>(
+    {
+      mutationFn: (data) => viewItem(params.workspaceId, data),
+    },
+  );
+
+  const sentProjectViewRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!projectForView) return;
+    if (sentProjectViewRef.current.has(projectForView.id)) return;
+    sentProjectViewRef.current.add(projectForView.id);
+    try {
+      viewMutation.mutate({ type: 'PROJECT', entityId: projectForView.id, context: { boardId: projectForView.boardId } });
+    } catch (e) {
+    }
+  }, [projectForView?.id, params.workspaceId, viewMutation]);
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

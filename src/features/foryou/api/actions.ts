@@ -23,3 +23,20 @@ export const fetchAssignedItemsQueryOptions = (workspaceId?: string) => ({
   queryFn: () => fetchAssignedItems(workspaceId),
   staleTime: 1000 * 60,
 });
+
+export const fetchViewedItems = async (workspaceId?: string) => {
+  const ctx = { workspaceId: workspaceId ?? 'global' } as const;
+  const res = await foryouApi.viewed(ctx);
+  return res.items ?? [];
+};
+
+export const fetchViewedItemsQueryOptions = (workspaceId?: string) => ({
+  queryKey: ['foryou', 'viewed', workspaceId ?? 'global'],
+  queryFn: () => fetchViewedItems(workspaceId),
+  staleTime: 1000 * 60,
+});
+
+export const viewItem = async (workspaceId: string | undefined, data: { type: 'ISSUE' | 'PROJECT'; entityId: string; context?: any }) => {
+  const ctx = { workspaceId: workspaceId ?? 'global' } as const;
+  return foryouApi.view(ctx, data);
+};
