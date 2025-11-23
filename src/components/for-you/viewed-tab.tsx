@@ -31,6 +31,7 @@ export default function ViewedTab({ workspaceId }: { workspaceId?: string }) {
                   title={item.title}
                   meta={item.meta ?? ''}
                   Icon={resolveIcon(item.iconName)}
+                  showAvatar={false}
                   onClick={() => {
                     if (!workspaceId || !item.projectId) return;
                     router.push(`/wps/${workspaceId}/projects/${item.projectId}/issues/${item.id}`);
@@ -45,6 +46,7 @@ export default function ViewedTab({ workspaceId }: { workspaceId?: string }) {
                 title={item.title}
                 meta={item.meta ?? ''}
                 Icon={resolveIcon(item.avatar)}
+                showAvatar={false}
                 onClick={() => {
                   if (!workspaceId) return;
                   router.push(`/wps/${workspaceId}/projects/${item.id}`);

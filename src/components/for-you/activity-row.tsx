@@ -9,6 +9,7 @@ export function ActivityRow({
   action,
   actor,
   onClick,
+  showAvatar
 }: {
   title: string;
   meta: string;
@@ -17,6 +18,7 @@ export function ActivityRow({
   action?: string;
   actor?: { name?: string; avatar?: string | null };
   onClick?: () => void;
+  showAvatar?: boolean;
 }) {
   const initials = actor?.name ? actor.name : title.slice(0, 2).toUpperCase();
 
@@ -43,13 +45,15 @@ export function ActivityRow({
             {action}
           </Badge>
         )}
-        <Avatar className='h-8 w-8'>
-          {actor?.avatar ? (
-            <AvatarImage src={actor.avatar} alt={actor?.name ?? initials} />
-          ) : (
-            <AvatarFallback>{initials}</AvatarFallback>
-          )}
-        </Avatar>
+        {showAvatar !== false && (
+          <Avatar className='h-8 w-8'>
+            {actor?.avatar ? (
+              <AvatarImage src={actor.avatar} alt={actor?.name ?? initials} />
+            ) : (
+              <AvatarFallback>{initials}</AvatarFallback>
+            )}
+          </Avatar>
+        )}
       </div>
     </div>
   );
