@@ -7,6 +7,7 @@ import { fetchWorkedItemsQueryOptions } from '@/features/foryou/api/actions';
 import ActivityRow from './activity-row';
 import EmptyState from './empty-state';
 import { resolveIcon } from './icon-map';
+import TabLoading from './tab-loading';
 
 export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
   const query = useQuery(fetchWorkedItemsQueryOptions(workspaceId));
@@ -17,7 +18,9 @@ export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
     <div>
       <h3 className='text-xs font-semibold text-muted-foreground tracking-wide'>WORKED ON</h3>
       <div className='mt-2 space-y-2'>
-        {items.length === 0 && !query.isLoading ? (
+        {query.isLoading ? (
+          <TabLoading />
+        ) : items.length === 0 ? (
           <EmptyState label='No recent activity' />
         ) : (
           items.map((item: any) => (

@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchAssignedItemsQueryOptions } from '@/features/foryou/api/actions';
 import EmptyState from './empty-state';
 import AssignedRow from './assigned-row';
+import TabLoading from './tab-loading';
 import { resolveIcon } from './icon-map';
 import { useRouter } from 'next/navigation';
 
@@ -17,7 +18,9 @@ export default function AssignedTab({ workspaceId }: { workspaceId?: string }) {
     <div>
       <h3 className='text-xs font-semibold text-muted-foreground tracking-wide'>ASSIGNED TO ME</h3>
       <div className='mt-2 space-y-2'>
-        {items.length === 0 && !query.isLoading ? (
+        {query.isLoading ? (
+          <TabLoading />
+        ) : items.length === 0 ? (
           <EmptyState label='No assigned items' />
         ) : (
           items.map((item: any) => (

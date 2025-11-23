@@ -7,6 +7,7 @@ import { fetchViewedItemsQueryOptions } from '@/features/foryou/api/actions';
 import EmptyState from './empty-state';
 import ActivityRow from './activity-row';
 import { resolveIcon } from './icon-map';
+import TabLoading from './tab-loading';
 
 export default function ViewedTab({ workspaceId }: { workspaceId?: string }) {
   const query = useQuery(fetchViewedItemsQueryOptions(workspaceId));
@@ -17,7 +18,9 @@ export default function ViewedTab({ workspaceId }: { workspaceId?: string }) {
     <div>
       <h3 className='text-xs font-semibold text-muted-foreground tracking-wide'>VIEWED</h3>
       <div className='mt-2 space-y-2'>
-        {items.length === 0 && !query.isLoading ? (
+        {query.isLoading ? (
+          <TabLoading />
+        ) : items.length === 0 ? (
           <EmptyState label='No recently viewed items' />
         ) : (
           items.map((item: any) => {

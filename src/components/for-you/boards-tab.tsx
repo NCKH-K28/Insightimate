@@ -8,6 +8,7 @@ import EmptyState from './empty-state';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
 import { Star } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import TabLoading from './tab-loading';
 
 const SAMPLE_BOARDS = [
   { id: 'b1', key: 'PRJ-1', projectName: 'Project Alpha' },
@@ -44,7 +45,7 @@ export default function BoardsTab({ workspaceId }: { workspaceId?: string }) {
       <h3 className='text-xs font-semibold text-muted-foreground tracking-wide'>BOARDS</h3>
       <div className='mt-2'>
         {isLoading ? (
-          <div className='py-6'>Loading...</div>
+          <TabLoading />
         ) : projects.length === 0 ? (
           <EmptyState label='No boards found' />
         ) : (
