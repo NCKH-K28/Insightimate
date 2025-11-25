@@ -1,24 +1,26 @@
-import Mention from '@tiptap/extension-mention';
-import { Markdown } from '@tiptap/markdown';
+import { Node } from '@tiptap/core';
 import StarterKit from '@tiptap/starter-kit';
-import { ToolGetTimeNode } from './nodes/tool-get-time';
-import { IssueWikiNode } from './nodes/issue-wiki-node';
+import { Markdown } from '@tiptap/markdown';
+
+import Mention from '@tiptap/extension-mention';
 import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
-
 import { TableKit } from '@tiptap/extension-table';
 
-export const inputExtensions = [Document, Paragraph, Text, Mention, IssueWikiNode];
+import { ToolGetTimeNode } from './nodes/tool-get-time';
+import { IssueWikiNode } from './nodes/issue-wiki-node';
+import { GeneratedIssuesNode } from './nodes/generated-issues-node';
 
-const starterKit = StarterKit.configure({});
+export const inputExtensions = [Document, Paragraph, Text, Mention, IssueWikiNode];
 
 export const outputExtensions = [
   ...inputExtensions,
   TableKit,
   ToolGetTimeNode,
-  starterKit,
+  StarterKit.configure({}),
   Mention,
   Markdown,
   IssueWikiNode,
+  GeneratedIssuesNode,
 ];

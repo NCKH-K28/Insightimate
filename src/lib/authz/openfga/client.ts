@@ -19,7 +19,7 @@ const getOpenFGA = (): OpenFgaClient => {
 export const openfgaClient = getOpenFGA();
 
 // == Load Authorization Model File
-const authorizationModelPath = 'scripts/openfga/rbac-authorization-model.json';
+const authorizationModelPath = 'scripts/docker/base/openfga/rbac-authorization-model.json';
 export const loadAuthorizationModelFile = async () => {
   const filePath = path.join(process.cwd(), authorizationModelPath);
   const fileExists = await fs

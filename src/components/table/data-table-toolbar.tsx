@@ -29,9 +29,10 @@ export interface ColumnFilter {
 }
 
 interface ActionButton {
-  label: string | React.ReactNode;
+  label: string;
+  renderLabel?: (label: string) => React.ReactNode;
   icon?: LucideIcon;
-  onClick: () => void;
+  onClick?: () => void;
   variant?: 'default' | 'outline' | 'ghost';
 }
 
@@ -194,18 +195,20 @@ export function DataTableToolbar<TData>({ table, config }: DataTableToolbarProps
       </div>
 
       <div className='flex items-center gap-2'>
-        {config.actions?.map((action, index) => (
-          <Button
-            key={index}
-            variant={action.variant || 'default'}
-            size='sm'
-            className='h-8'
-            onClick={action.onClick}
-          >
-            {action.icon && <action.icon className='mr-2 h-4 w-4' />}
-            {action.label}
-          </Button>
-        ))}
+        {config.actions?.map((action, index) => {
+          if (action.renderLabel) return action.renderLabel(action.label);
+          return (
+            <Button
+              key={index}
+              variant={action.variant || 'default'}
+              size='sm'
+              onClick={action.onClick}
+            >
+              {action.icon && <action.icon className='mr-2 h-4 w-4' />}
+              {action.label}
+            </Button>
+          );
+        })}
 
         {config.showViewOptions !== false && <DataTableViewOptions table={table} />}
       </div>

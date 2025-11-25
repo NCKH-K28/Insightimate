@@ -24,7 +24,7 @@ interface ProjectFacetedFilterProps<TData, TValue> {
   options: {
     label: string;
     value: OptionValue;
-    icon?: React.ComponentType<{ className?: string }>;
+    icon?: React.ComponentType<{ className?: string }> | React.ReactNode;
   }[];
 }
 
@@ -102,7 +102,12 @@ export function DataTableFacetedFilter<TData, TValue>({
                     >
                       <Check />
                     </div>
-                    {option.icon && <option.icon className='mr-2 h-4 w-4 text-muted-foreground' />}
+                    {option.icon &&
+                      (typeof option.icon === 'function' ? (
+                        <option.icon className='mr-2 h-4 w-4 text-muted-foreground' />
+                      ) : (
+                        option.icon
+                      ))}
                     <span>{option.label}</span>
                     {facets?.get(option.value) && (
                       <span className='ml-auto flex h-4 w-4 items-center justify-center font-mono text-xs'>

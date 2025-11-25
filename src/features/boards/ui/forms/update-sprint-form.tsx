@@ -20,6 +20,7 @@ import { validateBoardSprint } from '@/lib/validators';
 import { cn } from '@/lib/utils';
 import { DurationPresetSelectors } from '../selectors/duration-preset-selectors';
 import { IssueDateSelectors } from '../selectors/issue-date-selectors';
+import { Textarea } from '@/components/ui/textarea';
 
 const dateToOption = (date?: string | null) => {
   if (!date) return null;
@@ -85,7 +86,9 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
           control={form.control}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>
+                Name<span className='text-red-500'>*</span>
+              </FormLabel>
               <FormControl>
                 <Input placeholder='Sprint Name' {...field} />
               </FormControl>
@@ -101,7 +104,13 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
             <FormItem>
               <FormLabel>Goal</FormLabel>
               <FormControl>
-                <Input placeholder='Sprint Goal' {...field} value={field.value ?? ''} />
+                <Textarea
+                  placeholder='Sprint Goal'
+                  {...field}
+                  value={field.value ?? ''}
+                  rows={4}
+                  onChange={(e) => field.onChange(e.target.value)}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

@@ -14,6 +14,11 @@ type UpdateSprintButtonProps = {
   defaultValues?: Partial<UpdateFormData>;
   renderLabel?: (label: string) => React.ReactNode;
   label?: string;
+
+  //
+  hiddenDialogTrigger?: boolean;
+  dialogOpen?: boolean;
+  onDialogOpenChange?: (open: boolean) => void;
 };
 
 export const UpdateSprintButton = ({
@@ -21,12 +26,17 @@ export const UpdateSprintButton = ({
   defaultValues,
   renderLabel,
   label = 'Update Sprint',
+  hiddenDialogTrigger = false,
+  dialogOpen,
+  onDialogOpenChange,
 }: UpdateSprintButtonProps) => {
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {renderLabel ? renderLabel(label) : <Button variant='outline'>{label}</Button>}
-      </DialogTrigger>
+    <Dialog modal={true} open={dialogOpen} onOpenChange={onDialogOpenChange}>
+      {hiddenDialogTrigger || (
+        <DialogTrigger asChild>
+          {renderLabel ? renderLabel(label) : <Button variant='outline'>{label}</Button>}
+        </DialogTrigger>
+      )}
       <DialogContent>
         <DialogHeader>
           <DialogTitle className='text-2xl font-bold'>Update Sprint</DialogTitle>

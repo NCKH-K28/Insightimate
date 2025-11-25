@@ -1,1 +1,1 @@
-export * from './c-issue-genarator';
+export * from './c-issue-generator';

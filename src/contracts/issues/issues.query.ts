@@ -10,6 +10,9 @@ export const ZIssueFilter = z.object({
   assigneeId: z.string().array().optional(),
   reporterId: z.string().array().optional(),
   boardId: z.string().array().optional(),
+  projectId: z.string().array().optional(),
+
+  dueDate: z.object({ from: z.iso.date().optional(), to: z.iso.date().optional() }).optional(),
 });
 
 export const ZIssueSort = z.object({
