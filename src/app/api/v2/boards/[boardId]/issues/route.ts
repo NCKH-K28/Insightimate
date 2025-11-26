@@ -14,6 +14,7 @@ export const GET = middlewareHandler<{ boardId: string }>(
 
     const { query } = req;
     const { boardId } = params;
+
     const validQuery = ZBoardIssueQueryParams.parse(query);
     const result = await boardsService.listIssues(
       { id: boardId, type: validQuery.filter?.type },

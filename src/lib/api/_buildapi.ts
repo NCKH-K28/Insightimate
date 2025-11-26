@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from 'axios';
 import { z, ZodType } from 'zod';
 import { baseApi, PathParams } from './_client';
+import merge from 'lodash/merge';
 
 /* ---------- Methods & helpers ---------- */
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete';
@@ -51,23 +52,31 @@ function createEndpoint<
       TQuery = InferOr<S extends { query: infer Q extends ZodType } ? Q : undefined, unknown>,
     >(
       context: PathParams<TPath>,
+      params?: TQuery,
       config?: ReadConfig<TQuery>,
     ): Promise<TResult> => {
+      // log config
       const validate = config?.validate ?? baseValidate;
 
-      const ctx =
+      const validContext =
         schemas && 'context' in (schemas as object)
           ? parseIf(validate, (schemas as any).context, context)
           : context;
 
-      const params =
-        schemas && 'query' in (schemas as object)
-          ? parseIf(validate, (schemas as any).query, config?.params)
-          : config?.params;
+      const validParams =
+        params && schemas && 'query' in (schemas as object)
+          ? parseIf(validate, (schemas as any).query, params)
+          : params;
 
-      const axiosCfg = params ? { ...(config ?? {}), params } : (config as AxiosRequestConfig);
+      const axiosCfg: AxiosRequestConfig = merge(
+        {},
+        config ?? {},
+        validParams ? { params: validParams } : {},
+      );
+      // log config
+      console.log('Request Config ++:', { context, config });
 
-      return raw<TResult>(ctx as any, axiosCfg).then((data: unknown) =>
+      return raw<TResult>(validContext as any, axiosCfg).then((data: unknown) =>
         parseIf(validate, (schemas as any)?.response, data),
       );
     };

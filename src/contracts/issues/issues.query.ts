@@ -11,6 +11,7 @@ export const ZIssueFilter = z.object({
   reporterId: z.string().array().optional(),
   boardId: z.string().array().optional(),
   projectId: z.string().array().optional(),
+  parentId: z.string().array().optional(),
 
   dueDate: z.object({ from: z.iso.date().optional(), to: z.iso.date().optional() }).optional(),
 });

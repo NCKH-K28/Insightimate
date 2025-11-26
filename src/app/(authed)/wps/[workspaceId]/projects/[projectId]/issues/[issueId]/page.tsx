@@ -185,7 +185,7 @@ const IssueHeader = ({
   };
 
   const handleBack = () => {
-    router.push(`/${workspaceId}/projects/${projectId}/board`);
+    router.push(`/wps/${workspaceId}/projects/${projectId}?tab=backlog`);
   };
 
   return (
@@ -440,18 +440,11 @@ const IssueContent = ({
 // ============ Main Page Component ============
 
 export default function IssuePage() {
-  const params = useParams<{
-    workspaceId: string;
-    projectId: string;
-    issueId: string;
-  }>();
-
+  const params = useParams<{ workspaceId: string; projectId: string; issueId: string }>();
+  if (!params) throw new Error('Params are undefined');
   if (!params?.workspaceId || !params?.projectId || !params?.issueId) {
-    return (
-      <div className='flex items-center justify-center h-full'>
-        <p className='text-muted-foreground'>Invalid page parameters</p>
-      </div>
-    );
+    console.error('Missing required parameters:', params);
+    throw new Error('Missing required parameters');
   }
 
   return (
@@ -462,25 +455,13 @@ export default function IssuePage() {
 }
 
 // Separate component to use suspense query
-function IssuePageContent({
-  params,
-}: {
+type IssuePageContentProps = {
   params: { workspaceId: string; projectId: string; issueId: string };
-}) {
+};
+function IssuePageContent({ params }: IssuePageContentProps) {
   const { data: project } = useSuspenseQuery(getProjectQueryOptions(params));
 
-  if (!project?.boardId) {
-    return (
-      <div className='flex flex-col items-center justify-center h-full gap-4 p-8'>
-        <div className='text-center space-y-2'>
-          <h2 className='text-xl font-semibold text-foreground'>Board not found</h2>
-          <p className='text-muted-foreground'>
-            This project doesn&apos;t have an associated board.
-          </p>
-        </div>
-      </div>
-    );
-  }
+  if (!project.boardId) throw new Error('Project does not have an associated board');
 
   return (
     <IssueContent
