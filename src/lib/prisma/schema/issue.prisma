@@ -13,6 +13,7 @@ model Issue {
     resolutionId String? @map("resolution_id")
     reporterId   String? @map("reporter_id")
     assigneeId   String? @map("assignee_id")
+    parentId     String? @map("parent_id")
 
     dueDate    DateTime? @map("due_date")
     startDate  DateTime? @map("start_date")
@@ -45,6 +46,8 @@ model Issue {
     links        IssueLink[]      @relation("IssueLinkSource")
     linkedBy     IssueLink[]      @relation("IssueLinkTarget")
     sprint       SprintIssue[]    @relation("SprintIssue")
+    parent       Issue?           @relation("IssueParent", fields: [parentId], references: [id], onDelete: Cascade)
+    subIssues    Issue[]          @relation("IssueParent")
 
     @@unique([projectId, key])
     @@map("issues")
