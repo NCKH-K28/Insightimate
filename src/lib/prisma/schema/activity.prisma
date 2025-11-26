@@ -1,0 +1,33 @@
+enum ActivityType {
+  VIEWED
+  ASSIGNED
+  CREATED
+  UPDATED
+  COMMENTED
+  STARRED
+  DELETED
+}
+
+enum SourceType {
+  ISSUE
+  PROJECT
+}
+
+model Activity {
+  id          String      @id @default(cuid())
+  userId      String
+  workspaceId String?
+
+  type        ActivityType
+
+  sourceType  SourceType
+  sourceId    String         // id của issue / project
+
+  context     Json?          
+  createdBy   String?        
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, workspaceId, createdAt])
+  @@index([workspaceId, sourceType, sourceId, createdAt])
+  @@index([userId, sourceType, sourceId])
+}

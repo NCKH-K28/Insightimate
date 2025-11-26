@@ -6,7 +6,7 @@ import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card'
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { FolderKanban, ChevronDown, ExternalLink } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import React from 'react';
 
 export type ProjectCardProps = {
@@ -18,7 +18,6 @@ export type ProjectCardProps = {
   color: string;
   openItems: number;
   doneItems: number;
-  boards: number;
 };
 
 export default function ProjectCard({
@@ -30,7 +29,6 @@ export default function ProjectCard({
   color,
   openItems,
   doneItems,
-  boards,
 }: ProjectCardProps) {
   const href = workspaceId ? `/wps/${workspaceId}/projects/${id}` : `/projects/${id}`;
   const router = useRouter();
@@ -91,17 +89,6 @@ export default function ProjectCard({
 
         <CardFooter className='flex items-center justify-between pt-0'>
           <div className='text-[11px] text-muted-foreground flex items-center gap-1'>
-            <FolderKanban className='h-3 w-3' />
-            <Link
-              href={`${href}?tab=board`}
-              onClick={(e: any) => {
-                e.stopPropagation();
-              }}
-              className='text-[11px] underline-offset-2 hover:underline'
-            >
-              {boards} board{boards !== 1 ? 's' : ''}
-            </Link>
-            <ChevronDown className='h-3 w-3' />
           </div>
           <Button variant='ghost' size='sm' className='h-6 px-2 text-xs'>
             Open <ExternalLink className='ml-1 h-3 w-3' />

@@ -46,12 +46,6 @@ export const GET = middlewareHandler<{ projectId: string }>(
       DONE: 0,
     };
 
-    for (const s of statusData) {
-      // try to fetch status category if available
-      // load status record with category if we need it; but to keep this simple we will
-      // re-query categories for statuses that map to known categories
-    }
-
     const statusesWithCategory = await prisma.issueStatus.findMany({ where: { projectId }, select: { id: true, category: true } });
     const catMap = Object.fromEntries(statusesWithCategory.map((it) => [it.id, it.category]));
     for (const s of statusData) {

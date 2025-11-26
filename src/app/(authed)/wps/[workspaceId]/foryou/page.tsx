@@ -1,13 +1,11 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchRecentProjectsQueryOptions } from '@/features/projects/api/actions';
-import { fetchAssignedItemsQueryOptions } from '@/features/foryou/api/actions';
+import { fetchViewedItemsQueryOptions, fetchAssignedItemsQueryOptions } from '@/features/foryou/api/actions';
 import WorkedTab from '@/components/for-you/worked-tab';
 import ViewedTab from '@/components/for-you/viewed-tab';
 import AssignedTab from '@/components/for-you/assigned-tab';
 import StarredTab from '@/components/for-you/starred-tab';
-import BoardsTab from '@/components/for-you/boards-tab';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -29,17 +27,17 @@ export default function MyWorkPage() {
   const workspaceId = (params as any)?.workspaceId as string | undefined;
 
   const assignedQuery = useQuery(fetchAssignedItemsQueryOptions(workspaceId));
+  const { data: viewedItems = [] } = useQuery(fetchViewedItemsQueryOptions(workspaceId));
   const assignedCount = assignedQuery.data?.length ?? 0;
-  const fetchRecent = useQuery(fetchRecentProjectsQueryOptions());
-  const recentSpaces = fetchRecent.data ?? [];
+
 
   return (
     <div className='mx-auto w-full px-6 py-6 md:py-8'>
       <div className='flex items-center justify-between'>
         <div className='text-2xl md:text-3xl font-semibold tracking-tight'>
           <h1 className='text-2xl font-bold'>For you</h1>
-          <p className='text-gray-400 text-sm'>
-            A personalized view of your recent projects, boards, and work items.
+            <p className='text-gray-400 text-sm'>
+            A personalized view of your recent projects and work items.
           </p>
         </div>
         <Button asChild variant='ghost' size='sm' className='gap-1'>
@@ -56,12 +54,12 @@ export default function MyWorkPage() {
           <h2 className='text-sm font-medium text-muted-foreground'>Recent spaces</h2>
         </div>
 
-        <RecentSpaces spaces={recentSpaces} workspaceId={workspaceId} />
+        <RecentSpaces viewedItems={viewedItems ?? []} workspaceId={workspaceId} />
       </section>
 
       <section className='mt-8'>
         <Tabs defaultValue='worked' className='w-full'>
-          <TabsList className='grid w-full grid-cols-5'>
+          <TabsList className='grid w-full grid-cols-4'>
             <TabsTrigger value='worked' className='gap-1 text-xs'>
               <Rocket className='h-4 w-4' /> Worked on
             </TabsTrigger>
@@ -77,9 +75,6 @@ export default function MyWorkPage() {
             <TabsTrigger value='starred' className='gap-1 text-xs'>
               <Star className='h-4 w-4' /> Starred
             </TabsTrigger>
-            <TabsTrigger value='boards' className='gap-1 text-xs'>
-              <FolderKanban className='h-4 w-4' /> Boards
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value='worked' className='mt-4'>
@@ -94,15 +89,20 @@ export default function MyWorkPage() {
             <AssignedTab workspaceId={workspaceId} />
           </TabsContent>
 
-          <TabsContent value='starred' className='mt-4'>
-            <StarredTab workspaceId={workspaceId} />
+          {/* <TabsContent value='viewed' className='mt-4'>
+            <ViewedTab workspaceId={workspaceId} />
           </TabsContent>
 
-          <TabsContent value='boards' className='mt-4'>
-            <BoardsTab workspaceId={workspaceId} />
+          <TabsContent value='assigned' className='mt-4'>
+            <AssignedTab workspaceId={workspaceId} />
           </TabsContent>
+
+          <TabsContent value='starred' className='mt-4'>
+            <StarredTab workspaceId={workspaceId} />
+          </TabsContent> */}
         </Tabs>
       </section>
     </div>
   );
 }
+
