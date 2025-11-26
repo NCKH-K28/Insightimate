@@ -3,7 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { fetchWorkedItemsQueryOptions } from '@/features/foryou/api/actions';
+import { fetchWorkedItemsQueryOptions, viewItem } from '@/features/foryou/api/actions';
 import ActivityRow from './activity-row';
 import EmptyState from './empty-state';
 import { resolveIcon } from './icon-map';
@@ -28,11 +28,12 @@ export default function WorkedTab({ workspaceId }: { workspaceId?: string }) {
               key={item.id}
               title={item.title}
               meta={item.meta}
-              Icon={resolveIcon(item.iconName)}
+              Icon={resolveIcon(item.icon)}
               action={item.action}
-              actor={item.actor}
-              onClick={() => {
+              actors={item.actors}
+              onClick={async () => {
                 if (!workspaceId || !item.projectId) return;
+                await viewItem(workspaceId, { type: 'ISSUE', entityId: item.id, context: { projectId: item.projectId } });
                 router.push(`/wps/${workspaceId}/projects/${item.projectId}/issues/${item.id}`);
               }}
             />

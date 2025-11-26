@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, Suspense } from 'react';
+import { useMemo, Suspense, useEffect } from 'react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import {
@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
+import { viewItem } from '@/features/foryou/api/actions';
 
 import { cn } from '@/lib/utils';
 import IssueMainPanel from '@/features/boards/ui/components/issue-detail/issue-main-panel';
@@ -343,6 +344,11 @@ const IssueContent = ({
 
   const issueCtx = useMemo(() => ({ boardId, issueId }), [boardId, issueId]);
   const { data: issue, isPending, isError, error } = useQuery(getBoardIssueQueryOptions(issueCtx));
+
+  useEffect(() => {
+    if (!issue?.id) return;
+    viewItem(workspaceId, { type: 'ISSUE', entityId: issue.id, context: { boardId } }).catch(() => {});
+  }, [issue?.id]);
 
   if (isPending) return <PageSkeleton />;
 

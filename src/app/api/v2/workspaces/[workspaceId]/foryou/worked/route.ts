@@ -29,37 +29,74 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   if (projectIds.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
 
-  const startOfDay = new Date();
-  startOfDay.setUTCHours(0, 0, 0, 0);
-
-  const issues = await prisma.issue.findMany({
-    where: {
-      projectId: { in: projectIds },
-      OR: [
-        { assigneeId: actorId },
-        { reporterId: actorId },
-        { updatedAt: { gte: startOfDay } },
-      ],
-    },
-    include: { project: true, type: true },
-    orderBy: { updatedAt: 'desc' },
-    take: 20,
+  const issueRows = await prisma.issue.findMany({
+    where: { projectId: { in: projectIds } },
+    select: { id: true, projectId: true, summary: true, key: true, type: true, project: { select: { name: true } } },
   });
 
-  const items = issues.map((i) => ({
-    id: i.id,
-    iconName: i.type?.iconURL ,
-    projectId: i.projectId,
-    title: i.summary,
-    meta: `${i.key ?? ''}${i.project ? ` · ${i.project.name}` : ''}`.trim(),
-    checked: (i as any).status?.category === 'DONE',
-    action:
-      i.updatedAt && i.createdAt && new Date(i.updatedAt).getTime() > new Date(i.createdAt).getTime()
-        ? 'Updated'
-        : 'Created',
-    actor: { name: auth.user.email ?? auth.user.id, avatar: null },
-    occurredAt: i.updatedAt?.toISOString?.(),
-  }));
+  if (issueRows.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
 
+  const issueMap = new Map(issueRows.map((r) => [r.id, r]));
+
+  const issueIds = issueRows.map((r) => r.id);
+  const userActivities = await prisma.activity.findMany({
+    where: {
+      workspaceId: workspaceId ?? null,
+      sourceType: 'ISSUE',
+      sourceId: { in: issueIds },
+      userId: actorId,
+      type: { in: ['CREATED', 'UPDATED', 'COMMENTED'] },
+    },
+    distinct: ['sourceId'],
+  });
+
+  const interactedIssueIds = Array.from(new Set(userActivities.map((a) => a.sourceId)));
+  if (interactedIssueIds.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
+
+  const activities = await prisma.activity.findMany({
+    where: {
+      workspaceId: workspaceId ?? null,
+      sourceType: 'ISSUE',
+      sourceId: { in: interactedIssueIds },
+      type: { in: ['CREATED', 'UPDATED', 'COMMENTED'] },
+    },
+    orderBy: { createdAt: 'desc' },
+    take: 1000,
+  });
+
+  if (activities.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
+
+  const userIds = Array.from(new Set(activities.map((a) => a.userId)));
+  const users = await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, email: true, avatar: true } });
+  const userMap = new Map(users.map((u) => [u.id, u]));
+
+  const itemsMap = new Map<string, any>();
+  for (const act of activities) {
+    const key = act.sourceId;
+    const issue = issueMap.get(key as string);
+    if (!issue) continue;
+
+    if (!itemsMap.has(key)) {
+      itemsMap.set(key, {
+        id: issue.id,
+        projectId: issue.projectId,
+        title: issue.summary ?? ((act.context as any)?.title ?? ''),
+        meta: issue?.key ? `${issue.key}${issue.project ? ` · ${issue.project.name}` : ''}`.trim() : (issue?.project?.name ?? ''),
+        action: act.type === 'CREATED' ? 'Created' : act.type === 'COMMENTED' ? 'Commented' : 'Updated',
+        icon: issue.type.iconURL ?? null,
+        actors: [],
+        occurredAt: act.createdAt?.toISOString?.(),
+      });
+    }
+
+    const entry = itemsMap.get(key)!;
+    const actorId = act.userId;
+    if (!entry.actors.find((x: any) => x.id === actorId)) {
+      const u = userMap.get(actorId) ?? { id: actorId, name: act.createdBy ?? actorId, avatar: null };
+      entry.actors.push({ id: u.id, name: (u as any).name ?? (u as any).email ?? u.id, avatar: (u as any).avatar ?? null });
+    }
+  }
+
+  const items = Array.from(itemsMap.values()).slice(0, 50);
   return NextResponse.json({ items }, { status: 200 });
 });

@@ -24,6 +24,7 @@ model User {
     // Relations
     teams            TeamMember[]      @relation("UserTeams")
     account          Account?          @relation("UserAccount")
+    stars            Star[]            @relation("UserStars")
     workspaces       Workspace[]       @relation("WorkspaceOwner")
     workspaceMembers WorkspaceMember[] @relation("WorkspaceMembers")
     issuesReported   Issue[]           @relation("IssueReporter")

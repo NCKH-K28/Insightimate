@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
 import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
@@ -68,23 +68,11 @@ export default function ProjectWithViewModePage() {
 
   const { data: projectForView } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
 
-  const viewMutation = useMutation<{ ok: boolean }, Error, { type: 'ISSUE' | 'PROJECT'; entityId: string; context?: any }>(
-    {
-      mutationFn: (data) => viewItem(params.workspaceId, data),
-    },
-  );
-
-  const sentProjectViewRef = useRef<Set<string>>(new Set());
-
   useEffect(() => {
-    if (!projectForView) return;
-    if (sentProjectViewRef.current.has(projectForView.id)) return;
-    sentProjectViewRef.current.add(projectForView.id);
-    try {
-      viewMutation.mutate({ type: 'PROJECT', entityId: projectForView.id, context: { boardId: projectForView.boardId } });
-    } catch (e) {
-    }
-  }, [projectForView?.id, params.workspaceId, viewMutation]);
+    if (!projectForView?.id) return;
+    viewItem(params.workspaceId, { type: 'PROJECT', entityId: projectForView.id, context: { boardId: projectForView.boardId } }).catch(() => {});
+  }, [projectForView?.id]);
+  
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
