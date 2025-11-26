@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import CommentInput from './comment-input-issue';
+import socket from '@/lib/socket-io';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,6 +59,39 @@ export default function ReplyModal({
     };
     fetchCurrentUser();
   }, []);
+
+  // Socket listener cho real-time reply updates
+  useEffect(() => {
+    if (!isOpen || !parentComment) return;
+
+    // Lắng nghe reply mới từ các client khác
+    const handleReceiveComment = (data: Comment) => {
+      console.log('📨 Reply Modal nhận comment:', data);
+      
+      // Chỉ quan tâm reply cho parent comment hiện tại
+      if (data.parentId === parentComment.id) {
+        onReplyAdded(data);
+      }
+    };
+
+    // Lắng nghe reply bị xóa từ các client khác
+    const handleReplyDeleted = (data: { replyId: string; parentId: string }) => {
+      console.log('🗑️ Reply Modal nhận reply deleted:', data);
+      
+      // Chỉ quan tâm reply của parent comment hiện tại
+      if (data.parentId === parentComment.id) {
+        onReplyDeleted?.(data.replyId);
+      }
+    };
+
+    socket.on('receive-comment', handleReceiveComment);
+    socket.on('reply-deleted', handleReplyDeleted);
+
+    return () => {
+      socket.off('receive-comment', handleReceiveComment);
+      socket.off('reply-deleted', handleReplyDeleted);
+    };
+  }, [isOpen, parentComment, onReplyAdded, onReplyDeleted]);
 
   if (!isOpen || !parentComment) return null;
 
@@ -122,6 +156,13 @@ export default function ReplyModal({
       });
 
       if (response.ok) {
+        // Broadcast real-time reply deletion tới các client khác
+        socket.emit('reply-deleted-broadcast', {
+          replyId: replyId,
+          parentId: parentComment?.id,
+          issueId: issueId
+        });
+        
         onReplyDeleted?.(replyId);
       }
     } catch (error) {

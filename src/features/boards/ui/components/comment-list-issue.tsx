@@ -53,6 +53,7 @@ export default function CommentList({ issueId }: CommentListProps) {
         if (res.ok) {
           const data = await res.json();
           setCurrentUserId(data.id);
+          console.log('👤 Current User ID:', data.id);
         }
       } catch (error) {
         console.error('Error fetching user:', error);
@@ -114,7 +115,7 @@ export default function CommentList({ issueId }: CommentListProps) {
   }, [comments, issueId]);
 
   // -------------------------------------
-  // 2. SOCKET IO — NHẬN COMMENT MỚI
+  // 2. SOCKET IO — NHẬN COMMENT MỚI VÀ REPLY REALTIME
   // -------------------------------------
   useEffect(() => {
     if (!socket.connected) socket.connect();
@@ -122,9 +123,23 @@ export default function CommentList({ issueId }: CommentListProps) {
     const handleReceiveComment = (data: Comment) => {
       console.log('📨 Nhận comment mới từ socket:', data);
 
-      // Nếu là reply → không thêm vào comments gốc
+      // Nếu là reply → cập nhật reply count
       if (data.parentId) {
-        console.log('↩️ Đây là reply → bỏ qua ở CommentList');
+        console.log('↩️ Đây là reply → cập nhật reply count cho parent:', data.parentId);
+        
+        // Tăng reply count cho parent comment
+        setReplyCounts(prev => ({
+          ...prev,
+          [data.parentId!]: (prev[data.parentId!] || 0) + 1
+        }));
+        
+        // Nếu đang mở modal reply cho parent này → cập nhật replies list
+        setReplies(prev => {
+          // Kiểm tra xem reply đã tồn tại chưa để tránh duplicate
+          if (prev.some(r => r.id === data.id)) return prev;
+          return [...prev, data];
+        });
+        
         return;
       }
 
@@ -135,10 +150,26 @@ export default function CommentList({ issueId }: CommentListProps) {
       });
     };
 
+    // Lắng nghe reply bị xóa để giảm count
+    const handleReplyDeleted = (data: { replyId: string; parentId: string }) => {
+      console.log('🗑️ Reply bị xóa:', data);
+      
+      // Giảm reply count cho parent comment
+      setReplyCounts(prev => ({
+        ...prev,
+        [data.parentId]: Math.max((prev[data.parentId] || 0) - 1, 0)
+      }));
+      
+      // Xóa khỏi replies list nếu đang mở modal
+      setReplies(prev => prev.filter(r => r.id !== data.replyId));
+    };
+
     socket.on('receive-comment', handleReceiveComment);
+    socket.on('reply-deleted', handleReplyDeleted);
 
     return () => {
       socket.off('receive-comment', handleReceiveComment);
+      socket.off('reply-deleted', handleReplyDeleted);
     };
   }, []);
 
@@ -419,9 +450,7 @@ export default function CommentList({ issueId }: CommentListProps) {
                 </button>
               </div>
 
-              <div className='flex items-center gap-2'>
-                
-                
+              <div className='flex items-center gap-2'>     
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className='p-1 hover:bg-gray-100 rounded-full transition'>

@@ -1,12 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import 'react-quill-new/dist/quill.snow.css';
 import { Button } from '@/components/ui/button';
-import socket from '@/lib/socket-io';
+import { io } from 'socket.io-client';
+import { Socket } from 'socket.io';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });
+
+import socket from '@/lib/socket-io';
+const socketClient = socket;
 
 interface CommentInputProps {
   issueId: string;
@@ -18,6 +22,45 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+
+  // Debug socket connection
+  useEffect(() => {
+    socketClient.on('connect', () => {
+      console.log('✅ Socket connected:', socketClient.id);
+    });
+
+    socketClient.on('disconnect', () => {
+      console.log('❌ Socket disconnected');
+    });
+
+    socketClient.on('connect_error', (error) => {
+      console.error('🔥 Socket connection error:', error);
+    });
+
+    return () => {
+      socketClient.off('connect');
+      socketClient.off('disconnect'); 
+      socketClient.off('connect_error');
+    };
+  }, []);
+
+  // const socketRef = useRef<Socket<any> | null>(null);
+
+  // useEffect(() => {
+  //   const socket = io({ path: '/api/socket' });
+
+  //   socketRef.current = socket;
+
+  //   socket.on('connect', () => {
+  //     console.log('connected:', socket.id);
+  //   });
+
+  //   socket.on('server:message', (msg: string) => {
+  //     console.log('Message from server:', msg);
+  //   });
+
+  //   return () => socket.disconnect();
+  // }, []);
 
   // Lấy user
   useEffect(() => {
@@ -40,48 +83,32 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
 
     setLoading(true);
     try {
-      const bodyToSend: any = {
+      const bodyToSend = {
         content,
         userId: currentUser.id,
         userName: currentUser.name,
+        issueId,
+        parentId: parentId || null,
+        tempId: Date.now().toString(),
       };
 
-      if (parentId) bodyToSend.parentId = parentId;
+      console.log('📤 Sending via Socket:', bodyToSend);
 
-      // ⭐ NEW APPROACH: Chỉ gửi qua Socket, socket sẽ xử lý DB
-      console.log('📤 Sending via Socket only:', { 
-        isReply: !!parentId,
-        body: bodyToSend 
-      });
+      // Gửi qua Socket với emit (không phải send!)
+      socketClient.emit('create-comment', bodyToSend);
 
-      // Gửi qua Socket với thông tin đầy đủ
-      socket.emit('create-comment', {
-        ...bodyToSend,
-        issueId,
-        tempId: Date.now().toString(), // Temporary ID cho optimistic UI
-      });
-
-      // Optimistic UI Update
-      const tempComment = {
-        ...bodyToSend,
-        id: `temp-${Date.now()}`,
-        issueId,
-        createdAt: new Date().toISOString(),
-      };
-
-      console.log('✨ Optimistic UI update:', tempComment);
-      onSuccess?.(tempComment);
+      // Chỉ clear form, chờ socket response
       setContent('');
 
-      // Lắng nghe response từ socket
-      socket.once('comment-created', (data) => {
+      // Lắng nghe response từ socket - CHỈ GỌI 1 LẦN
+      socketClient.once('comment-created', (data: any) => {
         console.log('📨 Comment được tạo qua socket:', data);
         // Update UI với real comment từ DB
         if (data.success) {
           onSuccess?.(data.comment);
         } else {
           console.error('❌ Socket Error:', data.error);
-          // Rollback optimistic update nếu cần
+          // TODO: Hiện thông báo lỗi cho user
         }
       });
     } catch (error) {
@@ -104,24 +131,24 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
   return (
     <form
       onSubmit={handleSubmit}
-      className="mt-6 bg-white p-4 border border-gray-200 rounded-2xl shadow-sm"
+      className='mt-6 bg-white p-4 border border-gray-200 rounded-2xl shadow-sm'
     >
       <ReactQuill
-        theme="snow"
+        theme='snow'
         value={content}
         onChange={setContent}
         modules={modules}
-        placeholder={parentId ? "Write a reply..." : "Write a comment..."}
-        className="mb-4"
+        placeholder={parentId ? 'Write a reply...' : 'Write a comment...'}
+        className='mb-4'
       />
 
-      <div className="flex justify-end">
+      <div className='flex justify-end'>
         <Button
-          type="submit"
+          type='submit'
           disabled={loading || !currentUser}
-          className="text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+          className='text-white px-4 py-2 rounded-xl hover:bg-blue-700 transition disabled:opacity-50'
         >
-          {loading ? "Sending..." : parentId ? "Send Reply" : "Send Comment"}
+          {loading ? 'Sending...' : parentId ? 'Send Reply' : 'Send Comment'}
         </Button>
       </div>
     </form>

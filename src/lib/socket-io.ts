@@ -8,7 +8,8 @@ const getSocketClient = (): Socket => {
   const globalAny: any = globalThis as any;
   const client = get(globalAny, SET_SOCKET_IO_CLIENT);
   if (client) return client;
-  const newClient = io('http://localhost:4000', {
+  const newClient = io({
+    path: '/api/socket',
     reconnection: true,
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,

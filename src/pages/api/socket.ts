@@ -1,47 +1,23 @@
 import { Server as IOServer } from 'socket.io';
+import { prisma } from '@/lib/prisma';
+import { createId } from '@paralleldrive/cuid2';
+import { z } from 'zod';
 
-/** =========== [Ví dụ chạy được ở client] ===========
-export default function DemoSocket() {
-  const socketRef = useRef<Socket | null>(null);
-  const [messages, setMessages] = useState<string[]>([]);
-
-  useEffect(() => {
-    const socket = io({ path: "/api/socket" });
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("connected:", socket.id);
-    });
-
-    socket.on("server:message", (msg: string) => {
-      setMessages((prev) => [...prev, msg]);
-    });
-
-    return () => socket.disconnect();
-  }, []);
-
-  const send = () => {
-    socketRef.current?.emit("client:message", "Hello from client!");
-  };
-
-  return (
-    <div className="p-4 space-y-2">
-      <button onClick={send} className="border px-2 py-1">
-        Send
-      </button>
-      <ul className="space-y-1">
-        {messages.map((m, i) => (
-          <li key={i}>{m}</li>
-        ))}
-      </ul>
-    </div>
-  );
-}
- */
+const CommentEventSchema = z.object({
+  content: z.string().min(1),
+  userId: z.string().min(1),
+  userName: z.string().min(1),
+  issueId: z.string().min(1),
+  parentId: z.string().nullable().optional(),
+  tempId: z.string().optional(),
+});
 
 export const config = { api: { bodyParser: false } };
+
 export default function handler(_req: any, res: any) {
   if (!res.socket.server.io) {
+    console.log('🚀 Starting new Socket.io server...');
+
     const io = new IOServer(res.socket.server, {
       path: '/api/socket',
       cors: { origin: '*' },
@@ -61,52 +37,59 @@ export default function handler(_req: any, res: any) {
         socket.emit('server:message', 'server đã nhận: ' + msg);
       });
 
-      // ⭐ NEW: Xử lý tạo comment qua socket
       socket.on('create-comment', async (commentData) => {
         console.log('📝 Creating comment via socket:', commentData);
-        
-        try {
-          // Import prisma và createId
-          const { prisma } = await import('@/lib/prisma');
-          const { createId } = await import('@paralleldrive/cuid2');
 
-          // Tạo comment trong database
-          const comment = await prisma.comment.create({
+        try {
+          // Validate dữ liệu
+          const validData = CommentEventSchema.parse(commentData);
+
+          // Tạo comment trong DB
+          const newComment = await prisma.comment.create({
             data: {
               id: createId(),
-              content: commentData.content,
-              userId: commentData.userId,
-              userName: commentData.userName,
-              issueId: commentData.issueId,
-              parentId: commentData.parentId || null,
+              content: validData.content,
+              userId: validData.userId,
+              userName: validData.userName,
+              issueId: validData.issueId,
+              parentId: validData.parentId || null,
             },
           });
 
-          console.log('✅ Comment created successfully:', comment.id);
+          console.log('✅ Comment created:', newComment.id);
 
-          // Gửi response về client đã gửi
+          // Gửi lại cho chính client đã gửi (kèm tempId để replace)
           socket.emit('comment-created', {
             success: true,
-            comment: comment,
+            tempId: validData.tempId,
+            comment: newComment,
           });
 
-          // Broadcast đến tất cả users khác trong issue này
-          socket.broadcast.emit('receive-comment', comment);
-
+          // Gửi cho các client khác
+          socket.broadcast.emit('receive-comment', newComment);
         } catch (error) {
           console.error('❌ Error creating comment via socket:', error);
-          
-          // Gửi error về client
           socket.emit('comment-created', {
             success: false,
-            error: error.message,
+            error: error instanceof Error ? error.message : 'Unknown error',
           });
         }
+      });
+
+      // Handle reply deletion broadcast
+      socket.on('reply-deleted-broadcast', (data) => {
+        console.log('🗑️ Broadcasting reply deletion:', data);
+        
+        // Broadcast tới tất cả client khác (không gửi lại cho client gửi)
+        socket.broadcast.emit('reply-deleted', {
+          replyId: data.replyId,
+          parentId: data.parentId,
+          issueId: data.issueId
+        });
       });
     });
   } else {
     console.log('♻️ Socket.io server already running');
   }
-
   res.end();
 }
