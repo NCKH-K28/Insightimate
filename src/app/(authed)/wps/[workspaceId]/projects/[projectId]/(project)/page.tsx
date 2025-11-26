@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
-import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab } from './_tabs';
+import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
 type WrapperProps = { Component: React.ComponentType<{ params: WrapperParams }> };
@@ -35,7 +35,7 @@ const Wrapper = React.memo(
 const tabs = {
   summary: {
     labelEl: 'Summary',
-    contentEl: <div>Summary Page</div>,
+    contentEl: <Wrapper Component={SummaryTab} />,
   },
   backlog: {
     labelEl: 'Backlog',

@@ -179,3 +179,11 @@ export const listProjectStatusesQueryOptions = (params: { projectId: string }) =
     staleTime: 1000 * 60 * 5,
   });
 };
+
+export const fetchProjectSummaryQueryOptions = (params: { projectId: string }) => {
+  return queryOptions({
+    queryKey: ['projects', params.projectId, 'summary'],
+    queryFn: async () => projectApi.summary.get(params),
+    staleTime: 1000 * 60 * 1,
+  });
+};

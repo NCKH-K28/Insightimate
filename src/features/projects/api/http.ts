@@ -78,6 +78,10 @@ const PrjEndpoints = {
     priorities: `${PrjItem}/fields/priorities`,
     types: `${PrjItem}/fields/types`,
   },
+
+  summary: {
+    get: `${PrjItem}/summary`,
+  },
 } as const;
 
 export const projectApi = {
@@ -157,4 +161,6 @@ export const projectApi = {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.types, ctx),
     },
   },
+
+  summary: { get: (ctx: PrjCtx) => baseApi.get<any>(PrjEndpoints.summary.get, ctx) },
 };
