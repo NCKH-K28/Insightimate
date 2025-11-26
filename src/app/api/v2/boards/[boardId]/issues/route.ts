@@ -14,6 +14,7 @@ export const GET = middlewareHandler<{ boardId: string }>(
 
     const { query } = req;
     const { boardId } = params;
+
     const validQuery = ZBoardIssueQueryParams.parse(query);
     const result = await boardsService.listIssues(
       { id: boardId, type: validQuery.filter?.type },
@@ -27,13 +28,13 @@ export const GET = middlewareHandler<{ boardId: string }>(
 export const POST = middlewareHandler<{ boardId: string }>(
   [authenticated],
   async (req, { params }) => {
-    // const auth = await getAuthFromRequest(req);
-    // const context = { actorId: auth.user.id };
+    const auth = await getAuthFromRequest(req);
+    const context = { actorId: auth.user.id };
 
     const { boardId } = params;
     const body = await req.json();
     const input = await ZBoardIssueCreateInput.parse(body);
-    const result = await boardsService.addIssue(boardId, input);
+    const result = await boardsService.addIssue(boardId, input, context);
     return NextResponse.json(result, { status: 201 });
   },
 );

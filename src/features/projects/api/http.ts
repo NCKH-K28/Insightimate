@@ -24,6 +24,7 @@ export type PrjIssueCtx = PathParams<typeof PrjIssueItem>;
 
 const PrjEndpoints = {
   list: BasePrj,
+  recent: `${BasePrj}/recent`,
   create: BasePrj,
   get: PrjItem,
   delete: PrjItem,
@@ -78,7 +79,6 @@ const PrjEndpoints = {
     priorities: `${PrjItem}/fields/priorities`,
     types: `${PrjItem}/fields/types`,
   },
-
   summary: {
     get: `${PrjItem}/summary`,
   },
@@ -91,6 +91,7 @@ export const projectApi = {
   },
   list: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectListRes>(PrjEndpoints.list, undefined, { params }),
+  recent: () => baseApi.get<{ data: any[] }>(PrjEndpoints.recent),
   create: (data: ProjectCreateInput) => baseApi.post<ProjectItem>(PrjEndpoints.create, data),
   getFacets: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectFacets>(PrjEndpoints.getFacets, undefined, { params }),

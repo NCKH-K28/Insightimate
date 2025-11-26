@@ -60,7 +60,7 @@ function WpsLayout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className='flex-1 p-4 pt-0 overflow-hidden'>{children}</main>
+        <main className='flex-1 p-4 pt-0 overflow-auto'>{children}</main>
       </SidebarInset>
       <AppRightbar />
     </SidebarProvider>

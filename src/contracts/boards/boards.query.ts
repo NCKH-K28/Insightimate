@@ -32,6 +32,7 @@ const ZField = z.object({
   description: z.string().nullish(),
   iconURL: z.string().nullish(),
   color: z.string().nullish(),
+  category: z.string().optional(),
 });
 
 export const ZBoardIssueItem = ZBoardIssue.extend({

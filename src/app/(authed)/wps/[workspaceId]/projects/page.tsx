@@ -31,7 +31,7 @@ const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<Pro
   const { query } = useProjectsQueryParams();
 
   const { table } = props;
-  const { workspaceId } = params;
+  const workspaceId = params?.workspaceId ?? '';
   const router = useRouter();
 
   const { data: facets } = useSuspenseQuery(fetchProjectFacetsQueryOptions(query));
@@ -122,6 +122,10 @@ const ProjectsHeader = () => {
 export default function ProjectsPage() {
   const params = useParams<{ workspaceId: string }>();
   if (!params) throw new Error('ProjectsPage must be used within a route with workspaceId param');
+
+  if (!params) {
+    return null;
+  }
 
   return (
     <section className={cn('w-full h-full', 'relative')}>

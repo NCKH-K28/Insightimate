@@ -78,19 +78,12 @@ interface SubIssue {
   status: {
     id: string;
     name: string;
-    category?: 'todo' | 'in_progress' | 'done';
-  };
-  priority?: {
-    id: string;
-    name: string;
     color?: string;
+    iconURL?: string;
+    category?: 'TODO' | 'IN_PROGRESS' | 'DONE';
   };
-  assignee?: {
-    id: string;
-    name: string;
-    email: string;
-    avatar?: string;
-  };
+  priority?: { id: string; name: string; color?: string; iconURL?: string };
+  assignee?: { id: string; name: string; email: string; avatar?: string };
   storyPoints?: number | null;
   dueDate?: Date | string | null;
   createdAt: Date | string;
@@ -322,7 +315,7 @@ const SubIssueItem = ({
     transition,
   };
 
-  const overdue = isOverdue(issue.dueDate) && issue.status.category !== 'done';
+  const overdue = isOverdue(issue.dueDate) && issue.status.category !== 'DONE';
 
   return (
     <div
@@ -351,9 +344,9 @@ const SubIssueItem = ({
           <TooltipTrigger asChild>
             <button
               onClick={() => {
-                const doneStatus = statuses?.find((s) => s.category === 'done');
-                const todoStatus = statuses?.find((s) => s.category === 'todo');
-                if (issue.status.category === 'done' && todoStatus) {
+                const doneStatus = statuses?.find((s) => s.category === 'DONE');
+                const todoStatus = statuses?.find((s) => s.category === 'TODO');
+                if (issue.status.category === 'DONE' && todoStatus) {
                   onStatusChange(issue.id, todoStatus.id);
                 } else if (doneStatus) {
                   onStatusChange(issue.id, doneStatus.id);
@@ -365,13 +358,16 @@ const SubIssueItem = ({
             </button>
           </TooltipTrigger>
           <TooltipContent side='top'>
-            <p>{issue.status.category === 'done' ? 'Mark as incomplete' : 'Mark as complete'}</p>
+            <p>{issue.status.category === 'DONE' ? 'Mark as incomplete' : 'Mark as complete'}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
 
       {/* Issue Key */}
-      <Link href={`/${workspaceId}/projects/${projectId}/issues/${issue.id}`} className='shrink-0'>
+      <Link
+        href={`/wps/${workspaceId}/projects/${projectId}/issues/${issue.id}`}
+        className='shrink-0'
+      >
         <Badge
           variant='outline'
           className='font-mono text-xs hover:bg-accent transition-colors cursor-pointer'
@@ -382,10 +378,10 @@ const SubIssueItem = ({
 
       {/* Summary */}
       <Link
-        href={`/${workspaceId}/projects/${projectId}/issues/${issue.id}`}
+        href={`/wps/${workspaceId}/projects/${projectId}/issues/${issue.id}`}
         className={cn(
           'flex-1 text-sm truncate hover:text-primary transition-colors',
-          issue.status.category === 'done' && 'line-through text-muted-foreground',
+          issue.status.category === 'DONE' && 'line-through text-muted-foreground',
         )}
       >
         {issue.summary}
@@ -450,24 +446,13 @@ const SubIssueItem = ({
             <span className='sr-only'>More options</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align='end' className='w-48'>
-          <DropdownMenuItem asChild>
-            <Link href={`/${workspaceId}/projects/${projectId}/issues/${issue.id}`}>
-              <ExternalLink className='h-4 w-4 mr-2' />
-              Open issue
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            <Link2 className='h-4 w-4 mr-2' />
-            Copy link
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
+        <DropdownMenuContent align='end'>
           <DropdownMenuItem
             className='text-destructive focus:text-destructive'
             onClick={() => onDelete(issue.id)}
           >
             <Trash2 className='h-4 w-4 mr-2' />
-            Remove sub-issue
+            Remove
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -587,13 +572,12 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
     isLoading,
     isError,
     error,
-  } = useQuery({
-    ...listBoardIssuesQueryOptions(params.boardId, { filter: { parentId: params.issueId } }),
-    initialData: { data: [], meta: { total: 0 } },
-  });
+  } = useQuery(
+    listBoardIssuesQueryOptions(params.boardId, { filter: { parentId: params.issueId } }),
+  );
 
   // Mutations
-  const createMutation = useMutation(createBoardIssueMutationOptions(params.boardId));
+  const createMutation = useMutation(createBoardIssueMutationOptions(params));
   const updateMutation = useMutation(updateBoardIssueMutationOptions(params));
   const deleteMutation = useMutation(deleteBoardIssueMutationOptions(params));
 
@@ -622,6 +606,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (!subIssues) return;
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
@@ -630,15 +615,16 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
 
         const newOrder = arrayMove(subIssues, oldIndex, newIndex);
 
+        // FIXME: Update order in local state for instant UI feedback
         // Update order in backend
-        newOrder.forEach((issue, index) => {
-          if (issue.order !== index) {
-            updateMutation.mutate({
-              issueId: issue.id,
-              data: { order: index } as any,
-            });
-          }
-        });
+        // newOrder.forEach((issue, index) => {
+        //   if (issue.order !== index) {
+        //     updateMutation.mutate({
+        //       issueId: issue.id,
+        //       data: { order: index } as any,
+        //     });
+        //   }
+        // });
       }
     },
     [subIssues, updateMutation],
@@ -646,6 +632,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
 
   // Filtered & Sorted Issues
   const filteredIssues = useMemo(() => {
+    if (!subIssues) return [];
     let result = [...subIssues];
 
     // Apply filter
@@ -683,8 +670,8 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
   }, [subIssues, filter, searchQuery, sort]);
 
   // Stats
-  const completedCount = subIssues.filter((i) => i.status.category === 'done').length;
-  const totalCount = subIssues.length;
+  const completedCount = subIssues?.filter((i) => i.status.category === 'done').length ?? 0;
+  const totalCount = subIssues?.length ?? 0;
 
   // Loading State
   if (isLoading) {
@@ -751,7 +738,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
           {/* Quick Add */}
           {isAdding ? (
             <QuickAddInput
-              onSubmit={(summary) => createMutation.mutate(summary)}
+              onSubmit={(summary) => createMutation.mutate({ summary, parentId: params.issueId })}
               onCancel={() => setIsAdding(false)}
               isLoading={createMutation.isPending}
             />
@@ -797,7 +784,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
             searchQuery && (
               <div className='text-center py-6 text-muted-foreground'>
                 <Search className='h-8 w-8 mx-auto mb-2 opacity-50' />
-                <p className='text-sm'>No sub-issues match "{searchQuery}"</p>
+                <p className='text-sm'>No sub-issues match &quot;{searchQuery}&quot;</p>
               </div>
             )
           )}

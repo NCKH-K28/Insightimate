@@ -6,10 +6,9 @@ model Star {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user  User  @relation("UserStars", fields: [userId], references: [id], onDelete: Cascade)
-  issue Issue @relation("IssueStars", fields: [issueId], references: [id], onDelete: Cascade)
+  // user  User  @relation("UserStars", fields: [userId], references: [id], onDelete: Cascade)
+  // issue Issue @relation("IssueStars", fields: [issueId], references: [id], onDelete: Cascade)
 
   @@unique([userId, issueId]) // Một user chỉ star một issue 1 lần
   @@map("stars")
 }
-

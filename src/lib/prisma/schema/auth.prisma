@@ -2,68 +2,67 @@
 // DOMAIN: Authentication and Authorization
 
 model Account {
-  email      String @id
-  credential String
+    email      String @id
+    credential String
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  user User @relation("UserAccount", fields: [email], references: [email])
+    // Relations
+    user User @relation("UserAccount", fields: [email], references: [email])
 }
 
 model User {
-  id     String  @id
-  email  String  @unique
-  name   String // full name
-  avatar String?
+    id     String  @id
+    email  String  @unique
+    name   String // full name
+    avatar String?
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations
-  teams            TeamMember[]      @relation("UserTeams")
-  account          Account?          @relation("UserAccount")
-  workspaces       Workspace[]       @relation("WorkspaceOwner")
-  workspaceMembers WorkspaceMember[] @relation("WorkspaceMembers")
-  issuesReported   Issue[]           @relation("IssueReporter")
-  issuesAssigned   Issue[]           @relation("IssueAssignee")
-  issuesArchived   Issue[]           @relation("IssueArchivedBy")
-  projectsLead     Project[]         @relation("ProjectLead")
-  teamsLed         Team[]            @relation("UserLedTeams")
-  invitesSent      Invitation[]      @relation("UserInvites")
-  aiAgents         AIAgent[]         @relation("UserAIAgents")
-  stars            Star[]            @relation("UserStars")
+    // Relations
+    teams            TeamMember[]      @relation("UserTeams")
+    account          Account?          @relation("UserAccount")
+    workspaces       Workspace[]       @relation("WorkspaceOwner")
+    workspaceMembers WorkspaceMember[] @relation("WorkspaceMembers")
+    issuesReported   Issue[]           @relation("IssueReporter")
+    issuesAssigned   Issue[]           @relation("IssueAssignee")
+    issuesArchived   Issue[]           @relation("IssueArchivedBy")
+    projectsLead     Project[]         @relation("ProjectLead")
+    teamsLed         Team[]            @relation("UserLedTeams")
+    invitesSent      Invitation[]      @relation("UserInvites")
+    aiAgents         AIAgent[]         @relation("UserAIAgents")
 
-  @@map("users")
+    @@map("users")
 }
 
 // Invite Service
 
 enum InviteResource {
-  WORKSPACE
-  PROJECT
-  TEAM
+    WORKSPACE
+    PROJECT
+    TEAM
 }
 
 model Invitation {
-  id         String    @id
-  email      String
-  token      String    @unique
-  createdAt  DateTime  @default(now())
-  expiresAt  DateTime
-  revokedAt  DateTime?
-  acceptedAt DateTime?
-  invitedBy  String
-  payload    Json?
+    id         String    @id
+    email      String
+    token      String    @unique
+    createdAt  DateTime  @default(now())
+    expiresAt  DateTime
+    revokedAt  DateTime?
+    acceptedAt DateTime?
+    invitedBy  String
+    payload    Json?
 
-  resourceType InviteResource
-  resourceId   String
+    resourceType InviteResource
+    resourceId   String
 
-  // Relations
-  inviter User @relation("UserInvites", fields: [invitedBy], references: [id])
+    // Relations
+    inviter User @relation("UserInvites", fields: [invitedBy], references: [id])
 
-  @@unique([email, resourceType, resourceId], name: "unique_active_invite")
-  @@index([email, resourceType, resourceId])
-  @@map("invites")
+    @@unique([email, resourceType, resourceId], name: "unique_active_invite")
+    @@index([email, resourceType, resourceId])
+    @@map("invites")
 }

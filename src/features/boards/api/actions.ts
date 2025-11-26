@@ -37,10 +37,16 @@ export const getBoardIssueFacetsQueryOptions = (boardId: string) => {
   });
 };
 
-export const createBoardIssueMutationOptions = (boardId: string) => {
+export const createBoardIssueMutationOptions = (ctx: string | { boardId: string }) => {
+  const boardId = typeof ctx === 'string' ? ctx : ctx.boardId;
   return mutationOptions({
     mutationKey: ['boards', boardId, 'issues', 'create'],
-    mutationFn: createApiMutationFc({ boardId }, boardApi.issues.create),
+    // mutationFn: createApiMutationFc({ boardId }, boardApi.issues.create),
+    mutationFn: (data: BoardIssueUpdateInput & { boardId?: string }) => {
+      const bId = data.boardId || boardId;
+      if (!bId) throw new Error('Board ID is required to create an issue');
+      return boardApi.issues.create({ boardId: bId }, data);
+    },
     meta: { invalidateQueries: [['boards', boardId, 'issues']] },
   });
 };

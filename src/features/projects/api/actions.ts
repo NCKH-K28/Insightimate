@@ -38,6 +38,13 @@ export const fetchProjectFacetsQueryOptions = (params?: ProjectQueryParams) => {
   });
 };
 
+export const fetchRecentProjectsQueryOptions = () =>
+  queryOptions({
+    queryKey: ['projects', 'recent'],
+    queryFn: async () => projectApi.recent(),
+    select: (res) => res.data,
+  });
+
 export const fetchProjectQueryOptions = (params: { projectId: string }) => {
   return queryOptions({
     queryKey: ['projects', params.projectId],

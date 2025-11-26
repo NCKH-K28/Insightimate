@@ -1,6 +1,5 @@
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
-import { compose } from '@/lib/http/api-compose';
 import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ issueId: string }> }) {
@@ -24,12 +23,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
     const { content, userId, userName, parentId } = await req.json();
     const { issueId } = await params;
 
-    console.log('📝 Creating comment:', { 
-      issueId, 
-      userId, 
-      userName, 
+    console.log('📝 Creating comment:', {
+      issueId,
+      userId,
+      userName,
       parentId: parentId || null,
-      content: content?.substring(0, 50) + '...'
+      content: content?.substring(0, 50) + '...',
     });
 
     const comment = await prisma.comment.create({
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
         userId,
         userName,
         issueId,
-        parentId: parentId || null,   // Gán parentId (nếu không có thì để null)
+        parentId: parentId || null, // Gán parentId (nếu không có thì để null)
       },
     });
 
@@ -50,4 +49,3 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ iss
     return new Response('Error creating comment', { status: 500 });
   }
 }
-

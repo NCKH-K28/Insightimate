@@ -59,7 +59,7 @@ const getIssue = async (
   return ZBoardIssueList.parse({ data: [{ ...boardIssue.issue, ...boardIssue }] }).data[0];
 };
 
-const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
+const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: { actorId: string }) => {
   const board = await prisma.board.findUnique({ where: { id: boardId } });
   if (!board) throw new Error('Board not found');
   // const issue = await prisma.boardIssue.create({
@@ -68,10 +68,10 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
 
   return prisma.$transaction(async (tx) => {
     const projectId = board.projectId;
-    const { key: pKey, issueCounter } = await tx.project.update({
+    const { key: pKey, issueCounter, workspaceId } = await tx.project.update({
       where: { id: board.projectId },
       data: { issueCounter: { increment: 1 } },
-      select: { key: true, issueCounter: true },
+      select: { key: true, issueCounter: true, workspaceId: true },
     });
 
     const orderBy = { sequence: 'asc' } as const;
@@ -89,6 +89,7 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
         id: genIssueId(),
         key: `${pKey}-${issueCounter}`,
         projectId,
+        parentId: restInput.parentId, // FIXME: kiểm tra quyền
         typeId: type.id,
         priorityId: priority.id,
         resolutionId: resolution?.id,
@@ -102,6 +103,23 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput) => {
     const boardIssue = await tx.boardIssue.create({
       data: { boardId: board.id, issueId: issue.id, rank: 0, sprintId: sprintId || null },
     });
+
+    // create activity record for created issue
+    try {
+      await tx.activity.create({
+        data: {
+          userId: context.actorId,
+          workspaceId: workspaceId || null,
+          type: 'CREATED',
+          sourceType: 'ISSUE',
+          sourceId: issue.id,
+          context: { title: issue.summary, issueKey: issue.key, projectId },
+          createdBy: context.actorId,
+        },
+      });
+    } catch (err) {
+        console.log(err);
+    }
 
     return Object.assign({}, boardIssue, issue);
   });
@@ -167,8 +185,7 @@ const listIssues = async (
   }
 
   if (query.filter?.parentId) {
-    // FIXME: lodash merge issue
-    // merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
+    merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
   }
 
   const includeOptions = buildIncludeOptions({ boardId: b.id }, query, context);
@@ -222,6 +239,25 @@ const updateIssue = async (
     },
   });
   if (!issue) throw new Error('Issue not found');
+
+  // create activity for update
+  try {
+    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { workspaceId: true } });
+    await prisma.activity.create({
+      data: {
+        userId: context.actorId,
+        workspaceId: project?.workspaceId ?? null,
+        type: 'UPDATED',
+        sourceType: 'ISSUE',
+        sourceId: issue.id,
+        context: { title: issue.summary, issueKey: issue.key, projectId },
+        createdBy: context.actorId,
+      },
+    });
+  } catch (err) {
+    console.log(err);
+    
+  }
 
   return { ...boardIssue, ...issue };
 };
