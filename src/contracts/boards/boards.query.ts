@@ -2,7 +2,10 @@ import z from 'zod';
 import { ZBoard, ZBoardIssue, ZColumn, ZSprint } from './board';
 
 // ========== Board Issues ==========
-const ZBoardIssueFilter = z.object({ type: z.enum(['KANBAN', 'SCRUM']).optional() });
+const ZBoardIssueFilter = z.object({
+  type: z.enum(['KANBAN', 'SCRUM']).optional(),
+  parentId: z.string().optional(),
+});
 
 const ZBoardIssueIncludeFields = z.enum([
   'status',

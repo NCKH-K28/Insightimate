@@ -1,30 +1,24 @@
-"use client"
+'use client';
 
-import React from "react"
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-} from "@/components/ui/card"
+import React from 'react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 
 type StatCardProps = {
-  title: string
-  value: React.ReactNode
-  delta?: string
-}
+  title: string;
+  value: React.ReactNode;
+  delta?: string;
+};
 
 export default function StatCard({ title, value, delta }: StatCardProps) {
   return (
-    <Card className="h-full">
+    <Card className='h-full'>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
         {delta && <CardDescription>{delta}</CardDescription>}
       </CardHeader>
       <CardContent>
-        <div className="text-3xl font-semibold">{value}</div>
+        <div className='text-3xl font-semibold'>{value}</div>
       </CardContent>
     </Card>
-  )
+  );
 }

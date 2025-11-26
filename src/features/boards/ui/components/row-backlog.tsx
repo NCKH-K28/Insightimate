@@ -27,7 +27,7 @@ export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) =
   const items = []; // Replace with actual items logic
 
   return (
-    <div className='w-full flex items-center justify-between gap-2'>
+    <div className='w-full flex items-center justify-between'>
       <Button
         size='icon'
         type='button'
@@ -39,7 +39,7 @@ export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) =
         <ChevronRight className={cn('w-4 h-4 transition-transform', !collapsed && 'rotate-90')} />
       </Button>
       <div className='w-full text-sm font-semibold'>
-        <span>Backlog </span>
+        <span>Backlog</span>
         <span className='text-xs text-gray-500'>({items.length} issues)</span>
       </div>
       <div className='flex items-center gap-2'>
@@ -47,7 +47,7 @@ export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) =
           Create Sprint
         </Button>
         <CreateIssueButton params={params} />
-        <Button variant='ghost' size='sm'>
+        <Button variant='ghost' size='sm' disabled>
           <MoreHorizontal />
         </Button>
       </div>

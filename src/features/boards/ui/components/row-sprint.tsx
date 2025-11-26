@@ -87,7 +87,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
       </Button>
       <div className='w-full flex items-center gap-2 text-sm'>
         <span className='text-foreground font-semibold'>{sprint.name}</span>
-        <span className='text-muted-foreground'>({items.length} issues)</span>
+        <span className='text-muted-foreground text-xs'>({items.length} issues)</span>
         <div>
           {sprint.startAt && sprint.endAt ? (
             <span className='text-xs text-gray-500'>

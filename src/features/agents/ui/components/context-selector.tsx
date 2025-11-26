@@ -20,7 +20,7 @@ const typeFormat = (type: string) => {
   return type;
 };
 
-type Options = { label: string; value: string; iconURL?: string; type?: string };
+export type Options = { label: string; value: string; iconURL?: string; type?: string };
 
 type SelectorContentProps = {
   selected?: Options[];

@@ -46,7 +46,16 @@ export const GET = middlewareHandler<{ projectId: string }>(
       DONE: 0,
     };
 
-    const statusesWithCategory = await prisma.issueStatus.findMany({ where: { projectId }, select: { id: true, category: true } });
+    // for (const s of statusData) {
+    //   // try to fetch status category if available
+    //   // load status record with category if we need it; but to keep this simple we will
+    //   // re-query categories for statuses that map to known categories
+    // }
+
+    const statusesWithCategory = await prisma.issueStatus.findMany({
+      where: { projectId },
+      select: { id: true, category: true },
+    });
     const catMap = Object.fromEntries(statusesWithCategory.map((it) => [it.id, it.category]));
     for (const s of statusData) {
       const cat = catMap[s.status];
@@ -58,10 +67,16 @@ export const GET = middlewareHandler<{ projectId: string }>(
     // console.log('=>>>check sumary :' + 'total issers' + totalIssues +" | to do: " + categoryCounts.TODO + " | in progress: " + categoryCounts.IN_PROGRESS + " | done: " + categoryCounts.DONE);
 
     const workspaceObj = project.workspaceId
-      ? await prisma.workspace.findUnique({ where: { id: project.workspaceId }, select: { id: true, name: true } })
+      ? await prisma.workspace.findUnique({
+          where: { id: project.workspaceId },
+          select: { id: true, name: true },
+        })
       : null;
     const leadObj = project.leadId
-      ? await prisma.user.findUnique({ where: { id: project.leadId }, select: { id: true, name: true, email: true } })
+      ? await prisma.user.findUnique({
+          where: { id: project.leadId },
+          select: { id: true, name: true, email: true },
+        })
       : null;
 
     const projectOverview = {
@@ -94,10 +109,16 @@ export const GET = middlewareHandler<{ projectId: string }>(
     });
 
     // Quick stats
-    const backlog = await prisma.issue.count({ where: { projectId, archived: false, sprint: { none: {} } } });
-    const bugs = await prisma.issue.count({ where: { projectId, type: { name: { equals: 'Bug', mode: 'insensitive' } } } });
+    const backlog = await prisma.issue.count({
+      where: { projectId, archived: false, sprint: { none: {} } },
+    });
+    const bugs = await prisma.issue.count({
+      where: { projectId, type: { name: { equals: 'Bug', mode: 'insensitive' } } },
+    });
 
-    const activeSprints = await prisma.sprint.count({ where: { board: { projectId }, state: 'ACTIVE' } });
+    const activeSprints = await prisma.sprint.count({
+      where: { board: { projectId }, state: 'ACTIVE' },
+    });
 
     const quickStats = {
       backlog,

@@ -1,4 +1,8 @@
-import { ZBoardIssueList, ZBoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import {
+  ZBoardIssueList,
+  ZBoardIssueQueryParams,
+  ZBoardItem,
+} from '@/contracts/boards/boards.query';
 import {
   ZBoardIssueCreateInput,
   ZBoardIssueMoveInput,
@@ -71,7 +75,7 @@ const sprintApiConfig = {
 
 export const boardApi = buildApi({
   list: { path: BoardListURL, method: 'get' },
-  get: { path: BoardItemURL, method: 'get', schemas: { response: z.any() } },
+  get: { path: BoardItemURL, method: 'get', schemas: { response: ZBoardItem } },
   update: { path: BoardItemURL, method: 'patch', schemas: { response: z.any(), body: z.any() } },
   delete: { path: BoardItemURL, method: 'delete', schemas: { response: z.any() } },
 

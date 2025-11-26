@@ -2,7 +2,7 @@ import { RootSchema, serper } from '@/lib/serper';
 import { tool } from 'ai';
 import z from 'zod';
 
-export const webSearch = tool({
+export const webSearchTool = tool({
   name: 'webSearch',
   description: 'Search the web for relevant information.',
   inputSchema: z.object({

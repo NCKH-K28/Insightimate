@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { EditIcon, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -20,26 +20,46 @@ type SprintActionsProps = {
   defaultValues?: Partial<UpdateFormData>;
 };
 export const SprintActions = ({ onDelete, params, defaultValues }: SprintActionsProps) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant='ghost' size='icon'>
-          <MoreHorizontal />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align='end'>
-        <UpdateSprintButton params={params} defaultValues={defaultValues} />
+  const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
 
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.stopPropagation();
-            onDelete?.();
-          }}
-        >
-          <Trash2 className='mr-2 h-4 w-4' />
-          Delete Sprint
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+  return (
+    <>
+      <UpdateSprintButton
+        params={params}
+        defaultValues={defaultValues}
+        hiddenDialogTrigger={true}
+        dialogOpen={updateDialogOpen}
+        onDialogOpenChange={setUpdateDialogOpen}
+      />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant='ghost' size='icon'>
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align='end'>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              setUpdateDialogOpen(true);
+            }}
+          >
+            <EditIcon className='mr-2 h-4 w-4' />
+            Edit Sprint
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete?.();
+            }}
+          >
+            <Trash2 className='mr-2 h-4 w-4' />
+            Delete Sprint
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
   );
 };

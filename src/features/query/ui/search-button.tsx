@@ -24,7 +24,7 @@ export const SearchButton = ({
         {renderTrigger ? (
           renderTrigger(props)
         ) : (
-          <Button {...props}>
+          <Button size='sm' {...props}>
             <SearchIcon />
             <span>{triggerLabel}</span>
           </Button>

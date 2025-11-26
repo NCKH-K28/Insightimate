@@ -41,7 +41,7 @@ const authenticated = async (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
-  await Promise.all([pingSocket(request), pingHealthCheck(request)]);
+  // await Promise.all([pingSocket(request), pingHealthCheck(request)]);
 
   return authenticated(request);
 }

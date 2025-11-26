@@ -15,6 +15,7 @@ import {
 } from '@tanstack/react-table';
 import React, { useEffect, useMemo } from 'react';
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
+import { CreateIssueButton } from '@/features/boards/ui/buttons/create-issue-btn';
 
 type ListTabProps = { params: { boardId: string; projectId: string; workspaceId: string } };
 export const ListTab = (props: ListTabProps) => {
@@ -103,17 +104,32 @@ export const ListTab = (props: ListTabProps) => {
   }, [setSelectedIssues]);
 
   return (
-    <div className='flex flex-col gap-4 p-4'>
-      <DataTableToolbar
-        table={table}
-        config={{
-          searchPlaceholder: 'Search issues...',
-          searchColumn: 'summary',
-          filters: filterOptions,
-        }}
-      />
-      <DataTable table={table} />
-      <DataTablePagination table={table} />
-    </div>
+    <>
+      <div className='flex flex-col gap-4 p-4'>
+        <DataTableToolbar
+          table={table}
+          config={{
+            searchPlaceholder: 'Search issues...',
+            searchColumn: 'summary',
+            filters: filterOptions,
+            actions: [
+              {
+                label: 'Create Issue',
+                renderLabel: (label: string) => (
+                  <CreateIssueButton
+                    key='create-issue'
+                    params={{ boardId, projectId: props.params.projectId }}
+                    btnLabel={label}
+                  />
+                ),
+                variant: 'outline',
+              },
+            ],
+          }}
+        />
+        <DataTable table={table} />
+        <DataTablePagination table={table} />
+      </div>
+    </>
   );
 };

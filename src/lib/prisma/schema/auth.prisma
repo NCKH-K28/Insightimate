@@ -35,7 +35,6 @@ model User {
     teamsLed         Team[]            @relation("UserLedTeams")
     invitesSent      Invitation[]      @relation("UserInvites")
     aiAgents         AIAgent[]         @relation("UserAIAgents")
-    stars           Star[]            @relation("UserStars")
 
     @@map("users")
 }
@@ -69,13 +68,3 @@ model Invitation {
     @@index([email, resourceType, resourceId])
     @@map("invites")
 }
-
-// model Role {
-//     id          String @id
-//     name        String // ADMIN, MEMBER, VIEWER
-//     scope       String // workspace:{workspaceId}, project:{projectId}, team:{teamId}
-//     permissions Json
-
-//     createdAt DateTime @default(now())
-//     updatedAt DateTime @updatedAt
-// }

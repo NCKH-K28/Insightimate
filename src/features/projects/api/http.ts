@@ -162,7 +162,6 @@ export const projectApi = {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.types, ctx),
     },
   },
-  summary: {
-    get: (ctx: PrjCtx) => baseApi.get<any>(PrjEndpoints.summary.get, ctx),
-  },
+
+  summary: { get: (ctx: PrjCtx) => baseApi.get<any>(PrjEndpoints.summary.get, ctx) },
 };

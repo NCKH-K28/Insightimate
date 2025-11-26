@@ -17,6 +17,20 @@ import { ColumnFilter, DataTableToolbar } from '@/components/table';
 import { useIssuesToScrumRows } from '@/features/boards/hooks';
 import { ScrumBoard } from '@/features/boards/ui/components';
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const BacklogSkeleton = () => {
+  return (
+    <div className='w-full space-y-4'>
+      <Skeleton className='h-8 w-1/3' />
+      <div className='space-y-2'>
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Skeleton key={index} className='h-12 w-full' />
+        ))}
+      </div>
+    </div>
+  );
+};
 
 type BacklogTabProps = {
   params: { boardId: string; projectId: string; workspaceId: string };
@@ -24,7 +38,7 @@ type BacklogTabProps = {
 export const BacklogTab = ({ params }: BacklogTabProps) => {
   const boardId = params.boardId;
   const { data: board } = useQuery(getBoardQueryOptions(boardId));
-  const { data: issues } = useQuery(
+  const { data: issues, isPending } = useQuery(
     listBoardIssuesQueryOptions(boardId, { filter: { type: 'SCRUM' } }),
   );
 
@@ -98,6 +112,8 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
   }, [tableRows]);
 
   const rows = useIssuesToScrumRows(params, filtered, board?.sprints || []);
+
+  if (isPending) return <BacklogSkeleton />;
 
   return (
     <div className='w-full'>

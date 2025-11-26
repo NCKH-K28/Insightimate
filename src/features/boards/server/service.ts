@@ -20,6 +20,7 @@ import {
   startBoardSprint,
   updateBoardSprint,
 } from './cqrs/board-sprint';
+import merge from 'lodash/merge';
 
 const genIssueId = () => `is_${createId()}`;
 
@@ -163,6 +164,11 @@ const listIssues = async (
     const ids = activeSprints.map((s) => s.id);
     if (ids.length === 0) return ZBoardIssueList.parse({ data: [] });
     where.sprintId = { in: ids };
+  }
+
+  if (query.filter?.parentId) {
+    // FIXME: lodash merge issue
+    // merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
   }
 
   const includeOptions = buildIncludeOptions({ boardId: b.id }, query, context);
