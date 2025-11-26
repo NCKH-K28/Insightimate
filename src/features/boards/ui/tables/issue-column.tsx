@@ -18,6 +18,9 @@ import { IssueAssigneeCell } from './cells/issue-assignee-cell';
 import { IssueTypeCell } from './cells/issue-type-cell';
 import { IssueDueDateCell, IssueStartDateCell } from './cells/issue-date-cell';
 import { BoardIssueList } from '@/contracts/boards/boards.query';
+import { usePathname } from 'next/navigation';
+import { useMemo } from 'react';
+import Link from 'next/link';
 
 type IssueItem = BoardIssueList['data'][number];
 const columnHelper = createColumnHelper<IssueItem>();
@@ -36,11 +39,25 @@ const createMultiSelectFilterFn = () => {
 const multiSelectFilterFn = createMultiSelectFilterFn();
 
 const IssueKeyCell: CellType = ({ row }) => {
+  const pathname = usePathname();
+  if (!pathname) throw new Error('pathname is undefined');
+
+  const basePath = useMemo(() => {
+    const segments = pathname.split('/');
+    const projectIndex = segments.findIndex((seg) => seg === 'projects');
+    if (projectIndex !== -1 && segments.length > projectIndex + 1) {
+      return segments.slice(0, projectIndex + 2).join('/'); // up to projectId
+    }
+    return '';
+  }, [pathname]);
+
+  const issueUrl = `${basePath}/issues/${row.original.id}`;
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button variant='link' size='sm' className='p-0'>
-          {row.original.key}
+          <Link href={issueUrl}>{row.original.key}</Link>
         </Button>
       </SheetTrigger>
       <SheetContent>

@@ -67,13 +67,3 @@ model Invitation {
   @@index([email, resourceType, resourceId])
   @@map("invites")
 }
-
-// model Role {
-//     id          String @id
-//     name        String // ADMIN, MEMBER, VIEWER
-//     scope       String // workspace:{workspaceId}, project:{projectId}, team:{teamId}
-//     permissions Json
-
-//     createdAt DateTime @default(now())
-//     updatedAt DateTime @updatedAt
-// }

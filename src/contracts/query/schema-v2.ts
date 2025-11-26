@@ -1,18 +1,19 @@
 import z from 'zod';
 
-// const ZQueryFilter = z.object({
-//   // ktop
-// });
+const ZQueryFilter = z.object({
+  type: z.enum(['user', 'workspace', 'project', 'sprint', 'issue']).optional(),
+});
 
 export const ZQueryParams = z.object({
-  q: z.string().min(1).max(1000).describe('The search query string.'),
-  pagination: z
-    .object({
-      cursor: z.string().optional().describe('The cursor for pagination.'),
-      size: z.number().min(1).max(100).describe('The number of results to return.'),
-    })
-    .optional()
-    .describe('Pagination parameters for the query.'),
+  q: z.string().max(1000).optional().describe('The search query string.'),
+  filter: ZQueryFilter.optional().describe('Optional filters to refine the search results.'),
+  // pagination: z
+  //   .object({
+  //     cursor: z.string().optional().describe('The cursor for pagination.'),
+  //     size: z.number().min(1).max(100).describe('The number of results to return.'),
+  //   })
+  //   .optional()
+  //   .describe('Pagination parameters for the query.'),
 });
 
 export const ZQueryHit = z.object({

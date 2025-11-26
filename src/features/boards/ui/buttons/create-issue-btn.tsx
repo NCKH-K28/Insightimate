@@ -20,8 +20,9 @@ type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 
 type CreateIssueButtonProps = {
   params: { projectId: string; boardId: string; sprintId?: string };
+  btnLabel?: string;
 };
-export const CreateIssueButton = ({ params }: CreateIssueButtonProps) => {
+export const CreateIssueButton = ({ params, btnLabel }: CreateIssueButtonProps) => {
   const [open, setOpen] = React.useState(false);
 
   const queryClient = useQueryClient();
@@ -39,7 +40,7 @@ export const CreateIssueButton = ({ params }: CreateIssueButtonProps) => {
       <DialogTrigger asChild>
         <Button variant='outline' size='sm' className='ml-2'>
           <PlusIcon className='h-4 w-4' />
-          <span className='ml-1.5'>New Issue</span>
+          <span className='ml-1.5'>{btnLabel ?? 'New Issue'}</span>
         </Button>
       </DialogTrigger>
       <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>

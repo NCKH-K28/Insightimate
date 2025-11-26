@@ -65,12 +65,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
                   Summary <span className='text-destructive'>*</span>
                 </FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder='Enter a brief summary of the issue'
-                    className='h-11'
-                    autoFocus
-                    {...field}
-                  />
+                  <Input placeholder='Enter a brief summary of the issue' autoFocus {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -86,7 +81,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
                 <FormControl>
                   <Textarea
                     placeholder='Add more details about the issue...'
-                    className='min-h-[120px] resize-none'
+                    className='h-24 max-h-40 resize-y'
                     {...field}
                   />
                 </FormControl>
@@ -163,6 +158,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
             <Button
               variant='ghost'
               type='button'
+              size='sm'
               onClick={handleCancel}
               disabled={form.formState.isSubmitting}
             >
@@ -170,6 +166,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
             </Button>
             <Button
               type='submit'
+              size='sm'
               disabled={form.formState.isSubmitting || !form.formState.isValid}
               className='min-w-[100px]'
             >

@@ -14,7 +14,9 @@ const clearEs = async () => {
 
 export const GET = compose(async () => {
   try {
-    await clearEs();
+    await clearEs().catch((err) => {
+      console.error('Error clearing Elasticsearch:', err);
+    });
     const result = await seedDebeziumConnectors();
     return NextResponse.json({ status: 'success', message: result });
   } catch (error) {

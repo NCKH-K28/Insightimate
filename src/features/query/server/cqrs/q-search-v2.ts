@@ -44,7 +44,7 @@ export const buildQuery = async (
   input: QueryParams,
   context: { actorId: string },
 ): Promise<SearchQuery> => {
-  const q = input.q.trim();
+  const q = input.q?.trim() || '';
 
   let baseQuery: SearchQuery = { match_all: {} };
 
@@ -110,14 +110,25 @@ export const buildQuery = async (
   };
 };
 
+const typeToIndexMap: Record<string, string> = {
+  user: 'users',
+  workspace: 'workspaces',
+  project: 'projects',
+  sprint: 'sprints',
+  issue: 'issues',
+};
+
 export const search = async (
   input: QueryParams,
   context: { actorId: string },
 ): Promise<QueryOutput> => {
   const query = await buildQuery(input, context);
 
+  let index = '_all';
+  if (input.filter?.type) index = typeToIndexMap[input.filter.type] || '_all';
+
   const searchResult = await elasticClient.search({
-    index: '_all',
+    index,
     query,
     sort: [{ _score: { order: 'desc' } }],
     _source: {

@@ -12,9 +12,7 @@ import {
   HomeIcon,
   Users2Icon,
   BotIcon,
-  SearchIcon,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import {
   Sidebar,
   SidebarContent,
@@ -29,9 +27,8 @@ import { NavMain } from './nav-main';
 import { useQuery } from '@tanstack/react-query';
 import WorkspaceSwitcher from './workspace-switcher';
 import NavUser from './nav-user';
-import { SearchButton } from '@/features/query/ui/search-button';
 
-function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+function AppLeftbar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const params = useParams<{ workspaceId: string }>();
   if (!params) throw new Error('Params is undefined');
   const { workspaceId } = params;
@@ -51,22 +48,6 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <WorkspaceSwitcher />
 
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <SearchButton
-                variant='ghost'
-                className='flex justify-start'
-                size='sm'
-                renderTrigger={(props) => (
-                  <Button variant='ghost' className={props.className}>
-                    <SearchIcon />
-                    <span>Search</span>
-                  </Button>
-                )}
-              />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <Link href={`/wps/${workspaceId}/foryou`}>
@@ -152,4 +133,4 @@ function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
 }
 
-export default AppSidebar;
+export default AppLeftbar;

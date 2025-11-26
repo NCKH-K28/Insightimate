@@ -3,27 +3,37 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { AtSign, X, Plus } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ContextSelector } from '../context-selector';
+import { ContextSelector, Options } from '../context-selector';
 
-type Options = { label: string; value: string; iconURL?: string };
-
-export const SelectionBar = () => {
-  const [selecteds, setSelecteds] = useState<Options[]>([]);
+export type SelectionBarProps = {
+  defaultSelecteds?: Options[];
+  onChange?: (selecteds: Options[]) => void;
+};
+export const SelectionBar = ({ defaultSelecteds = [], onChange }: SelectionBarProps) => {
+  const [selecteds, setSelecteds] = useState<Options[]>(defaultSelecteds);
 
   const removeSelection = (v: string) => {
-    setSelecteds((prev) => prev.filter((item) => item.value !== v));
+    setSelecteds((prev) => {
+      const next = prev.filter((item) => item.value !== v);
+      onChange?.(next);
+      return next;
+    });
+  };
+
+  const handleAddSelection = (option: Options) => {
+    setSelecteds((prev) => {
+      const exists = prev.find((item) => item.value === option.value);
+      if (exists) return prev;
+      const next = [...prev, option];
+      onChange?.(next);
+      return next;
+    });
   };
 
   return (
-    <div className='flex items-center gap-2 flex-wrap'>
+    <div className='flex items-center gap-1 flex-wrap'>
       <ContextSelector
-        onSelect={(o) => {
-          setSelecteds((prev) => {
-            const exists = prev.find((item) => item.value === o.value);
-            if (exists) return prev;
-            return [...prev, o];
-          });
-        }}
+        onSelect={(o) => handleAddSelection(o)}
         renderTrigger={() => (
           <Button
             size='sm'
@@ -38,11 +48,11 @@ export const SelectionBar = () => {
           >
             {selecteds.length === 0 ? (
               <>
-                <AtSign className='w-3 h-3 mr-1' />
-                Add Context
+                <AtSign className='size-3' />
+                <span>Add context</span>
               </>
             ) : (
-              <Plus className='w-3 h-3' />
+              <Plus className='size-3' />
             )}
           </Button>
         )}
