@@ -48,37 +48,42 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
 
       if (parentId) bodyToSend.parentId = parentId;
 
-      // Chọn endpoint dựa trên có parentId hay không
-      const endpoint = parentId 
-        ? `/api/v2/issues/${issueId}/comments/${parentId}` // Tạo reply
-        : `/api/v2/issues/${issueId}/comments`;            // Tạo comment gốc
-
-      console.log('📤 Sending to endpoint:', endpoint, { 
+      // ⭐ NEW APPROACH: Chỉ gửi qua Socket, socket sẽ xử lý DB
+      console.log('📤 Sending via Socket only:', { 
         isReply: !!parentId,
         body: bodyToSend 
       });
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(bodyToSend),
+      // Gửi qua Socket với thông tin đầy đủ
+      socket.emit('create-comment', {
+        ...bodyToSend,
+        issueId,
+        tempId: Date.now().toString(), // Temporary ID cho optimistic UI
       });
 
-      const data = await response.json();
+      // Optimistic UI Update
+      const tempComment = {
+        ...bodyToSend,
+        id: `temp-${Date.now()}`,
+        issueId,
+        createdAt: new Date().toISOString(),
+      };
 
-      if (response.ok) {
-        console.log('📨 API tạo comment thành công:', data);
+      console.log('✨ Optimistic UI update:', tempComment);
+      onSuccess?.(tempComment);
+      setContent('');
 
-        // ⭐ Gọi callback cho ReplyModal hoặc CommentList
-        onSuccess?.(data);
-
-        // Gửi realtime
-        socket.emit('new-comment', data);
-
-        setContent('');
-      } else {
-        console.error('❌ API Error:', data);
-      }
+      // Lắng nghe response từ socket
+      socket.once('comment-created', (data) => {
+        console.log('📨 Comment được tạo qua socket:', data);
+        // Update UI với real comment từ DB
+        if (data.success) {
+          onSuccess?.(data.comment);
+        } else {
+          console.error('❌ Socket Error:', data.error);
+          // Rollback optimistic update nếu cần
+        }
+      });
     } catch (error) {
       console.error('❌ Lỗi khi gửi comment:', error);
     } finally {

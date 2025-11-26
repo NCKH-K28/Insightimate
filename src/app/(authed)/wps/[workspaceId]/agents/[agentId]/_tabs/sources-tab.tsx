@@ -1,4 +1,8 @@
-import { SourceRef } from '../types';
+type SourceRef = {
+  id: string;
+  srcType: 'file' | 'url' | 'database';
+  srcId: string;
+};
 
 const sources: SourceRef[] = [
   {

@@ -8,7 +8,6 @@ import React from 'react';
 import uniqBy from 'lodash/uniqBy';
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import * as axios from 'axios';
 import { uploadSourceMutationOptions } from '@/features/agents/api/actions';
 
 type AIFilesInputProps = {
@@ -45,7 +44,7 @@ export const AIFilesInput = (props: AIFilesInputProps) => {
   const handleFileUpload = (file: File) => {
     toast.promise(uploadSource.mutateAsync({ file }), {
       loading: `Uploading ${file.name}...`,
-      success: (data) => `Uploaded ${file.name} successfully!`,
+      success: () => `Uploaded ${file.name} successfully!`,
       error: (err) => `Error uploading ${file.name}: ${err.message}`,
     });
   };

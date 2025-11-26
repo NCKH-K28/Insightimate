@@ -41,12 +41,11 @@ model Project {
 }
 
 model ProjectRole {
-  id          String  @id
-  name        String
-  description String?
-  permissions Json
-
-  projectId String
+    id          String   @id
+    name        String
+    description String?
+    permissions String[]
+    projectId   String
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

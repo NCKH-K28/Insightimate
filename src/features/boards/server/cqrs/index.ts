@@ -1,5 +1,5 @@
+import { CreateProjectParams, TxClient } from '@/features/projects/server/types';
 import { genBoardId, genColumnId, genSprintId } from './id-generators';
-import { TxClient, CreateProjectParams } from '../project/types';
 
 export const createDefaultBoard = async (tx: TxClient, params: CreateProjectParams) => {
   const { projectId, projectLeadId, inputKey, statuses } = params;

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { openfgaClient } from '@/lib/authz/openfga';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';
@@ -5,7 +7,7 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Prisma } from '@prisma/client';
 import z from 'zod';
 import { genDataSourceId } from '../../utils/id-generator';
-import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents';
+import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents/agents.input';
 
 // ========================== Service Methods ==========================
 export const projectToSource = (project: { id: string; name: string; avatar?: string | null }) => ({

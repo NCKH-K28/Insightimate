@@ -1,43 +1,34 @@
-"use client"
+'use client';
 
-import * as React from "react"
-import type { UseDismissProps, UseFloatingOptions } from "@floating-ui/react"
-import {
-  useDismiss,
-  useFloating,
-  useInteractions,
-  useTransitionStyles,
-} from "@floating-ui/react"
+import * as React from 'react';
+import type { UseDismissProps, UseFloatingOptions } from '@floating-ui/react';
+import { useDismiss, useFloating, useInteractions, useTransitionStyles } from '@floating-ui/react';
 
 interface FloatingElementReturn {
   /**
    * Whether the floating element is currently mounted in the DOM.
    */
-  isMounted: boolean
+  isMounted: boolean;
   /**
    * Ref function to attach to the floating element DOM node.
    */
-  ref: (node: HTMLElement | null) => void
+  ref: (node: HTMLElement | null) => void;
   /**
    * Combined styles for positioning, transitions, and z-index.
    */
-  style: React.CSSProperties
+  style: React.CSSProperties;
   /**
    * Function to manually trigger position updates of the floating element.
    */
-  update: () => void
+  update: () => void;
   /**
    * Returns props that should be spread onto the floating element.
    */
-  getFloatingProps: (
-    userProps?: React.HTMLProps<HTMLElement>
-  ) => Record<string, unknown>
+  getFloatingProps: (userProps?: React.HTMLProps<HTMLElement>) => Record<string, unknown>;
   /**
    * Returns props that should be spread onto the reference element.
    */
-  getReferenceProps: (
-    userProps?: React.HTMLProps<Element>
-  ) => Record<string, unknown>
+  getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>;
 }
 
 /**
@@ -53,34 +44,34 @@ export function useFloatingElement(
   show: boolean,
   referencePos: DOMRect | null,
   zIndex: number,
-  options?: Partial<UseFloatingOptions & { dismissOptions?: UseDismissProps }>
+  options?: Partial<UseFloatingOptions & { dismissOptions?: UseDismissProps }>,
 ): FloatingElementReturn {
-  const { dismissOptions, ...floatingOptions } = options || {}
+  const { dismissOptions, ...floatingOptions } = options || {};
 
   const { refs, update, context, floatingStyles } = useFloating({
     open: show,
     ...floatingOptions,
-  })
+  });
 
-  const { isMounted, styles } = useTransitionStyles(context)
+  const { isMounted, styles } = useTransitionStyles(context);
 
-  const dismiss = useDismiss(context, dismissOptions)
+  const dismiss = useDismiss(context, dismissOptions);
 
-  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss])
+  const { getReferenceProps, getFloatingProps } = useInteractions([dismiss]);
 
   React.useEffect(() => {
-    update()
-  }, [referencePos, update])
+    update();
+  }, [referencePos, update]);
 
   React.useEffect(() => {
     if (referencePos === null) {
-      return
+      return;
     }
 
     refs.setReference({
       getBoundingClientRect: () => referencePos,
-    })
-  }, [referencePos, refs])
+    });
+  }, [referencePos, refs]);
 
   return React.useMemo(
     () => ({
@@ -104,6 +95,6 @@ export function useFloatingElement(
       zIndex,
       getFloatingProps,
       getReferenceProps,
-    ]
-  )
+    ],
+  );
 }

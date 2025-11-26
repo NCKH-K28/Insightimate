@@ -7,6 +7,7 @@ import { Suspense } from 'react';
 
 export default function TeamsPage() {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('TeamsPage must be used within a route with workspaceId param');
 
   return (
     <Suspense

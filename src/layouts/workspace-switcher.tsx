@@ -28,6 +28,7 @@ import {
 function WorkspaceSwitcher() {
   const { isMobile } = useSidebar();
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Missing params');
 
   const { data: workspace } = useSuspenseQuery(getWorkspaceQueryOptions(params));
   const fetchWorkspaces = useQuery({ ...listWorkspacesQueryOptions(), enabled: false });

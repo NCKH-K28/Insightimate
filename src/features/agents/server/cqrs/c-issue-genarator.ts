@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { elasticClient } from '@/lib/elastic';
-import { generateObject, generateText, Output, stepCountIs, tool } from 'ai';
+import { generateText, stepCountIs, tool } from 'ai';
 import { google } from '@ai-sdk/google';
 import { hfClient } from '@/lib/huggingface';
 import { z } from 'zod';
@@ -64,54 +66,34 @@ const retrieveRelatedIssues = async (
 const ResponseSchema = z.toJSONSchema(ZIssueGenerationOutput);
 const getSystemPrompt = (responseSchema: unknown = ResponseSchema) =>
   `
-Bạn là tác nhân tạo issue cho hệ thống kiểu Jira.
+You are an issue-generation agent for a Jira-like system.
 
-Nhiệm vụ
-- Dựa trên yêu cầu người dùng và "relatedIssues" (nếu có), tạo DANH SÁCH issue mới theo đúng schema ở cuối.
-- Dùng relatedIssues để: tránh trùng theo summary/mô tả, suy ra quan hệ cha–con, và bắt chước pattern ID.
-- Nếu không thể tạo issue mới mà không trùng, trả về cấu trúc rỗng hợp lệ theo schema.
+Output (strict)
+- Return ONE JSON object only, no explanations, no extra text.
+- Must match this schema exactly: ${JSON.stringify(responseSchema, null, 2)}
 
-Định dạng bắt buộc
-- Chỉ trả về MỘT JSON hợp lệ đúng schema.
-- Không markdown, không giải thích, không \`\`\`, không thêm field ngoài schema.
-- Key phải đúng tên trong schema; nội dung text (summary, description, …) dùng cùng ngôn ngữ với người dùng.
-- Field cho phép null mà thiếu dữ liệu thì để null.
+Task
+- Based on the user's request and the "relatedIssues" (if any), create a LIST of new issues that strictly follows the schema below.
+- Use relatedIssues to: avoid duplicates by summary/description, infer parent–child relationships, and mimic the ID pattern.
+- If you cannot create a non-duplicate issue, return an empty but valid structure according to the schema.
 
-Quy tắc ID (nếu schema có)
-- Lấy prefix từ relatedIssues (vd: APP-12 → APP-<số_mới>), không trùng ID đã có.
-- Nếu không suy ra được prefix thì dùng "GEN-1", "GEN-2", ...
-- Nếu issue là phần việc của issue trong context thì điền parent/parent_id theo ID issue cha.
+ID rules (if present in the schema)
+- Take the prefix from relatedIssues (e.g. APP-12 → APP-<new_number>) and do not reuse existing IDs.
+- If you cannot infer a prefix, use "GEN-1", "GEN-2", ...
+- If the issue is a subtask/part of another issue in the context, set parent/parent_id to the parent issue ID.
 
-Quy tắc điền giá trị
-- due_date: không có → null; có → "YYYY-MM-DDTHH:mm:ssZ" (UTC, không tự bịa ngày).
-- priority: không rõ → "Medium".
-- story_points: không ước lượng được → null.
+Value rules
+- due_date: if missing → null; if present → "YYYY-MM-DD".
+- priority: if unclear → "Medium".
 
-Quy tắc tách nhỏ
-- Nếu mô tả là hạng mục lớn gồm nhiều bước/nhóm việc khác nhau thì tách thành nhiều issue nhỏ, thực thi được.
-
-Schema đầu ra:
-${JSON.stringify(responseSchema, null, 2)}
+Decomposition rules
+- If the description is a large task with multiple steps/groups, split it into multiple smaller, actionable issues.
 `.trim();
 
 const formatTextJSON = (text: string) => {
-  const firstCurly = text.indexOf('{');
-  const firstSquare = text.indexOf('[');
-  const startIndex =
-    firstCurly === -1
-      ? firstSquare
-      : firstSquare === -1
-      ? firstCurly
-      : Math.min(firstCurly, firstSquare);
-  const lastCurly = text.lastIndexOf('}');
-  const lastSquare = text.lastIndexOf(']');
-  const endIndex =
-    lastCurly === -1 ? lastSquare : lastSquare === -1 ? lastCurly : Math.max(lastCurly, lastSquare);
-  if (startIndex === -1 || endIndex === -1 || endIndex <= startIndex) {
-    throw new Error('No JSON object found in the text');
-  }
-  const jsonString = text.slice(startIndex, endIndex + 1);
-  return jsonString;
+  const match = text.match(/\{[\s\S]*\}|\[[\s\S]*\]/);
+  if (!match) throw new Error('No JSON object found in the text');
+  return match[0];
 };
 
 export const issueGenerator = async (

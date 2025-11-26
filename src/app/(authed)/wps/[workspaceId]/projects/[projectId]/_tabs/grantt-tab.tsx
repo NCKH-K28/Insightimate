@@ -1,12 +1,12 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 'use client';
-import { faker } from '@faker-js/faker';
 import {
   GanttCreateMarkerTrigger,
   GanttFeatureItem,
   GanttFeatureList,
   GanttFeatureListGroup,
   GanttHeader,
-  GanttMarker,
   GanttProvider,
   GanttSidebar,
   GanttSidebarGroup,
@@ -45,7 +45,7 @@ type IssueType = {
   reporter?: { id: string; name: string; avatar: string } | null;
   group?: { id: string; name: string } | null;
 };
-type MarkerType = { id: string; date: Date | string; label: string; className: string };
+// type MarkerType = { id: string; date: Date | string; label: string; className: string };
 
 // ========== Example Component ========== //
 
@@ -120,7 +120,7 @@ export const GranttTab = ({ params }: GranttTabProps) => {
   const handleCopyLink = (id: string) => console.log(`Copy link: ${id}`);
   const handleRemoveFeature = (id: string) =>
     setFeatures((prev) => prev.filter((feature) => feature.id !== id));
-  const handleRemoveMarker = (id: string) => console.log(`Remove marker: ${id}`);
+  // const handleRemoveMarker = (id: string) => console.log(`Remove marker: ${id}`);
   const handleCreateMarker = (date: Date) => console.log(`Create marker: ${date.toISOString()}`);
   const handleMoveFeature = (id: string, startAt: Date, endAt: Date | null) => {
     if (!endAt) {

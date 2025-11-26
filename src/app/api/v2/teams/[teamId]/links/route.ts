@@ -8,10 +8,9 @@ type Link = {
   subject: { value: string; label: string };
 };
 
-export const GET = middlewareHandler<{ teamId: string }>([], async (req, { params }) => {
+export const GET = middlewareHandler<{ teamId: string }>([], async (_req, { params }) => {
   const { teamId } = params;
 
-  const team = await prisma.team.findUniqueOrThrow({ where: { id: teamId } });
   const links: Link[] = [];
 
   //

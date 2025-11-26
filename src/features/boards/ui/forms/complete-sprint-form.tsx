@@ -29,9 +29,7 @@ export const CompleteSprintForm = (props: CompleteSprintFormProps) => {
   const completeSprint = useMutation(completeBoardSprintMutationOptions(props.params));
 
   // Fetch sprint details
-  const { data: sprint, isLoading: isLoadingSprint } = useQuery(
-    getBoardSprintIssuesQueryOptions(props.params),
-  );
+  const { data: sprint } = useQuery(getBoardSprintIssuesQueryOptions(props.params));
 
   // Fetch available sprints (active and future only)
   const { data: sprints } = useQuery({

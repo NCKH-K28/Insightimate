@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { BoardIssueCreateInput, BoardIssueUpdateInput } from '@/contracts/boards/boards.input';
 import {
   BoardIssueQueryParams,

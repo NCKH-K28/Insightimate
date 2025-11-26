@@ -5,32 +5,32 @@ derivedRoles:
   name: common_derived_roles
   definitions:
     - name: ws_owner
-      parentRoles: ["*"]
+      parentRoles: ['*']
       condition:
         match:
           expr: P.id == R.attr.workspace.ownerId || P.id == R.attr.ownerId #FIXME: legacy attr
 
     - name: ws_admin
-      parentRoles: ["*"]
+      parentRoles: ['*']
       condition:
         match:
           expr: ('workspace:%s#WS_ADMIN'.format([R.attr.workspaceId])) in P.roles
 
     - name: ws_member
-      parentRoles: ["*"]
+      parentRoles: ['*']
       condition:
         match:
           expr: >
             ("workspace:" + R.attr.workspaceId + "#WS_MEMBER") in P.roles
 
     - name: proj_lead
-      parentRoles: ["*"]
+      parentRoles: ['*']
       condition:
         match:
           expr: P.id == R.attr.project.leadId
 
     - name: proj_member
-      parentRoles: ["*"]
+      parentRoles: ['*']
       condition:
         match:
           expr: >

@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { format, getYear } from 'date-fns';
 import { useMutation } from '@tanstack/react-query';
 import {
-  completeBoardSprintMutationOptions,
   deleteBoardSprintMutationOptions,
   startBoardSprintMutationOptions,
 } from '@/features/boards/api/actions';
@@ -43,7 +42,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
   const context = { boardId: params.boardId, sprintId: sprint.id, projectId: params.projectId };
   const deleteSprint = useMutation(deleteBoardSprintMutationOptions(context));
   const startSprint = useMutation(startBoardSprintMutationOptions(context));
-  const completeSprint = useMutation(completeBoardSprintMutationOptions(context));
+  // const completeSprint = useMutation(completeBoardSprintMutationOptions(context));
 
   const handleDelete = () => {
     if (deleteSprint.isPending) return;
@@ -63,14 +62,14 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
     });
   };
 
-  const handleCompleteSprint = () => {
-    if (completeSprint.isPending) return;
-    toast.promise(completeSprint.mutateAsync({}), {
-      loading: 'Completing sprint...',
-      success: 'Sprint completed!',
-      error: 'Failed to complete sprint',
-    });
-  };
+  // const handleCompleteSprint = () => {
+  //   if (completeSprint.isPending) return;
+  //   toast.promise(completeSprint.mutateAsync({}), {
+  //     loading: 'Completing sprint...',
+  //     success: 'Sprint completed!',
+  //     error: 'Failed to complete sprint',
+  //   });
+  // };
 
   const items = [];
 

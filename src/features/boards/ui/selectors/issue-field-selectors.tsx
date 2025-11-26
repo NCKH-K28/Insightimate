@@ -1,4 +1,4 @@
-import { queryOptions, UseQueryOptions, useQuery } from '@tanstack/react-query';
+import { UseQueryOptions, useQuery } from '@tanstack/react-query';
 import React, { useMemo, useState } from 'react';
 import {
   Command,
@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CheckIcon, X } from 'lucide-react';
+import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -95,9 +95,11 @@ export const IssueFieldSelectors = ({
     [_selectOptions],
   );
 
-  const { data: fields, isPending: isLoading } = fetchQueryOptions
-    ? useQuery(fetchQueryOptions())
-    : { data: [], isPending: false };
+  const { data: fields, isPending: isLoading } = useQuery({
+    queryKey: '___internal__issue_fields',
+    queryFn: async (): Promise<IssueField[]> => [],
+    ...fetchQueryOptions?.(),
+  });
 
   const options: IssueFieldOption[] = useMemo(
     () => (fields ? fields.map(fieldToOption) : []),
@@ -107,20 +109,21 @@ export const IssueFieldSelectors = ({
   const excludeSet = useMemo(() => new Set(excludeIds), [excludeIds]);
   const filteredOptions = useMemo(
     () => [...extendsOptions, ...options].filter((option) => !excludeSet.has(option.value)),
-    [options, excludeSet],
+    [options, excludeSet, extendsOptions],
   );
 
   // Internal state management
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
-  const uncontrolled = React.useRef(!value && !!defaultValue);
+
+  const uncontrolled = useMemo(() => !value && !!defaultValue, [value, defaultValue]);
   const [internal, setInternal] = React.useState<IssueFieldOption | null>(() =>
-    uncontrolled.current ? defaultValue || null : null,
+    uncontrolled ? defaultValue || null : null,
   );
-  const selected = uncontrolled.current ? internal : value || null;
+  const selected = uncontrolled ? internal : value || null;
 
   const commit = (next: IssueFieldOption) => {
-    if (uncontrolled.current) setInternal(next);
+    if (uncontrolled) setInternal(next);
     onChange?.(next);
   };
 

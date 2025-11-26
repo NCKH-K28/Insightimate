@@ -143,8 +143,10 @@ const getIssueAggregations = async (
       },
       _sums: {
         storyPoints: {
-          completed: query.sum?.storyPoints ? completedStats._sum.storyPoints ?? 0 : undefined,
-          incompleted: query.sum?.storyPoints ? incompletedStats._sum.storyPoints ?? 0 : undefined,
+          completed: query.sum?.storyPoints ? (completedStats._sum.storyPoints ?? 0) : undefined,
+          incompleted: query.sum?.storyPoints
+            ? (incompletedStats._sum.storyPoints ?? 0)
+            : undefined,
         },
       },
     },

@@ -1,8 +1,10 @@
-// src/workers/analyze-document/file-resolver.ts
+import serverConfig from '@/configs/server';
 import { prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';
 import { GetObjectCommand } from '@aws-sdk/client-s3';
 import { Readable } from 'node:stream';
+
+const s3Config = serverConfig.s3;
 
 const streamToBuffer = async (stream: Readable): Promise<Buffer> =>
   new Promise((resolve, reject) => {
@@ -35,6 +37,6 @@ export async function resolveFileRef(sourceId: string) {
   const fileRef = await prisma.fileReference.findUnique({ where: { id: source.sourceId } });
   if (!fileRef) throw new Error(`FileReference not found for source: ${sourceId}`);
 
-  const bucket = process.env.S3_BUCKET_NAME || 'ai-files';
-  return { bucket, key: fileRef.key };
+  const bucket = s3Config.bucketName;
+  return { bucket, key: fileRef.key, filename: fileRef.filename };
 }

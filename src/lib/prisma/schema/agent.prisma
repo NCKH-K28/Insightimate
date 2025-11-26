@@ -1,11 +1,13 @@
 model AIAgent {
-  id            String  @id
-  name          String
-  description   String?
-  ownerId       String  @map("owner_id")
-  workspaceId   String  @map("workspace_id")
-  instructions  String?
-  configuration Json?
+    id            String   @id
+    name          String
+    description   String?
+    ownerId       String   @map("owner_id")
+    workspaceId   String   @map("workspace_id")
+    tags          String[] @default([])
+    model         String?
+    instructions  String?
+    configuration Json?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

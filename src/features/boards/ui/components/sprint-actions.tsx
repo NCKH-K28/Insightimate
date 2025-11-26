@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Archive, MoreHorizontal, Settings2, Trash2, User } from 'lucide-react';
+import { MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -19,7 +19,7 @@ type SprintActionsProps = {
   params: { boardId: string; sprintId: string };
   defaultValues?: Partial<UpdateFormData>;
 };
-export const SprintActions = ({ onEdit, onDelete, params, defaultValues }: SprintActionsProps) => {
+export const SprintActions = ({ onDelete, params, defaultValues }: SprintActionsProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

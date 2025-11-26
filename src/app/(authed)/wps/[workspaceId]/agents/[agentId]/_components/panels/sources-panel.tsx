@@ -20,8 +20,8 @@ import { useQuery } from '@tanstack/react-query';
 import { SourceActions } from './source-actions';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { DataSource } from '@/contracts/agents';
 import { listAgentSourcesQueryOptions } from '@/features/agents/api/actions';
+import { DataSource } from '@/contracts/agents/agent';
 
 type SourceRef = DataSource;
 type SourcesListProps = {

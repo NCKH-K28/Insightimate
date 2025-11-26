@@ -1,4 +1,3 @@
-import React from 'react';
 import { Node, mergeAttributes } from '@tiptap/core';
 
 type ToolGetTimeOptions = {

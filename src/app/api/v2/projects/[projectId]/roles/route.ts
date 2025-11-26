@@ -15,16 +15,16 @@ export const GET = middlewareHandler<{ projectId: string }>(
   },
 );
 
-export const POST = middlewareHandler<{ projectId: string }>(
-  [authenticated],
-  async (req, { params }) => {
-    throw new Error('Not implemented');
-  },
-);
+// export const POST = middlewareHandler<{ projectId: string }>(
+//   [authenticated],
+//   async (req, { params }) => {
+//     throw new Error('Not implemented');
+//   },
+// );
 
-export const DELETE = middlewareHandler<{ projectId: string }>(
-  [authenticated],
-  async (req, { params }) => {
-    throw new Error('Not implemented');
-  },
-);
+// export const DELETE = middlewareHandler<{ projectId: string }>(
+//   [authenticated],
+//   async (req, { params }) => {
+//     throw new Error('Not implemented');
+//   },
+// );

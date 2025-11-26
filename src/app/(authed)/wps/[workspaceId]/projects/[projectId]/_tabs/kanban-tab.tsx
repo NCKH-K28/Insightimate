@@ -1,6 +1,9 @@
+/* eslint-disable react-hooks/incompatible-library */
+
+'use client';
+
 import {
   getBoardIssueFacetsQueryOptions,
-  getBoardQueryOptions,
   listBoardIssuesQueryOptions,
 } from '@/features/boards/api/actions';
 import { useQuery } from '@tanstack/react-query';
@@ -31,18 +34,33 @@ export const KanbanTab = ({ params }: KanbanTabProps) => {
     const filters: ColumnFilter[] = [];
 
     if (issueFacets.types) {
-      filters.push({ type: 'faceted', columnKey: 'typeId', title: 'Type', options: issueFacets.types });
+      filters.push({
+        type: 'faceted',
+        columnKey: 'typeId',
+        title: 'Type',
+        options: issueFacets.types,
+      });
     }
 
     if (issueFacets.priorities) {
-      filters.push({ type: 'faceted', columnKey: 'priorityId', title: 'Priority', options: issueFacets.priorities });
+      filters.push({
+        type: 'faceted',
+        columnKey: 'priorityId',
+        title: 'Priority',
+        options: issueFacets.priorities,
+      });
     }
 
     if (issueFacets.statuses) {
-      filters.push({ type: 'faceted', columnKey: 'statusId', title: 'Status', options: issueFacets.statuses });
+      filters.push({
+        type: 'faceted',
+        columnKey: 'statusId',
+        title: 'Status',
+        options: issueFacets.statuses,
+      });
     }
 
-  return filters;
+    return filters;
   }, [issueFacets]);
 
   const tableConfig = useMemo(
@@ -64,15 +82,15 @@ export const KanbanTab = ({ params }: KanbanTabProps) => {
   });
 
   return (
-    <div className="w-full">
-      <div className="w-full px-4 py-2">
+    <div className='w-full'>
+      <div className='w-full px-4 py-2'>
         <DataTableToolbar table={table} config={tableConfig} />
       </div>
       <DottedSeparator />
-      <div className="flex justify-end px-4 pt-4 pb-2">
+      <div className='flex justify-end px-4 pt-4 pb-2'>
         <CreateStatusButton projectId={params.projectId} variant='default' size='sm' />
       </div>
-      <div className="px-4 pb-4">
+      <div className='px-4 pb-4'>
         <DataKanban data={issues ?? []} projectId={params.projectId} boardId={params.boardId} />
       </div>
     </div>

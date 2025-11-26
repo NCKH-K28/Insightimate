@@ -277,35 +277,6 @@ export default function CommentList({ issueId }: CommentListProps) {
     }
   };
 
-  // // 5.3. CLEAN HTML CONTENT
-  // // -------------------------------------
-  // const cleanHtmlContent = (htmlContent: string) => {
-  //   if (!htmlContent) return '';
-    
-  //   let cleaned = htmlContent;
-    
-  //   // 1. Loại bỏ các thẻ p trống
-  //   cleaned = cleaned
-  //     .replace(/<p><\/p>/g, '') // Loại bỏ <p></p>
-  //     .replace(/<p>\s*<\/p>/g, '') // Loại bỏ <p> </p> (có space)
-  //     .replace(/<p><br\s*\/?><\/p>/g, '') // Loại bỏ <p><br></p> và <p><br/></p>
-  //     .replace(/<p>&nbsp;<\/p>/g, '') // Loại bỏ <p>&nbsp;</p>
-  //     .replace(/<p>(\s|&nbsp;)*<\/p>/g, ''); // Loại bỏ <p> với chỉ có whitespace/nbsp
-    
-  //   // 2. Nếu chỉ có 1 thẻ p với nội dung → chỉ lấy nội dung bên trong
-  //   const singlePMatch = cleaned.match(/^<p>(.*?)<\/p>$/s);
-  //   if (singlePMatch) {
-  //     cleaned = singlePMatch[1];
-  //   }
-    
-  //   // 3. Loại bỏ multiple <p> tags liên tiếp và thay bằng <br>
-  //   cleaned = cleaned
-  //     .replace(/<\/p>\s*<p>/g, '<br>') // Thay </p><p> bằng <br>
-  //     .replace(/^<p>/, '') // Loại bỏ <p> ở đầu
-  //     .replace(/<\/p>$/, ''); // Loại bỏ </p> ở cuối
-    
-  //   return cleaned.trim();
-  // };
 
   // 5.4. ĐẾM SỐ LƯỢNG REPLY
   // -------------------------------------
@@ -440,7 +411,6 @@ export default function CommentList({ issueId }: CommentListProps) {
                   onClick={() => handleOpenReply(comment)}
                 >
                   <MessageCircle size={16} /> 
-                  Reply
                   {replyCounts[comment.id] > 0 && (
                     <span className='bg-blue-100 text-blue-600 text-xs px-2 py-0.5 rounded-full font-medium'>
                       {replyCounts[comment.id]}

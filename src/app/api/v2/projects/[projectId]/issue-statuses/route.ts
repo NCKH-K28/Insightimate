@@ -24,9 +24,9 @@ export async function POST(request: NextRequest, { params }: Context) {
     const { projectId } = await params;
     const input = await request.json();
     const id = input?.id ?? genIssueStatusId();
-    
+
     const { name, description, iconURL, color, category, sequence } = input;
-    
+
     const newStatus = await prisma.issueStatus.create({
       data: {
         id,

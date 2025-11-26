@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+
 'use client';
 
 import React, { Suspense, useMemo } from 'react';
@@ -25,6 +27,7 @@ import { Separator } from '@/components/ui/separator';
 
 const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<ProjectItem>> }) => {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Params are undefined');
   const { query } = useProjectsQueryParams();
 
   const { table } = props;
@@ -118,6 +121,7 @@ const ProjectsHeader = () => {
 
 export default function ProjectsPage() {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('ProjectsPage must be used within a route with workspaceId param');
 
   return (
     <section className={cn('w-full h-full', 'relative')}>

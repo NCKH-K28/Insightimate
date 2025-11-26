@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Prisma } from '@prisma/client';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
@@ -62,7 +64,7 @@ const listMembers = async (params: MemberQueryParams, context: MemberServiceCont
   const parsed = ZWsMemberList.parse(data);
   return { data: parsed };
 };
-const createMember = async (input: MemberCreateInput, context: MemberServiceContext) => {
+const createMember = async (input: MemberCreateInput) => {
   return executeTransaction(prisma, async (tx) => {
     const member = await tx.workspaceMember.create({
       data: { ...input, id: genMemberId() },
@@ -94,7 +96,7 @@ const createMembers = async (
     return members;
   });
 };
-const updateMember = async (input: MemberUpdateInput, context: MemberServiceContext) => {
+const updateMember = async (input: MemberUpdateInput) => {
   return executeTransaction(prisma, async (tx) => {
     const member = await tx.workspaceMember.findUnique({ where: { id: input.memberId } });
     if (!member) throw new Error('Member not found');
@@ -171,7 +173,7 @@ const inviteMembers = async (
       // Gửi invite
       await inviteService.inviteUsers(
         {
-          emails: toInviteUsers.map((u) => u.email),
+          invitees: toInviteUsers.map((u) => u.email),
           resourceType: 'WORKSPACE',
           resourceId: workspaceId,
           roleId: role,

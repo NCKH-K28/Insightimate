@@ -12,10 +12,11 @@ import {
   PROJECT_ROLE_PERMISSION_KEYS,
   ProjectCreateInput,
   ProjectRoleCreateInput,
-  ProjectRole as ProjectRoleType,
 } from '@/contracts/projects';
 
-type ProjectRole = ProjectRoleCreateInput & { id: string };
+type ProjectRole = Omit<ProjectRoleCreateInput, 'projectId' | 'createdAt' | 'updatedAt'> & {
+  id: string;
+};
 
 // ------- Helpers -------
 const formatPermLabel = (code: string) => {
@@ -55,10 +56,8 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     description: 'Responsible for defining project vision and managing the product backlog.',
     permissions: buildPermission({
       'backlog:manage': true,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': true,
-      'kanban:view': true,
       'kanban:manage': true,
       'kanban.column:manage': true,
       'kanban.issue:manage': true,
@@ -70,10 +69,8 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     description: 'Facilitates the Scrum process and removes impediments for the team.',
     permissions: buildPermission({
       'backlog:manage': true,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': true,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': false,
@@ -85,10 +82,8 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     description: 'Works on tasks and contributes to the development of the product.',
     permissions: buildPermission({
       'backlog:manage': false,
-      'backlog:view': true,
       'backlog.issue:manage': true,
       'backlog.sprint:manage': false,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': true,
@@ -100,10 +95,8 @@ const getDefaultRoleMatrix = (): Omit<ProjectRole, 'createdAt' | 'updatedAt'>[] 
     description: 'Interested party who needs to stay informed about project progress.',
     permissions: buildPermission({
       'backlog:manage': false,
-      'backlog:view': true,
       'backlog.issue:manage': false,
       'backlog.sprint:manage': false,
-      'kanban:view': true,
       'kanban:manage': false,
       'kanban.column:manage': false,
       'kanban.issue:manage': false,
@@ -261,10 +254,8 @@ export const ProjectPermission = (props: {
               description: '',
               permissions: buildPermission({
                 'backlog:manage': false,
-                'backlog:view': false,
                 'backlog.issue:manage': false,
                 'backlog.sprint:manage': false,
-                'kanban:view': false,
                 'kanban:manage': false,
                 'kanban.column:manage': false,
                 'kanban.issue:manage': false,

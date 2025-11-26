@@ -67,7 +67,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
         return renderHTML(html);
       }
 
-      const renderTextParts = (p: UIMessage['parts'][number], index: number): string => {
+      const renderTextParts = (p: UIMessage['parts'][number]): string => {
         if (!p) return '';
 
         if ('delta' in p && typeof p.delta === 'string') return p.delta;
@@ -85,7 +85,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
 
       // Safely handle parts array
       const parts = message.parts || [];
-      const texts = parts.map((part, index) => renderTextParts(part, index));
+      const texts = parts.map((part) => renderTextParts(part));
       const combinedText = texts.join('\n\n').trim();
 
       if (!combinedText.trim()) {

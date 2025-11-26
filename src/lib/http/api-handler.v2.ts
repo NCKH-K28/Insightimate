@@ -14,7 +14,7 @@ export type NextHandler<TParams = unknown> = (
 export type ApiContext<P> = { params: P };
 export type ApiRequest<Q = unknown, B = unknown, P = unknown> = NextRequest & {
   query: Q;
-  // _body: B;
+  _body?: B;
   params: P;
 };
 export type ApiHandler<TParams = unknown, TQuery = unknown, TBody = unknown> = (

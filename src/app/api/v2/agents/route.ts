@@ -1,21 +1,19 @@
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
-import { compose, Middleware } from '@/lib/http/api-compose';
 import { NextResponse } from 'next/server';
-import { ZAIAgentCreateInput, ZAIAgentListInput } from '@/contracts/agents';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
+import { compose } from '@/lib/http/api-compose';
+import { ZAIAgentCreateInput } from '@/contracts/agents/agents.input';
 import { aiAgentService } from '@/features/agents/server/services/agent.service';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
+import { ZAgentListInput } from '@/contracts/agents/agents.query';
 
-// authorize(authz, 'agent:create', 'workspace', (req) => {
-//   const input = get(req, 'parsedBody', null) as AIAgentCreateInput | null;
-//   if (!input) throw new Error('Parsed body not found');
-//   return { id: input.workspaceId as ResourceRef['id'], type: 'workspace' };
-// }),
+export const GET = compose(authenticatedV2, zodBodyPipe(ZAgentListInput), async (req) => {
+  const auth = await getAuthFromRequest(req);
+  const actorId = auth.user.id;
 
-export const GET = compose(authenticatedV2, async (req) => {
-  const input = ZAIAgentListInput.parse(req.query);
-  const result = await aiAgentService.list(input);
+  const input = await getZodBody(req, ZAgentListInput);
+  const result = await aiAgentService.list(input, { actorId });
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, { status: 200 });
 });
 
 export const POST = compose(authenticatedV2, zodBodyPipe(ZAIAgentCreateInput), async (req) => {
@@ -25,5 +23,5 @@ export const POST = compose(authenticatedV2, zodBodyPipe(ZAIAgentCreateInput), a
   const input = await getZodBody(req, ZAIAgentCreateInput);
   const result = await aiAgentService.create(input, { actorId });
 
-  return NextResponse.json(result);
+  return NextResponse.json(result, { status: 201 });
 });

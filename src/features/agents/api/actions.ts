@@ -1,157 +1,111 @@
-import { mutationOptions, queryOptions } from '@tanstack/react-query';
+// agents.actions.ts
+import { queryOptions, mutationOptions } from '@tanstack/react-query';
+import { agentKeys } from './keys';
 import { agentApi } from './http';
-import { AIAgentCreateInput, AnalysisCreateInput, DataSourceCreateInput } from '@/contracts/agents';
+import { AnalysisCreateInput, DataSourceCreateInput } from '@/contracts/agents/agents.input';
 
-// ============ Agents ============
-export const listAgentsQueryOptions = () => {
+// ---- Queries
+export const listAgentsQueryOptions = (params?: { workspaceId?: string }) => {
+  console.log('params', params);
   return queryOptions({
-    queryKey: ['agents'],
-    queryFn: agentApi.list,
-    select: ({ data }) => data,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    queryKey: agentKeys.list(),
+    queryFn: () => agentApi.list(), // <-- truyền AbortSignal
+    select: (r) => r.data,
+    staleTime: 5 * 60 * 1000,
+    gcTime: 30 * 60 * 1000,
   });
 };
-
-export const getAgentQueryOptions = (params: { agentId: string }) => {
-  return queryOptions({
-    queryKey: ['agent', params.agentId],
-    queryFn: () => agentApi.get({ agentId: params.agentId }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+export const getAgentQueryOptions = ({ agentId }: { agentId: string }) =>
+  queryOptions({
+    queryKey: agentKeys.detail(agentId),
+    queryFn: () => agentApi.get({ agentId }),
+    select: (r) => r.data,
+    staleTime: 5 * 60 * 1000,
   });
-};
 
-export const createAgentMutationOptions = () => {
+// ---- Mutations
+export const createAgentMutationOptions = () =>
+  mutationOptions({
+    mutationKey: ['agent', 'create'],
+    mutationFn: agentApi.create,
+    meta: { invalidateQueries: [agentKeys.list()] },
+  });
+
+export const updateAgentMutationOptions = ({ agentId }: { agentId: string }) => {
   return mutationOptions({
-    mutationFn: (data: AIAgentCreateInput) => agentApi.create(data),
-    meta: { invalidateQueries: [['agents']] },
-  });
-};
-
-export const deleteAgentMutationOptions = (params?: { agentId?: string }) => {
-  return mutationOptions({
-    mutationFn: (p?: { agentId?: string }) => {
-      const agentId = p?.agentId || params?.agentId;
-      if (!agentId) throw new Error('Agent ID is required for deletion');
-      return agentApi.delete({ agentId });
-    },
-    meta: { invalidateQueries: [['agent-sources'], ['agents', { workspaceId: params?.agentId }]] },
-  });
-};
-
-export const updateAgentMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
+    mutationKey: ['agent', 'update', agentId],
     mutationFn: (data: { name?: string; description?: string }) =>
-      agentApi.update({ agentId: params.agentId }, data),
-    meta: { invalidateQueries: [['agent', params.agentId]] },
+      agentApi.update({ agentId }, data),
+    meta: { invalidateQueries: [agentKeys.detail(agentId), agentKeys.list()] },
   });
 };
 
-// ============ Agent Sources ============
-export const listAgentSourcesQueryOptions = (params: { agentId: string }) => {
-  return queryOptions({
-    queryKey: ['agent-sources', params.agentId],
-    queryFn: async () => {
-      const res: any = await agentApi.sources.list({ agentId: params.agentId });
-      return res.data;
+export const deleteAgentMutationOptions = ({ agentId }: { agentId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent', 'delete', agentId],
+    mutationFn: () => agentApi.delete({ agentId }),
+    meta: { invalidateQueries: [agentKeys.list(), agentKeys.sources(agentId)] },
+  });
+
+// ---- Sources
+export const listAgentSourcesQueryOptions = ({ agentId }: { agentId: string }) =>
+  queryOptions({
+    queryKey: agentKeys.sources(agentId),
+    queryFn: () => agentApi.sources.list({ agentId }),
+    select: (r) => r.data,
+    staleTime: 5 * 60 * 1000,
+  });
+
+export const createSourceMutationOptions = ({ agentId }: { agentId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent-sources', 'create', agentId],
+    mutationFn: (data: DataSourceCreateInput) => agentApi.sources.create({ agentId }, data),
+    meta: { invalidateQueries: [agentKeys.sources(agentId)] },
+  });
+
+export const uploadSourceMutationOptions = ({ agentId }: { agentId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent-sources', 'upload', agentId],
+    mutationFn: async ({ file }: { file: File }) => {
+      const form = new FormData();
+      form.append('file', file);
+      // Không set Content-Type thủ công để browser tự thêm boundary
+      return agentApi.sources.upload({ agentId }, form);
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    meta: { invalidateQueries: [agentKeys.sources(agentId)] },
   });
-};
 
-export const createSourceMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
-    mutationFn: (data: DataSourceCreateInput) =>
-      agentApi.sources.create({ agentId: params.agentId }, data),
-    meta: { invalidateQueries: [['agent-sources', params.agentId]] },
+export const deleteSourceMutationOptions = (params: { agentId: string; sourceId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent-sources', 'delete', params.agentId, params.sourceId],
+    mutationFn: () => agentApi.sources.delete(params),
+    meta: { invalidateQueries: [agentKeys.sources(params.agentId)] },
   });
-};
 
-export const uploadSourceMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
-    mutationFn: async (data: { file: File }) => {
-      const formData = new FormData();
-      formData.append('file', data.file);
-      const res = await agentApi.sources.upload({ agentId: params.agentId }, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      return res;
-    },
-    meta: { invalidateQueries: [['agent-sources', params.agentId]] },
-  });
-};
-
-export const deleteSourceMutationOptions = (params: { agentId: string; sourceId?: string }) => {
-  return mutationOptions({
-    mutationFn: (data?: { sourceId?: string }) => {
-      const sourceId = data?.sourceId || params.sourceId;
-      if (!sourceId) throw new Error('Source ID is required for deletion');
-      return agentApi.sources.delete({ agentId: params.agentId, sourceId });
-    },
-    meta: { invalidateQueries: [['agent-sources', params.agentId]] },
-  });
-};
-
-export const updateSourceMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
-    mutationFn: (data: { sourceId: string; sourceType?: string }) =>
-      agentApi.sources.update(
-        { agentId: params.agentId, sourceId: data.sourceId },
-        { sourceType: data.sourceType },
-      ),
-    meta: { invalidateQueries: [['agent-sources', params.agentId]] },
-  });
-};
-
-// ============ Agent Analyses ============
-export const listAgentAnalysesQueryOptions = (params: { agentId: string }) => {
-  return queryOptions({
-    queryKey: ['agent-analyses', params.agentId],
-    queryFn: () => agentApi.analyses.list({ agentId: params.agentId }).then((res) => res.data),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+// ---- Analyses (polling động)
+export const listAgentAnalysesQueryOptions = ({ agentId }: { agentId: string }) =>
+  queryOptions({
+    queryKey: agentKeys.analyses(agentId),
+    queryFn: () => agentApi.analyses.list({ agentId }),
+    select: (r) => r.data,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
-    refetchInterval: 10 * 1000, // 10 seconds
+    // chỉ poll khi còn job RUNNING
+    refetchInterval: (data) =>
+      Array.isArray(data) && data.some((a) => a.status === 'RUNNING') ? 10_000 : false,
   });
-};
 
-export const getAgentAnalysisQueryOptions = (params: { agentId: string; analysisId: string }) => {
-  return queryOptions({
-    queryKey: ['agent-analysis', params.agentId, params.analysisId],
-    queryFn: () =>
-      agentApi.analyses.get({ agentId: params.agentId, analysisId: params.analysisId }),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+export const createAgentAnalysisMutationOptions = ({ agentId }: { agentId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent-analyses', 'create', agentId],
+    mutationFn: (data: AnalysisCreateInput) => agentApi.analyses.create({ agentId }, data),
+    meta: { invalidateQueries: [agentKeys.analyses(agentId)] },
   });
-};
 
-export const createAgentAnalysisMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
-    mutationFn: (data: AnalysisCreateInput) => {
-      return agentApi.analyses.create({ agentId: params.agentId }, data);
-    },
-    meta: { invalidateQueries: [['agent-analyses', params.agentId]] },
+export const deleteAgentAnalysisMutationOptions = ({ agentId }: { agentId: string }) =>
+  mutationOptions({
+    mutationKey: ['agent-analyses', 'delete', agentId],
+    mutationFn: ({ analysisId }: { analysisId: string }) =>
+      agentApi.analyses.delete({ agentId, analysisId }),
+    meta: { invalidateQueries: [agentKeys.analyses(agentId), agentKeys.sources(agentId)] },
   });
-};
-
-export const deleteAgentAnalysisMutationOptions = (params: {
-  agentId: string;
-  analysisId?: string;
-}) => {
-  return mutationOptions({
-    mutationFn: (data?: { analysisId?: string }) => {
-      const analysisId = data?.analysisId || params.analysisId;
-      if (!analysisId) throw new Error('Analysis ID is required for deletion');
-      return agentApi.analyses.delete({ agentId: params.agentId, analysisId });
-    },
-    meta: { invalidateQueries: [['agent-analyses', params.agentId]] },
-  });
-};
-
-export const updateAgentAnalysisMutationOptions = (params: { agentId: string }) => {
-  return mutationOptions({
-    mutationFn: (data: { analysisId: string; status?: string }) =>
-      agentApi.analyses.update(
-        { agentId: params.agentId, analysisId: data.analysisId },
-        { status: data.status },
-      ),
-    meta: { invalidateQueries: [['agent-analyses', params.agentId]] },
-  });
-};

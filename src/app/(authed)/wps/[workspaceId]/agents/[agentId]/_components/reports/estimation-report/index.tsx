@@ -409,7 +409,7 @@ export function EstimationReport({ data }: EstimationReportPageProps) {
             </CardHeader>
             <CardContent>
               <div className='space-y-3'>
-                {data.analysis.requirements.map((req, index) => (
+                {data.analysis.requirements.map((req) => (
                   <div key={req.id} className='border rounded-lg p-3'>
                     <div className='flex items-center gap-2 mb-2'>
                       {getRequirementIcon(req.type)}

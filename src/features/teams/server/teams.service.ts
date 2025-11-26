@@ -87,7 +87,7 @@ const getTeamById = async (
 };
 
 const deleteTeamById = async (teamId: string, context: TeamServiceContext) => {
-  const team = await getTeamById(teamId, context);
+  await getTeamById(teamId, context);
   // FIXME: missing check permission
   return prisma.$transaction(async (tx) => {
     const team = await tx.team.delete({ where: { id: teamId }, include: { members: true } });
@@ -98,7 +98,7 @@ const deleteTeamById = async (teamId: string, context: TeamServiceContext) => {
 };
 
 const updateTeam = async (input: TeamUpdateInput, context: TeamServiceContext) => {
-  const team = await getTeamById(input.id, context);
+  await getTeamById(input.id, context);
   // FIXME: missing check permission
 
   return prisma.$transaction(async (tx) => {

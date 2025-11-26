@@ -1,7 +1,7 @@
 import { createBoardSprintMutationOptions } from '@/features/boards/api/actions';
 import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
-import { ChevronRight, MoreHorizontal, PlusIcon } from 'lucide-react';
+import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
 import { CreateIssueButton } from '../buttons/create-issue-btn';
 import { cn } from '@/lib/utils/cn';
@@ -13,7 +13,7 @@ export type RowBacklogProps = {
   collapsed: boolean;
   toggle: () => void;
 };
-export const RowBacklog = ({ id, name, params, collapsed, toggle }: RowBacklogProps) => {
+export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) => {
   const createSprint = useMutation(createBoardSprintMutationOptions(params.boardId));
 
   const handleCreateSprint = () => {

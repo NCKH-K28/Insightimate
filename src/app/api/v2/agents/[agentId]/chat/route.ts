@@ -77,9 +77,14 @@ export const POST = middlewareHandler([authenticated], async (req) => {
       markdown: z.string().describe('Generated issues in markdown table format'),
     }),
     execute: async (input) => {
-      const result = await issueGenerator({ text: input.feature }, { actorId: 'system' });
-      const issuesMarkdown = issuesToMarkdown(result.data);
-      return { markdown: issuesMarkdown };
+      try {
+        const result = await issueGenerator({ text: input.feature }, { actorId: 'system' });
+        const issuesMarkdown = issuesToMarkdown(result.data);
+        return { markdown: issuesMarkdown };
+      } catch (error) {
+        console.error('Error in issue_generator tool:', error);
+        throw error;
+      }
     },
   });
 
@@ -92,7 +97,8 @@ export const POST = middlewareHandler([authenticated], async (req) => {
       const result = streamText({
         model: google('gemini-2.5-flash'),
         system: `
-        `,
+        'issueGeneratorTool' return table in markdown format
+        `.trim(),
         messages: convertToModelMessages(messages.slice(-8)),
         tools: {
           webSearch,

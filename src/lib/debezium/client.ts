@@ -1,18 +1,15 @@
 export const runtime = 'nodejs';
+import serverConfig from '@/configs/server';
 import axios from 'axios';
 
-const DEBEZIUM_HOST = process.env.DEBEZIUM_HOST || 'http://localhost:8083';
+const debeziumConfig = serverConfig.debezium;
 const debeziumAxios = axios.create({
-  baseURL: DEBEZIUM_HOST,
+  baseURL: debeziumConfig.apiURL,
   timeout: 50000,
   headers: { 'Content-Type': 'application/json' },
 });
 
-type DebeziumConfig = {
-  name: string;
-  config: Record<string, string>;
-};
-
+type DebeziumConfig = { name: string; config: Record<string, string> };
 const deleteConnector = async (name: string) => {
   await debeziumAxios.delete(`/connectors/${name}`);
 };

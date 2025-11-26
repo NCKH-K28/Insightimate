@@ -12,3 +12,4 @@ model Star {
   @@unique([userId, issueId]) // Một user chỉ star một issue 1 lần
   @@map("stars")
 }
+

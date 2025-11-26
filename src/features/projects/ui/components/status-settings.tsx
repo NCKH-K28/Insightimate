@@ -123,7 +123,7 @@ export const StatusSettings = (props: StatusSettingsProps) => {
   const { data: statusesResponse } = useQuery(
     listProjectStatusesQueryOptions({ projectId: props.projectId }),
   );
-  
+
   const statuses = useMemo(() => {
     if (!statusesResponse) return [];
     return (statusesResponse as any).items || [];
@@ -202,10 +202,13 @@ export const StatusSettings = (props: StatusSettingsProps) => {
     console.log('Added new status to category:', category);
   };
 
-  const statusesByCategory = categories.reduce((acc, category) => {
-    acc[category] = localStatuses.filter((status) => status.category === category);
-    return acc;
-  }, {} as Record<string, Status[]>);
+  const statusesByCategory = categories.reduce(
+    (acc, category) => {
+      acc[category] = localStatuses.filter((status) => status.category === category);
+      return acc;
+    },
+    {} as Record<string, Status[]>,
+  );
 
   return (
     <div className='p-6 bg-gray-100 min-h-screen'>

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-namespace */
+
 import Decimal from 'decimal.js';
 
 /** ===== TYPES AND INTERFACES ===== */

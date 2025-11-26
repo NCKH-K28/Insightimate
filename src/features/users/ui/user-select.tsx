@@ -108,7 +108,7 @@ export const UserSelect: React.FC<UserSelectProps> = ({
 
   // Determine if clearable/unassigned should be shown
   const showUnassignedOption = allowUnassigned || (!required && clearable);
-  const canClear = !required && (clearable || allowUnassigned);
+  // const canClear = !required && (clearable || allowUnassigned);
 
   // Get display text for a user
   const getDisplayText = (user: UserPublic): string => {
@@ -226,14 +226,14 @@ export const UserSelect: React.FC<UserSelectProps> = ({
     }
   };
 
-  // Handle clear
-  const handleClear = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (canClear) {
-      handleSelect(null);
-    }
-  };
+  // // Handle clear
+  // const handleClear = (e: React.MouseEvent) => {
+  //   e.preventDefault();
+  //   e.stopPropagation();
+  //   if (canClear) {
+  //     handleSelect(null);
+  //   }
+  // };
 
   // Get placeholder text
   const getPlaceholderText = () => {
@@ -464,7 +464,7 @@ export const UserSelect: React.FC<UserSelectProps> = ({
                       <CommandGroup>
                         <CommandItem onSelect={handleCreate}>
                           <Plus className='h-4 w-4 mr-2' />
-                          {createLabel} "{searchQuery}"
+                          {createLabel} &quot;{searchQuery}&quot;
                         </CommandItem>
                       </CommandGroup>
                     </>

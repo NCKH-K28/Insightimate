@@ -10,7 +10,6 @@ volumes:
   openfga_db_data:
   minio_data:
 
-
 services:
   postgres:
     image: pgvector/pgvector:pg17
@@ -24,9 +23,9 @@ services:
                -c max_replication_slots=10
                -c max_wal_senders=10
     ports:
-      - "5432:5432"
+      - '5432:5432'
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -40,14 +39,15 @@ services:
     image: ghcr.io/cerbos/cerbos:latest
     container_name: cerbos
     ports:
-      - "3592:3592" # HTTP (REST)
-      - "3593:3593" # gRPC
+      - '3592:3592' # HTTP (REST)
+      - '3593:3593' # gRPC
     volumes:
       - ./cerbos/policies:/policies:ro
       - ./cerbos/schemas:/schemas:ro
       - ./cerbos/config/cerbos.yaml:/cerbos.yaml:ro
     healthcheck:
-      test: [ "CMD", "/cerbos", "healthcheck", "--kind=http", "--host-port=127.0.0.1:3592", "--no-tls" ]
+      test:
+        ['CMD', '/cerbos', 'healthcheck', '--kind=http', '--host-port=127.0.0.1:3592', '--no-tls']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -56,12 +56,12 @@ services:
   openfga_db:
     image: postgres:17
     container_name: openfga_db
-    command: [ "postgres", "-c", "max_connections=100" ]
+    command: ['postgres', '-c', 'max_connections=100']
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      test: ['CMD-SHELL', 'pg_isready -U postgres']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -79,7 +79,7 @@ services:
       - OPENFGA_DATASTORE_ENGINE=postgres
       - OPENFGA_DATASTORE_URI=postgres://postgres:password@openfga_db:5432/postgres?sslmode=disable
     command: migrate
-    restart: "no"
+    restart: 'no'
 
   openfga:
     image: openfga/openfga:latest
@@ -95,12 +95,12 @@ services:
       - OPENFGA_PLAYGROUND_ENABLED=true
       - OPENFGA_PLAYGROUND_PORT=3333
     ports:
-      - "8080:8080" # http
+      - '8080:8080' # http
       # - "8081:8081" # grpc (không cần publish ra host cho healthcheck nội bộ)
       # - "3333:3333" # playground
       # Nếu image có grpc_health_probe thì dùng block dưới; nếu không, chuyển sang HTTP healthcheck
     healthcheck:
-      test: [ "CMD", "/usr/local/bin/grpc_health_probe", "-addr=localhost:8081" ]
+      test: ['CMD', '/usr/local/bin/grpc_health_probe', '-addr=localhost:8081']
       interval: 5s
       timeout: 30s
       retries: 3
@@ -120,13 +120,13 @@ services:
       - MINIO_ROOT_USER=minioadmin
       - MINIO_ROOT_PASSWORD=minioadmin
     ports:
-      - "9000:9000" # API
-      - "9001:9001" # Console
+      - '9000:9000' # API
+      - '9001:9001' # Console
     volumes:
       - minio_data:/data
     # Lưu ý: nếu image không có curl/wget, healthcheck này sẽ fail
     healthcheck:
-      test: [ "CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1" ]
+      test: ['CMD-SHELL', 'curl -sf http://localhost:9000/minio/health/live || exit 1']
       interval: 30s
       timeout: 20s
       retries: 3

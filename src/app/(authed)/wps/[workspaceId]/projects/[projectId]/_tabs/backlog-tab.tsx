@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+
 import {
   getBoardIssueFacetsQueryOptions,
   getBoardQueryOptions,
@@ -23,7 +25,7 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
   const boardId = params.boardId;
   const { data: board } = useQuery(getBoardQueryOptions(boardId));
   const { data: issues } = useQuery(
-    listBoardIssuesQueryOptions(boardId, { params: { filter: { type: 'SCRUM' } } }),
+    listBoardIssuesQueryOptions(boardId, { filter: { type: 'SCRUM' } }),
   );
 
   const { data: issueFacets } = useQuery(getBoardIssueFacetsQueryOptions(boardId));
@@ -89,7 +91,7 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
     getFilteredRowModel: getFilteredRowModel(),
   });
 
-  const tableRows = useMemo(() => table.getRowModel().rows, [table.getRowModel().rows]);
+  const tableRows = table.getRowModel().rows;
 
   const filtered = useMemo(() => {
     return tableRows.map((row) => row.original);

@@ -7,6 +7,7 @@ import { ProjectActions } from '@/features/projects/ui/components/project-action
 
 const ProjectHeader = () => {
   const params = useParams<{ projectId: string }>();
+  if (!params) throw new Error('ProjectHeader must be used within a route with projectId param');
 
   const { data: project } = useSuspenseQuery(fetchProjectQueryOptions(params));
 

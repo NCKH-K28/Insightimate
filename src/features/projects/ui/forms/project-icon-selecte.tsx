@@ -2,9 +2,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import {
   Dialog,
-  DialogClose,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -68,7 +66,7 @@ export const ProjectIconSelect = ({
         className='rounded-lg object-cover'
       />
     );
-  }, [icon]);
+  }, [icon, sizeValue]);
 
   return (
     <Dialog>

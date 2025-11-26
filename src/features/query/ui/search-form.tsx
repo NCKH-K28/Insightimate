@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -7,6 +9,7 @@ import { Loader2, Search, FileText, Folder, Target, Bug, ExternalLink } from 'lu
 import debounce from 'lodash/debounce';
 import React from 'react';
 import get from 'lodash/get';
+import Image from 'next/image';
 
 const getTypeIcon = (type: string) => {
   switch (type) {
@@ -38,8 +41,8 @@ const getTypeBadgeColor = (type: string) => {
   }
 };
 
-type SearchFormProps = { onSelect?: (item: any) => void };
-export const SearchForm = (props: SearchFormProps) => {
+// type SearchFormProps = { onSelect?: (item: any) => void };
+export const SearchForm = () => {
   const [q, setQ] = React.useState('');
   const [inputValue, setInputValue] = React.useState('');
 
@@ -141,7 +144,7 @@ export const SearchForm = (props: SearchFormProps) => {
                       {qTrimmed && (
                         <>
                           {' '}
-                          for "<span className='font-medium'>{qTrimmed}</span>"
+                          for &ldquo;<span className='font-medium'>{qTrimmed}</span>&rdquo;
                         </>
                       )}
                     </>
@@ -173,7 +176,7 @@ export const SearchForm = (props: SearchFormProps) => {
                     {/* Icon */}
                     <div className='mt-0.5 flex-shrink-0'>
                       {iconURL ? (
-                        <img src={iconURL} alt='' className='w-5 h-5 rounded object-cover' />
+                        <Image src={iconURL} alt='icon' className='w-5 h-5 rounded object-cover' />
                       ) : (
                         getTypeIcon(type)
                       )}

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import React, { useCallback, useState, useEffect, useMemo } from 'react';
 import {
   DndContext,
@@ -214,9 +215,7 @@ const useScrumBoard = ({ rows, onRowsChange, autoExpandOnHoverMs = 500 }: ScrumB
   const currentRows = isControlled ? rows : internalRows;
 
   useEffect(() => {
-    if (!isControlled) {
-      setInternalRows(rows);
-    }
+    if (!isControlled) setInternalRows(rows);
     validateIds(rows);
   }, [rows, isControlled]);
 
@@ -309,7 +308,7 @@ const useScrumBoard = ({ rows, onRowsChange, autoExpandOnHoverMs = 500 }: ScrumB
   );
 
   const onDragStart = useCallback(
-    (event: DragStartEvent) => {
+    (_event: DragStartEvent) => {
       // Clear all expand timers when starting a drag
       expandTimers.forEach((timer) => clearTimeout(timer));
       setExpandTimers(new Map());
@@ -510,7 +509,7 @@ const ScrumItem = React.memo((props: ScrumItemProps & { rowId: string }) => {
     data: { type: 'item', rowId },
   });
 
-  const isActive = dndContext.active?.id === id;
+  // const isActive = dndContext.active?.id === id;
   const isKeyboardDragging =
     dndContext.active?.id === id && dndContext.activatorEvent?.type === 'keydown';
 
@@ -558,7 +557,7 @@ const ScrumRow = React.memo((props: ScrumRowProps) => {
     disabled: !collapsed,
   });
 
-  const isActive = dndContext.active?.id === id;
+  // const isActive = dndContext.active?.id === id;
   const activeType = dndContext.active?.data.current?.type;
   const isKeyboardDragging =
     dndContext.active?.id === id && dndContext.activatorEvent?.type === 'keydown';
