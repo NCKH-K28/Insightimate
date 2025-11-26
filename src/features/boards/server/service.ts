@@ -89,6 +89,7 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: 
         id: genIssueId(),
         key: `${pKey}-${issueCounter}`,
         projectId,
+        parentId: restInput.parentId, // FIXME: kiểm tra quyền
         typeId: type.id,
         priorityId: priority.id,
         resolutionId: resolution?.id,
@@ -184,8 +185,7 @@ const listIssues = async (
   }
 
   if (query.filter?.parentId) {
-    // FIXME: lodash merge issue
-    // merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
+    merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
   }
 
   const includeOptions = buildIncludeOptions({ boardId: b.id }, query, context);

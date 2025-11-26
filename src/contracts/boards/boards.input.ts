@@ -9,6 +9,7 @@ export const ZBoardIssueCreateInput = z.object({
   resolutionId: z.string().optional(),
   reporterId: z.string().optional(),
   assigneeId: z.string().optional().nullable(),
+  parentId: z.string().optional().nullable(),
 
   dueDate: z.iso.date().optional().nullable(),
   startDate: z.iso.date().optional().nullable(),
