@@ -48,7 +48,17 @@ export default function CommentInput({ issueId, parentId, onSuccess }: CommentIn
 
       if (parentId) bodyToSend.parentId = parentId;
 
-      const response = await fetch(`/api/v2/issues/${issueId}/comments`, {
+      // Chọn endpoint dựa trên có parentId hay không
+      const endpoint = parentId 
+        ? `/api/v2/issues/${issueId}/comments/${parentId}` // Tạo reply
+        : `/api/v2/issues/${issueId}/comments`;            // Tạo comment gốc
+
+      console.log('📤 Sending to endpoint:', endpoint, { 
+        isReply: !!parentId,
+        body: bodyToSend 
+      });
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(bodyToSend),

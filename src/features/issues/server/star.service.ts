@@ -55,7 +55,21 @@ export const starService = {
       where: { userId },
       include: {
         issue: {
-          select: { id: true, key: true, summary: true, projectId: true },
+          select: { 
+            id: true, 
+            key: true, 
+            summary: true, 
+            projectId: true,
+            status: {
+              select: { name: true }
+            },
+            priority: {
+              select: { name: true }
+            },
+            assignee: {
+              select: { id: true, name: true, avatar: true }
+            }
+          },
         },
       },
     });

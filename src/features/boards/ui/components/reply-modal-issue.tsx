@@ -1,6 +1,14 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { MoreHorizontal, Edit, Trash2 } from 'lucide-react';
 import CommentInput from './comment-input-issue';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface Comment {
   id: string;
@@ -17,7 +25,9 @@ interface ReplyModalProps {
   onClose: () => void;
   parentComment: Comment | null;
   replies: Comment[];
-  onReplyAdded: (newReply: Comment) => void;   // ⭐ callback khi thêm reply
+  onReplyAdded: (newReply: Comment) => void;
+  onReplyUpdated?: (replyId: string, newContent: string) => void;
+  onReplyDeleted?: (replyId: string) => void;
 }
 
 export default function ReplyModal({
@@ -25,12 +35,99 @@ export default function ReplyModal({
   onClose,
   parentComment,
   replies,
-  onReplyAdded,   // ⭐ Bạn QUÊN destructure → tôi thêm vào đây
+  onReplyAdded,
+  onReplyUpdated,
+  onReplyDeleted,
 }: ReplyModalProps) {
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [editingReplyId, setEditingReplyId] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
+
+  // Lấy current user
+  useEffect(() => {
+    const fetchCurrentUser = async () => {
+      try {
+        const response = await fetch('/api/v2/auth/me');
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUserId(data.id);
+        }
+      } catch (error) {
+        console.error('Error fetching current user:', error);
+      }
+    };
+    fetchCurrentUser();
+  }, []);
 
   if (!isOpen || !parentComment) return null;
 
   const issueId = parentComment.issueId;
+
+  // Helper function để clean HTML content
+  const cleanHtmlContent = (htmlContent: string) => {
+    if (!htmlContent) return '';
+    
+    // Loại bỏ các thẻ p trống
+    const cleaned = htmlContent
+      .replace(/<p><\/p>/g, '') // Loại bỏ <p></p>
+      .replace(/<p>\s*<\/p>/g, '') // Loại bỏ <p> </p> (có space)
+      .replace(/<p><br><\/p>/g, '') // Loại bỏ <p><br></p>
+      .replace(/<p>&nbsp;<\/p>/g, '') // Loại bỏ <p>&nbsp;</p>
+      .trim();
+    
+    return cleaned;
+  };
+
+  // Handler functions
+  const handleEditReply = (reply: Comment) => {
+    setEditingReplyId(reply.id);
+    setEditContent(reply.content);
+  };
+
+  const handleSaveEdit = async (replyId: string) => {
+    try {
+      const response = await fetch(`/api/v2/issues/${issueId}/comments/${replyId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-user-id': currentUserId || ''
+        },
+        body: JSON.stringify({ content: editContent }),
+      });
+
+      if (response.ok) {
+        onReplyUpdated?.(replyId, editContent);
+        setEditingReplyId(null);
+        setEditContent('');
+      }
+    } catch (error) {
+      console.error('Error updating reply:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingReplyId(null);
+    setEditContent('');
+  };
+
+  const handleDeleteReply = async (replyId: string) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa reply này?')) return;
+
+    try {
+      const response = await fetch(`/api/v2/issues/${issueId}/comments/${replyId}`, {
+        method: 'DELETE',
+        headers: {
+          'x-user-id': currentUserId || ''
+        },
+      });
+
+      if (response.ok) {
+        onReplyDeleted?.(replyId);
+      }
+    } catch (error) {
+      console.error('Error deleting reply:', error);
+    }
+  };
 
   return (
     <div className='fixed inset-0 bg-gray-500/30 flex items-center justify-center z-50'>
@@ -47,7 +144,7 @@ export default function ReplyModal({
 
           <div
             className='text-gray-800 text-sm'
-            dangerouslySetInnerHTML={{ __html: parentComment.content }}
+            dangerouslySetInnerHTML={{ __html: cleanHtmlContent(parentComment.content) }}
           />
 
           <p className='text-xs text-gray-400 mt-1'>
@@ -68,14 +165,67 @@ export default function ReplyModal({
                   <p className='font-semibold text-sm'>{r.userName}</p>
                 </div>
 
-                <div
-                  className='text-gray-700 text-sm'
-                  dangerouslySetInnerHTML={{ __html: r.content }}
-                />
+                {editingReplyId === r.id ? (
+                  <div className='space-y-2'>
+                    <textarea
+                      value={editContent}
+                      onChange={(e) => setEditContent(e.target.value)}
+                      className='w-full p-2 border rounded-lg text-sm'
+                      rows={3}
+                    />
+                    <div className='flex gap-2'>
+                      <button
+                        onClick={() => handleSaveEdit(r.id)}
+                        className='px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600'
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className='px-3 py-1 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600'
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className='text-gray-700 text-sm'
+                    dangerouslySetInnerHTML={{ __html: cleanHtmlContent(r.content) }}
+                  />
+                )}
 
-                <p className='text-xs text-gray-400 mt-1'>
-                  {new Date(r.createdAt).toLocaleString('vi-VN')}
-                </p>
+                <div className='flex items-center justify-between mt-2'>
+                  <p className='text-xs text-gray-400'>
+                    {new Date(r.createdAt).toLocaleString('vi-VN')}
+                  </p>
+
+                  {currentUserId === r.userId && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button className='p-1 hover:bg-gray-100 rounded-full transition'>
+                          <MoreHorizontal size={16} />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align='end'>
+                        <DropdownMenuItem
+                          onClick={() => handleEditReply(r)}
+                          className='cursor-pointer'
+                        >
+                          <Edit size={14} className='mr-2' />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => handleDeleteReply(r.id)}
+                          className='cursor-pointer text-red-600 hover:text-red-700'
+                        >
+                          <Trash2 size={14} className='mr-2' />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
               </div>
             ))}
         </div>
@@ -93,7 +243,7 @@ export default function ReplyModal({
             className='px-3 py-1 text-sm rounded-lg bg-gray-200 hover:bg-gray-300'
             onClick={onClose}
           >
-            Đóng
+            Close 
           </button>
         </div>
       </div>

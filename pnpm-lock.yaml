@@ -338,6 +338,9 @@ importers:
       fp-ts:
         specifier: ^2.16.11
         version: 2.16.11
+      framer-motion:
+        specifier: ^12.23.24
+        version: 12.23.24(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
@@ -582,8 +585,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai-compatible@2.0.0-beta.34':
-    resolution: {integrity: sha512-Y/9K6p4fRNq+3aoeIzs/x3136pJSpKoRavmIRsJlprIXJ7H/gkd5fX4iBKA5de1mo8l+LfwBeoPhjMnTyUCHvQ==}
+  '@ai-sdk/openai-compatible@2.0.0-beta.35':
+    resolution: {integrity: sha512-JvDNUwmt/csGu5Obfa4Fbbfo9EYMU3cW2tkevD5SeqALg8YVG0Mo+rXXmAPNLM1tpG0ltMF1v4ZMnS9Tb5PBbQ==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
@@ -600,8 +603,8 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/provider-utils@4.0.0-beta.33':
-    resolution: {integrity: sha512-8UnWOiWP5Fm0X+tU0ne4X3OnbDq5mMMxympHcW5VjVmx+Mc1TgD8KGPl0XsS9l3f61qPSVn1vZC3FthRnTlvhA==}
+  '@ai-sdk/provider-utils@4.0.0-beta.34':
+    resolution: {integrity: sha512-GxLNX8xZlf2BPJaXsR39ignBVfHthBsXVqRN+S7iCx503IdJXi+mrgWQElBRbpqHucOR+3CQ6CIk8SDaCeGb/A==}
     engines: {node: '>=18'}
     peerDependencies:
       '@valibot/to-json-schema': ^1.3.0
@@ -620,8 +623,8 @@ packages:
     resolution: {integrity: sha512-6o7Y2SeO9vFKB8lArHXehNuusnpddKPk7xqL7T2/b+OvXMRIXUO1rR4wcv1hAFUAT9avGZshty3Wlua/XA7TvA==}
     engines: {node: '>=18'}
 
-  '@ai-sdk/provider@3.0.0-beta.16':
-    resolution: {integrity: sha512-R62Z0fziX467Eu6MtVhkmHm0VFtJrq4vPGo8w4mcc4LhSPncHwn+b9yoyxv3f2pkWyUAhPR4ttgWyZoFG/lXIA==}
+  '@ai-sdk/provider@3.0.0-beta.17':
+    resolution: {integrity: sha512-1Jek+B4W/8KV48Lcsnl7QBXD22fmwDISz//JRGtPRjexrwr2bSeFJ3yqWpvQo6CYttac9GYf3MTiho4iSl+V2A==}
     engines: {node: '>=18'}
 
   '@ai-sdk/react@2.0.89':
@@ -5053,6 +5056,20 @@ packages:
   fp-ts@2.16.11:
     resolution: {integrity: sha512-LaI+KaX2NFkfn1ZGHoKCmcfv7yrZsC3b8NtWsTVQeHkq4F27vI5igUuO53sxqDEa2gNQMHFPmpojDw/1zmUK7w==}
 
+  framer-motion@12.23.24:
+    resolution: {integrity: sha512-HMi5HRoRCTou+3fb3h9oTLyJGBxHfW+HnNE25tAXOvVx/IvwMHK0cx7IR4a2ZU6sh3IX1Z+4ts32PcYBOqka8w==}
+    peerDependencies:
+      '@emotion/is-prop-valid': '*'
+      react: ^18.0.0 || ^19.0.0
+      react-dom: ^18.0.0 || ^19.0.0
+    peerDependenciesMeta:
+      '@emotion/is-prop-valid':
+        optional: true
+      react:
+        optional: true
+      react-dom:
+        optional: true
+
   fresh@2.0.0:
     resolution: {integrity: sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==}
     engines: {node: '>= 0.8'}
@@ -5798,6 +5815,12 @@ packages:
 
   module-details-from-path@1.0.4:
     resolution: {integrity: sha512-EGWKgxALGMgzvxYF1UyGTy0HXX/2vHLkw6+NvDKW2jypWbHpjQuj4UMcqQWXHERJhVGKikolT06G3bcKe4fi7w==}
+
+  motion-dom@12.23.23:
+    resolution: {integrity: sha512-n5yolOs0TQQBRUFImrRfs/+6X4p3Q4n1dUEqt/H58Vx7OW6RF+foWEgmTVDhIWJIMXOuNNL0apKH2S16en9eiA==}
+
+  motion-utils@12.23.6:
+    resolution: {integrity: sha512-eAWoPgr4eFEOFfg2WjIsMoqJTW6Z8MTUCgn/GZ3VRpClWBdnbjryiA3ZSNLyxCTmCQx4RmYX6jX1iWHbenUPNQ==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -7295,10 +7318,10 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.16(zod@4.1.12)
       zod: 4.1.12
 
-  '@ai-sdk/openai-compatible@2.0.0-beta.34(effect@3.18.4)(zod@4.1.12)':
+  '@ai-sdk/openai-compatible@2.0.0-beta.35(effect@3.18.4)(zod@4.1.12)':
     dependencies:
-      '@ai-sdk/provider': 3.0.0-beta.16
-      '@ai-sdk/provider-utils': 4.0.0-beta.33(effect@3.18.4)(zod@4.1.12)
+      '@ai-sdk/provider': 3.0.0-beta.17
+      '@ai-sdk/provider-utils': 4.0.0-beta.34(effect@3.18.4)(zod@4.1.12)
       zod: 4.1.12
     transitivePeerDependencies:
       - '@valibot/to-json-schema'
@@ -7318,9 +7341,9 @@ snapshots:
       eventsource-parser: 3.0.6
       zod: 4.1.12
 
-  '@ai-sdk/provider-utils@4.0.0-beta.33(effect@3.18.4)(zod@4.1.12)':
+  '@ai-sdk/provider-utils@4.0.0-beta.34(effect@3.18.4)(zod@4.1.12)':
     dependencies:
-      '@ai-sdk/provider': 3.0.0-beta.16
+      '@ai-sdk/provider': 3.0.0-beta.17
       '@standard-schema/spec': 1.0.0
       eventsource-parser: 3.0.6
       zod: 4.1.12
@@ -7331,7 +7354,7 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
-  '@ai-sdk/provider@3.0.0-beta.16':
+  '@ai-sdk/provider@3.0.0-beta.17':
     dependencies:
       json-schema: 0.4.0
 
@@ -8235,9 +8258,9 @@ snapshots:
 
   '@github/models@0.0.1-beta.2(effect@3.18.4)(zod@4.1.12)':
     dependencies:
-      '@ai-sdk/openai-compatible': 2.0.0-beta.34(effect@3.18.4)(zod@4.1.12)
-      '@ai-sdk/provider': 3.0.0-beta.16
-      '@ai-sdk/provider-utils': 4.0.0-beta.33(effect@3.18.4)(zod@4.1.12)
+      '@ai-sdk/openai-compatible': 2.0.0-beta.35(effect@3.18.4)(zod@4.1.12)
+      '@ai-sdk/provider': 3.0.0-beta.17
+      '@ai-sdk/provider-utils': 4.0.0-beta.34(effect@3.18.4)(zod@4.1.12)
     transitivePeerDependencies:
       - '@valibot/to-json-schema'
       - arktype
@@ -11707,7 +11730,7 @@ snapshots:
   camel-case@4.1.2:
     dependencies:
       pascal-case: 3.1.2
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   caniuse-lite@1.0.30001754: {}
 
@@ -11716,7 +11739,7 @@ snapshots:
   capital-case@1.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
       upper-case-first: 2.0.2
 
   chai@5.3.3:
@@ -11754,7 +11777,7 @@ snapshots:
       path-case: 3.0.4
       sentence-case: 3.0.4
       snake-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   check-error@2.1.1: {}
 
@@ -11864,7 +11887,7 @@ snapshots:
   constant-case@3.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
       upper-case: 2.0.2
 
   content-disposition@1.0.0:
@@ -12096,7 +12119,7 @@ snapshots:
   dot-case@3.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   dotenv@16.6.1: {}
 
@@ -12689,6 +12712,15 @@ snapshots:
 
   fp-ts@2.16.11: {}
 
+  framer-motion@12.23.24(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      motion-dom: 12.23.23
+      motion-utils: 12.23.6
+      tslib: 2.8.1
+    optionalDependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
+
   fresh@2.0.0:
     optional: true
 
@@ -12829,7 +12861,7 @@ snapshots:
   header-case@2.0.4:
     dependencies:
       capital-case: 1.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   highlight.js@11.11.1: {}
 
@@ -13308,7 +13340,7 @@ snapshots:
 
   lower-case@2.0.2:
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   lowlight@3.3.0:
     dependencies:
@@ -13398,6 +13430,12 @@ snapshots:
 
   module-details-from-path@1.0.4: {}
 
+  motion-dom@12.23.23:
+    dependencies:
+      motion-utils: 12.23.6
+
+  motion-utils@12.23.6: {}
+
   ms@2.1.3: {}
 
   nano-css@5.6.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
@@ -13474,7 +13512,7 @@ snapshots:
   no-case@3.0.4:
     dependencies:
       lower-case: 2.0.2
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   node-addon-api@7.1.1:
     optional: true
@@ -13622,7 +13660,7 @@ snapshots:
   param-case@3.0.4:
     dependencies:
       dot-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   parchment@3.0.0: {}
 
@@ -13636,12 +13674,12 @@ snapshots:
   pascal-case@3.1.2:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   path-case@3.0.4:
     dependencies:
       dot-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   path-exists@4.0.0: {}
 
@@ -14322,7 +14360,7 @@ snapshots:
   sentence-case@3.0.4:
     dependencies:
       no-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
       upper-case-first: 2.0.2
 
   serialize-error-cjs@0.1.4: {}
@@ -14441,7 +14479,7 @@ snapshots:
   snake-case@3.0.4:
     dependencies:
       dot-case: 3.0.4
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   socket.io-adapter@2.5.5:
     dependencies:
@@ -14833,11 +14871,11 @@ snapshots:
 
   upper-case-first@2.0.2:
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   upper-case@2.0.2:
     dependencies:
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   uri-js@4.4.1:
     dependencies:

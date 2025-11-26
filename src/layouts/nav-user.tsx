@@ -31,7 +31,7 @@ export function NavUser() {
 
   const handleLogout = () => {
     logout.mutateAsync().then(() => {
-      router.push('/signin');
+      router.push('/landing');
     });
   };
 
