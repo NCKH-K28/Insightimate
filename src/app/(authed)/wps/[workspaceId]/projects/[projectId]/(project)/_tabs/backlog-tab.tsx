@@ -13,11 +13,11 @@ import {
   useReactTable,
 } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
-import { ColumnFilter, DataTableToolbar } from '@/components/table';
-import { useIssuesToScrumRows } from '@/features/boards/hooks';
-import { ScrumBoard } from '@/features/boards/ui/components';
-import { issueColumns } from '@/features/boards/ui/tables/issue-column';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ColumnFilter } from '@/components/table';
+import { useIssuesToScrumRows } from '@/features/boards/hooks';
+import { issueColumns } from '@/features/boards/ui/tables/issue-column';
+import BoardLayout from './board-layout';
 
 const BacklogSkeleton = () => {
   return (
@@ -39,7 +39,9 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
   const boardId = params.boardId;
   const { data: board } = useQuery(getBoardQueryOptions(boardId));
   const { data: issues, isPending } = useQuery(
-    listBoardIssuesQueryOptions(boardId, { filter: { type: 'SCRUM' } }),
+    listBoardIssuesQueryOptions(boardId, {
+      filter: { type: 'SCRUM', issueType: { hierarchy: 1 } },
+    }),
   );
 
   const { data: issueFacets } = useQuery(getBoardIssueFacetsQueryOptions(boardId));
@@ -115,14 +117,7 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
 
   if (isPending) return <BacklogSkeleton />;
 
-  return (
-    <div className='w-full'>
-      <div className='w-full px-4 py-2'>
-        <DataTableToolbar table={table} config={tableConfig} />
-      </div>
-      <ScrumBoard rows={rows} />
-    </div>
-  );
+  return <BoardLayout table={table} tableConfig={tableConfig} rows={rows} params={params} />;
 };
 
 export default BacklogTab;

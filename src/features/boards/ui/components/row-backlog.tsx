@@ -46,7 +46,15 @@ export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) =
         <Button variant='outline' size='sm' onClick={handleCreateSprint}>
           Create Sprint
         </Button>
-        <CreateIssueButton params={params} />
+        <CreateIssueButton
+          params={params}
+          typeRequired={true}
+          typeFilterFn={(t) => t.hierarchy == 1}
+          typeFetched={(types, setType) => {
+            const defaultType = types.find((t) => t.hierarchy === 1);
+            if (defaultType) setType(defaultType.id);
+          }}
+        />
         <Button variant='ghost' size='sm' disabled>
           <MoreHorizontal />
         </Button>

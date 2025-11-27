@@ -15,14 +15,25 @@ import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { boardApi } from '@/features/boards/api/http';
 import { CreateIssueForm } from '../forms/create-issue-form';
+import { IssueType } from '../selectors/issue-type-selectors';
 
 type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 
 type CreateIssueButtonProps = {
   params: { projectId: string; boardId: string; sprintId?: string };
   btnLabel?: string;
+
+  typeRequired?: boolean;
+  typeFilterFn?: (type: IssueType, types: IssueType[]) => boolean;
+  typeFetched?: (types: IssueType[], setValue: (value: string | null) => void) => void;
 };
-export const CreateIssueButton = ({ params, btnLabel }: CreateIssueButtonProps) => {
+export const CreateIssueButton = ({
+  params,
+  btnLabel,
+  typeRequired,
+  typeFilterFn,
+  typeFetched,
+}: CreateIssueButtonProps) => {
   const [open, setOpen] = React.useState(false);
 
   const queryClient = useQueryClient();
@@ -61,6 +72,9 @@ export const CreateIssueButton = ({ params, btnLabel }: CreateIssueButtonProps) 
             });
             await fetching.unwrap();
           }}
+          typeRequired={typeRequired}
+          typeFilterFn={typeFilterFn}
+          typeFetched={typeFetched}
         />
       </DialogContent>
     </Dialog>

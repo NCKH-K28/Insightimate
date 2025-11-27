@@ -13,12 +13,10 @@ export const ZIssueField = z.object({
 });
 
 export const statusCategoryEnum = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
-export const typeCategoryEnum = ['EPIC', 'STORY', 'TASK', 'BUG', 'SUB_TASK'] as const;
 export const statusCategorySchema = z.enum(statusCategoryEnum);
-export const typeCategorySchema = z.enum(typeCategoryEnum);
 
 export const ZIssueStatus = ZIssueField.extend({ category: statusCategorySchema });
-export const ZIssueType = ZIssueField.extend({ category: typeCategorySchema });
+export const ZIssueType = ZIssueField.extend({ hierarchy: z.number() });
 export const ZIssuePriority = ZIssueField;
 export const ZIssueResolution = ZIssueField;
 

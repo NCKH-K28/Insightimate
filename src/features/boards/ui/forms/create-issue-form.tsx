@@ -20,30 +20,50 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { cn } from '@/lib/utils';
 
 import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { IssueDateSelectors } from '../selectors/issue-date-selectors';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
-import { cn } from '@/lib/utils';
+import { IssueType, IssueTypeSelectors } from '../selectors/issue-type-selectors';
 
 const ZFormData = ZBoardIssueCreateInput;
 type FormData = z.infer<typeof ZFormData>;
 
 export type CreateIssueFormProps = {
   params: { projectId: string };
+  defaultValues?: Partial<FormData>;
   onCancel?: () => void;
   onSubmit?: (data: FormData) => void | Promise<void>;
+
+  typeRequired?: boolean;
+  typeFilterFn?: (type: IssueType, types: IssueType[]) => boolean;
+  typeFetched?: (types: IssueType[], setValue: (value: string | null) => void) => void;
 };
 
-export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormProps) => {
-  const [typeSelected, setTypeSelected] = React.useState<IssueFieldOption | null>(null);
+export const CreateIssueForm = ({
+  params,
+  onCancel,
+  onSubmit,
+  defaultValues,
+
+  typeRequired,
+  typeFilterFn,
+  typeFetched,
+}: CreateIssueFormProps) => {
   const [prioritySelected, setPrioritySelected] = React.useState<IssueFieldOption | null>(null);
 
   const form = useForm({
     mode: 'onChange',
     resolver: zodResolver(ZFormData),
-    defaultValues: { summary: '', description: '', dueDate: null, startDate: null },
+    defaultValues: {
+      summary: '',
+      description: '',
+      dueDate: null,
+      startDate: null,
+      ...defaultValues,
+    },
   });
 
   const { isSubmitting, isValid, isDirty, errors } = form.formState;
@@ -57,16 +77,15 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
 
   const handleCancel = () => {
     form.reset();
-    setTypeSelected(null);
     setPrioritySelected(null);
     onCancel?.();
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className='space-y-2'>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-2'>
         {/* Main Content Section */}
-        <Card className='p-2 space-y-2 border-dashed'>
+        <Card className='p-2 gap-2 border-dashed'>
           <div className='flex items-center gap-2 text-sm font-medium text-muted-foreground'>
             <FileText className='size-4' />
             <span>Basic Information</span>
@@ -142,7 +161,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
         </Card>
 
         {/* Metadata Section */}
-        <Card className='p-2 space-y-2'>
+        <Card className='p-2 gap-2'>
           <div className='flex items-center gap-2 text-sm font-medium text-muted-foreground'>
             <Settings2 className='h-4 w-4' />
             <span>Issue Configuration</span>
@@ -153,22 +172,21 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
               control={form.control}
               name='typeId'
               render={({ field }) => (
-                <FormItem className='space-y-2'>
+                <FormItem className='gap-2'>
                   <FormLabel className='text-sm font-medium flex items-center gap-2'>
                     Type
-                    {typeSelected && <CheckCircle2 className='h-3. 5 w-3.5 text-green-500' />}
+                    {field.value && <CheckCircle2 className='h-3.5 w-3.5 text-green-500' />}
                   </FormLabel>
                   <FormControl>
-                    <IssueFieldSelectors
-                      value={typeSelected}
+                    <IssueTypeSelectors
+                      params={params}
+                      value={field.value}
                       onChange={(value) => {
-                        setTypeSelected(value);
-                        field.onChange(value?.value);
+                        field.onChange(value);
                       }}
-                      fetchQueryOptions={() => ({
-                        ...getProjectQueryOptions(params),
-                        select: (res) => res.types,
-                      })}
+                      required={typeRequired}
+                      filterFn={typeFilterFn}
+                      onFetched={typeFetched}
                     />
                   </FormControl>
                   <FormMessage />
@@ -180,7 +198,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
               control={form.control}
               name='priorityId'
               render={({ field }) => (
-                <FormItem className='space-y-2'>
+                <FormItem className='gap-2'>
                   <FormLabel className='text-sm font-medium flex items-center gap-2'>
                     Priority
                     {prioritySelected && <CheckCircle2 className='h-3. 5 w-3.5 text-green-500' />}
@@ -206,7 +224,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
         </Card>
 
         {/* Dates Section */}
-        <Card className='p-2 space-y-2'>
+        <Card className='p-2 gap-2'>
           <div className='flex items-center gap-2 text-sm font-medium text-muted-foreground'>
             <Calendar className='h-4 w-4' />
             <span>Timeline</span>
@@ -220,7 +238,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
               control={form.control}
               name='startDate'
               render={({ field }) => (
-                <FormItem className='space-y-2'>
+                <FormItem className='gap-2'>
                   <FormLabel className='text-sm font-medium'>Start Date</FormLabel>
                   <FormControl>
                     <IssueDateSelectors
@@ -248,7 +266,7 @@ export const CreateIssueForm = ({ params, onCancel, onSubmit }: CreateIssueFormP
               control={form.control}
               name='dueDate'
               render={({ field }) => (
-                <FormItem className='space-y-2'>
+                <FormItem className='gap-2'>
                   <FormLabel className='text-sm font-medium'>Due Date</FormLabel>
                   <FormControl>
                     <IssueDateSelectors

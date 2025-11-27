@@ -13,7 +13,7 @@ import EditableRichText from '../editable-rich-text';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { IssueItem } from '@/contracts/issues/issues.query';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import {
   getBoardIssueQueryOptions,
   updateBoardIssueMutationOptions,
@@ -143,17 +143,6 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const EmptySubIssues = ({ onAdd }: { onAdd?: () => void }) => (
-  <div className='border border-dashed border-border rounded-lg p-6 text-center bg-muted/30 hover:bg-muted/50 transition-colors'>
-    <ListTree className='h-8 w-8 mx-auto text-muted-foreground/50 mb-2' />
-    <p className='text-sm text-muted-foreground mb-3'>No sub-issues yet</p>
-    <Button variant='outline' size='sm' onClick={onAdd} className='gap-1.5'>
-      <Plus className='h-3.5 w-3.5' />
-      Add sub-issue
-    </Button>
-  </div>
-);
-
 type EditableSummaryProps = { params: { boardId: string; projectId: string; issueId: string } };
 const EditableSummary = ({ params }: EditableSummaryProps) => {
   const { data: summary, isPending } = useQuery({
@@ -240,8 +229,11 @@ const EditableDescription = ({ params }: EditableDescriptionProps) => {
 
 // ============ Main Component ============
 
-export default function IssueMainPanel({ className, params }: IssueMainPanelProps) {
-  const { data: issue, isPending } = useQuery(getBoardIssueQueryOptions(params));
+function IssueMainPanel({ className, params }: IssueMainPanelProps) {
+  const { data: issue, isPending } = useSuspenseQuery(getBoardIssueQueryOptions(params));
+
+  // log
+  console.log(issue);
 
   if (isPending) return <LoadingSkeleton />;
   if (!issue) throw new Error('Issue not found');
@@ -271,21 +263,7 @@ export default function IssueMainPanel({ className, params }: IssueMainPanelProp
         <EditableDescription params={params} />
       </Section>
 
-      {/* Sub-issues Section */}
-      <Section
-        icon={<ListTree className='size-4' />}
-        title='Sub-issues'
-        collapsible
-        defaultOpen
-        action={
-          <Button variant='ghost' size='sm' className='h-7 gap-1 text-xs hover:bg-accent'>
-            <Plus className='h-3.5 w-3.5' />
-            Add
-          </Button>
-        }
-      >
-        <SubIssues params={params} />
-      </Section>
+      <>{issue.type.hierarchy > 0 && <SubIssues params={params} />}</>
 
       {/* Activity Section */}
       <Section
@@ -306,3 +284,4 @@ export default function IssueMainPanel({ className, params }: IssueMainPanelProp
 }
 
 IssueMainPanel.displayName = 'IssueMainPanel';
+export default IssueMainPanel;

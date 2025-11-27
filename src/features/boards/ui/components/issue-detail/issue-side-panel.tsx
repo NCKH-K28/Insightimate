@@ -33,6 +33,9 @@ import { IssueAssigneeSelector } from '../../selectors/issue-assignee-selector';
 import { IssueStartDateSelector } from '../../selectors/issue-start-date-selector';
 import { IssueDueDateSelector } from '../../selectors/issue-due-date-selector';
 import { IssueStoryPointInput } from '../../selectors/issue-story-point-input';
+import Image from 'next/image';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 
 // ============ Types ============
 
@@ -80,13 +83,18 @@ const FieldRow = ({ icon, label, children, className, tooltip }: FieldRowProps) 
 );
 
 interface ParentIssueBadgeProps {
-  parentKey?: string;
-  parentTitle?: string;
   onClick?: () => void;
+  type?: { id: string; name: string; color?: string; iconURL?: string };
+  parent?: {
+    id: string;
+    key: string;
+    summary: string;
+    type?: { id: string; name: string; color?: string; iconURL?: string | null; hierarchy: number };
+  } | null;
 }
 
-const ParentIssueBadge = ({ parentKey, parentTitle, onClick }: ParentIssueBadgeProps) => {
-  if (!parentKey && !parentTitle) {
+const ParentIssueBadge = ({ parent, onClick }: ParentIssueBadgeProps) => {
+  if (!parent) {
     return (
       <Button
         variant='outline'
@@ -100,19 +108,17 @@ const ParentIssueBadge = ({ parentKey, parentTitle, onClick }: ParentIssueBadgeP
     );
   }
 
+  const { key: parentKey, summary: parentTitle, type } = parent;
   return (
-    <Button
-      variant='ghost'
-      size='sm'
-      className='h-auto py-1.5 px-2 justify-start gap-2 hover:bg-accent/50 group'
-      onClick={onClick}
-    >
-      <div className='flex items-center gap-2 px-2 py-1 rounded-md bg-violet-100 dark:bg-violet-900/30'>
-        <GitBranch className='h-3.5 w-3.5 text-violet-600 dark:text-violet-400' />
-        <span className='text-xs font-mono text-violet-700 dark:text-violet-300'>{parentKey}</span>
-      </div>
+    <Button variant='ghost' size='sm' className='h-auto p-1' onClick={onClick}>
+      <Badge variant='outline' className='text-xs font-medium'>
+        <Avatar className='size-4'>
+          <AvatarImage src={type?.iconURL ?? ''} alt={type?.name || 'Type Icon'} />
+          <AvatarFallback>{type?.name.charAt(0) || '?'}</AvatarFallback>
+        </Avatar>
+        <span className='text-sm font-medium'>{parentKey}</span>
+      </Badge>
       <span className='text-sm text-foreground truncate max-w-[120px]'>{parentTitle}</span>
-      <ChevronRight className='h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto' />
     </Button>
   );
 };
@@ -263,7 +269,7 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
 
                   {/* Parent Issue */}
                   <FieldRow icon={<GitBranch className='h-4 w-4' />} label='Parent Issue'>
-                    <ParentIssueBadge parentKey={issue.parentKey} parentTitle={issue.parentTitle} />
+                    <ParentIssueBadge parent={issue.parent} />
                   </FieldRow>
 
                   {/* Sprint */}
@@ -364,8 +370,4 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
 }
 
 IssueSidePanel.displayName = 'IssueSidePanel';
-
-export default dynamic(() => Promise.resolve(IssueSidePanel), {
-  ssr: false,
-  loading: () => <div className='p-5'>Loading issue details...</div>,
-});
+export default IssueSidePanel;

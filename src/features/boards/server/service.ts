@@ -51,6 +51,7 @@ const getIssue = async (
           reporter: true,
           resolution: true,
           assignee: true,
+          parent: { select: { id: true, key: true, summary: true, type: true } },
         },
       },
     },
@@ -66,9 +67,13 @@ const addIssue = async (
 ) => {
   const board = await prisma.board.findUnique({ where: { id: boardId } });
   if (!board) throw new Error('Board not found');
-  // const issue = await prisma.boardIssue.create({
-  // data: { boardId: board.id, rank: 0 },
-  // });
+
+  if (input.sprintId) {
+    const sprint = await prisma.sprint.findUnique({
+      where: { id: input.sprintId, boardId: board.id },
+    });
+    if (!sprint) throw new Error('Sprint not found in this board');
+  }
 
   return prisma.$transaction(async (tx) => {
     const projectId = board.projectId;
@@ -82,9 +87,23 @@ const addIssue = async (
       select: { key: true, issueCounter: true, workspaceId: true },
     });
 
+    let hierarchy: number | undefined = undefined;
+    if (input.parentId) {
+      const parentIssue = await tx.issue.findUnique({
+        where: { id: input.parentId, projectId },
+        select: { id: true, type: { select: { hierarchy: true } } },
+      });
+      if (!parentIssue) throw new Error('Parent issue not found');
+      hierarchy = parentIssue.type.hierarchy - 1;
+      if (hierarchy < 0) throw new Error('Cannot create sub-task for sub-task');
+    }
+
     const orderBy = { sequence: 'asc' } as const;
     const [type, priority, status, resolution] = await Promise.all([
-      tx.issueType.findFirstOrThrow({ where: { id: input.typeId, projectId }, orderBy }),
+      tx.issueType.findFirstOrThrow({
+        where: { id: input.typeId, projectId, hierarchy },
+        orderBy,
+      }),
       tx.issuePriority.findFirstOrThrow({ where: { id: input.priorityId, projectId }, orderBy }),
       tx.issueStatus.findFirstOrThrow({ where: { id: input.statusId, projectId }, orderBy }),
       tx.issueResolution.findFirst({ where: { id: input.resolutionId, projectId }, orderBy }),
@@ -97,7 +116,7 @@ const addIssue = async (
         id: genIssueId(),
         key: `${pKey}-${issueCounter}`,
         projectId,
-        parentId: restInput.parentId ?? null, // FIXME: kiểm tra quyền
+        parentId: restInput.parentId ?? null,
         typeId: type.id,
         priorityId: priority.id,
         resolutionId: resolution?.id,
@@ -196,6 +215,14 @@ const listIssues = async (
 
   if (query.filter?.parentId) {
     merge<typeof where, typeof where>(where, { issue: { parentId: query.filter.parentId } });
+  }
+
+  if (query.filter?.issueType) {
+    if (query.filter.issueType.hierarchy !== undefined) {
+      merge<typeof where, typeof where>(where, {
+        issue: { type: { hierarchy: query.filter.issueType.hierarchy } },
+      });
+    }
   }
 
   const includeOptions = buildIncludeOptions({ boardId: b.id }, query, context);

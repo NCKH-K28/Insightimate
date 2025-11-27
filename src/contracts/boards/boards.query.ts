@@ -1,10 +1,12 @@
 import z from 'zod';
 import { ZBoard, ZBoardIssue, ZColumn, ZSprint } from './board';
+import { ZIssueItem } from '../issues/issues.query';
 
 // ========== Board Issues ==========
 const ZBoardIssueFilter = z.object({
   type: z.enum(['KANBAN', 'SCRUM']).optional(),
   parentId: z.string().optional(),
+  issueType: z.object({ hierarchy: z.coerce.number().int().optional() }).optional(),
 });
 
 const ZBoardIssueIncludeFields = z.enum([
@@ -26,25 +28,17 @@ export const ZBoardItem = ZBoard.extend({
   columns: ZColumn.array().optional(),
 });
 
-const ZField = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string().nullish(),
-  iconURL: z.string().nullish(),
-  color: z.string().nullish(),
-  category: z.string().optional(),
-});
-
-export const ZBoardIssueItem = ZBoardIssue.extend({
-  status: ZField,
-  type: ZField,
-  priority: ZField,
+export const ZBoardIssueItem = ZBoardIssue.extend(ZIssueItem.shape).extend({
+  sprint: ZSprint.nullish(),
   assignee: z
     .object({ id: z.string(), name: z.string(), email: z.string(), avatar: z.string().nullable() })
     .nullable(),
-  // ===
-  sprint: ZSprint.nullish(),
+  parent: ZIssueItem.shape.parent.nullish(),
+  reporter: z
+    .object({ id: z.string(), name: z.string(), email: z.string(), avatar: z.string().nullable() })
+    .nullable(),
 });
+
 export const ZBoardIssueList = z.object({ data: ZBoardIssueItem.array(), meta: z.unknown() });
 
 export type BoardIssueList = z.infer<typeof ZBoardIssueList>;

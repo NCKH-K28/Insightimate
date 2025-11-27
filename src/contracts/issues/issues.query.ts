@@ -42,6 +42,9 @@ export const ZIssueItem = ZIssue.extend({
   status: ZIssueStatus,
   priority: ZIssuePriority,
   resolution: ZIssueResolution.optional().nullable(),
+  parent: z
+    .object({ id: z.string(), key: z.string(), summary: z.string(), type: ZIssueType })
+    .nullable(),
 });
 
 // facets

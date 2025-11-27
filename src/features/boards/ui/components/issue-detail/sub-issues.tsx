@@ -96,14 +96,14 @@ interface SubIssuesProps {
   className?: string;
 }
 
-type FilterStatus = 'all' | 'open' | 'done';
+type FilterStatus = 'all' | 'open' | 'DONE';
 type SortOption = 'created' | 'priority' | 'status' | 'assignee';
 
 // ============ Helper Functions ============
 
 const getStatusIcon = (category?: string) => {
   switch (category) {
-    case 'done':
+    case 'DONE':
       return <CheckCircle2 className='h-4 w-4 text-green-500' />;
     case 'in_progress':
       return <Clock className='h-4 w-4 text-blue-500' />;
@@ -114,7 +114,7 @@ const getStatusIcon = (category?: string) => {
 
 const getStatusColor = (category?: string) => {
   switch (category) {
-    case 'done':
+    case 'DONE':
       return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
     case 'in_progress':
       return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
@@ -517,7 +517,7 @@ const FilterBar = ({
 
       {/* Filter Tabs */}
       <div className='flex items-center bg-muted rounded-md p-0.5'>
-        {(['all', 'open', 'done'] as FilterStatus[]).map((status) => (
+        {(['all', 'open', 'DONE'] as FilterStatus[]).map((status) => (
           <button
             key={status}
             onClick={() => onFilterChange(status)}
@@ -637,9 +637,9 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
 
     // Apply filter
     if (filter === 'open') {
-      result = result.filter((issue) => issue.status.category !== 'done');
-    } else if (filter === 'done') {
-      result = result.filter((issue) => issue.status.category === 'done');
+      result = result.filter((issue) => issue.status.category !== 'DONE');
+    } else if (filter === 'DONE') {
+      result = result.filter((issue) => issue.status.category === 'DONE');
     }
 
     // Apply search
@@ -670,7 +670,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
   }, [subIssues, filter, searchQuery, sort]);
 
   // Stats
-  const completedCount = subIssues?.filter((i) => i.status.category === 'done').length ?? 0;
+  const completedCount = subIssues?.filter((i) => i.status.category === 'DONE').length ?? 0;
   const totalCount = subIssues?.length ?? 0;
 
   // Loading State

@@ -745,7 +745,7 @@ export const ScrumBoard = (props: ScrumBoardProps) => {
     >
       <SortableContext items={rowIds} strategy={rectSortingStrategy}>
         <div
-          className='flex flex-col space-y-4 overflow-y-auto p-4'
+          className='flex flex-col space-y-4 overflow-y-auto'
           role='application'
           aria-label='Scrum board with draggable rows and items'
         >

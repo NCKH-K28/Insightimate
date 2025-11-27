@@ -73,8 +73,6 @@ function createEndpoint<
         config ?? {},
         validParams ? { params: validParams } : {},
       );
-      // log config
-      console.log('Request Config ++:', { context, config });
 
       return raw<TResult>(validContext as any, axiosCfg).then((data: unknown) =>
         parseIf(validate, (schemas as any)?.response, data),

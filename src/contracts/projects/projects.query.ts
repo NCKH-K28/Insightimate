@@ -16,6 +16,8 @@ const ZIssueField = z.object({
   color: z.string().nullish(),
 });
 
+const ZIssueType = ZIssueField.extend({ hierarchy: z.number() });
+
 export const ZProjectPermissions = z.record(
   z.enum([...PROJECT_ACTIONS, ...PROJECT_ROLE_PERMISSION_KEYS]),
   z.boolean().optional(),
@@ -47,7 +49,7 @@ export const ZProjectItem = ZProject.extend({
 
   // ====
   statuses: ZIssueField.array().optional(),
-  types: ZIssueField.array().optional(),
+  types: ZIssueType.array().optional(),
   priorities: ZIssueField.array().optional(),
   resolutions: ZIssueField.array().optional(),
   // ====

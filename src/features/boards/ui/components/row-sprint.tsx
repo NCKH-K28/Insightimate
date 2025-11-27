@@ -120,7 +120,15 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
           Start Sprint
         </Button>
         <CompleteSprintButton params={context} hidden={sprint.state !== 'ACTIVE'} />
-        <CreateIssueButton params={context} />
+        <CreateIssueButton
+          params={context}
+          typeRequired={true}
+          typeFilterFn={(t) => t.hierarchy == 1}
+          typeFetched={(types, setType) => {
+            const defaultType = types.find((t) => t.hierarchy === 1);
+            if (defaultType) setType(defaultType.id);
+          }}
+        />
         <SprintActions params={context} onDelete={handleDelete} defaultValues={sprint} />
       </div>
     </div>

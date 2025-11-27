@@ -1,4 +1,5 @@
 import {
+  ZBoardIssueItem,
   ZBoardIssueList,
   ZBoardIssueQueryParams,
   ZBoardItem,
@@ -11,7 +12,7 @@ import {
 } from '@/contracts/boards/boards.input';
 import z from 'zod';
 import { ConfigTree, buildApi } from '@/lib/api/_buildapi';
-import { ZIssueFacets, ZIssueItem } from '@/contracts/issues/issues.query';
+import { ZIssueFacets } from '@/contracts/issues/issues.query';
 
 // ========== URL FACTORY ==========
 const BoardListURL = 'v2/boards' as const;
@@ -21,7 +22,7 @@ const IssueItemURL = `${IssueListURL}/{issueId}` as const;
 
 const issueApiConfig = {
   create: { path: IssueListURL, method: 'post', schemas: { body: ZBoardIssueCreateInput } },
-  get: { path: IssueItemURL, method: 'get', schemas: { response: ZIssueItem } },
+  get: { path: IssueItemURL, method: 'get', schemas: { response: ZBoardIssueItem } },
   list: {
     path: IssueListURL,
     method: 'get',

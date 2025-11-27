@@ -1,5 +1,5 @@
 import { UseQueryOptions, useQuery } from '@tanstack/react-query';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Command,
   CommandEmpty,
@@ -58,6 +58,7 @@ type IssueFieldSelectorsProps = {
   excludeIds?: (string | null)[];
   extends?: IssueFieldOption[];
   fetchQueryOptions?: () => UseQueryOptions<any, any, IssueField[], any>;
+  onFetched?: (fields: IssueField[]) => void;
   queryKey?: string[];
   className?: string;
   popoverClassName?: string;
@@ -80,6 +81,7 @@ export const IssueFieldSelectors = ({
   excludeIds = [],
   extends: extendsOptions = [],
   fetchQueryOptions,
+  onFetched,
   className,
   popoverClassName,
   label,
@@ -100,6 +102,10 @@ export const IssueFieldSelectors = ({
     queryFn: async (): Promise<IssueField[]> => [],
     ...fetchQueryOptions?.(),
   });
+
+  useEffect(() => {
+    if (fields) onFetched?.(fields);
+  }, [fields, onFetched]);
 
   const options: IssueFieldOption[] = useMemo(
     () => (fields ? fields.map(fieldToOption) : []),

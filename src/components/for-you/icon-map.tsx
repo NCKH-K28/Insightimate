@@ -20,14 +20,15 @@ export const iconMap: Record<string, React.ComponentType<{ className?: string }>
 };
 
 function createUrlIcon(url: string): React.ComponentType<{ className?: string }> {
-  return ({ className }) => (
+  const UrlIcon = ({ className }: { className?: string }) =>
     React.createElement('img', {
       src: url,
       alt: '',
       className: `${className ?? ''} rounded`,
       style: { objectFit: 'cover' },
-    })
-  );
+    });
+  UrlIcon.displayName = 'UrlIcon';
+  return UrlIcon;
 }
 
 export function resolveIcon(name?: string) {
