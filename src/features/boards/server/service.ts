@@ -59,7 +59,11 @@ const getIssue = async (
   return ZBoardIssueList.parse({ data: [{ ...boardIssue.issue, ...boardIssue }] }).data[0];
 };
 
-const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: { actorId: string }) => {
+const addIssue = async (
+  boardId: string,
+  input: BoardIssueCreateInput,
+  context: { actorId: string },
+) => {
   const board = await prisma.board.findUnique({ where: { id: boardId } });
   if (!board) throw new Error('Board not found');
   // const issue = await prisma.boardIssue.create({
@@ -68,7 +72,11 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: 
 
   return prisma.$transaction(async (tx) => {
     const projectId = board.projectId;
-    const { key: pKey, issueCounter, workspaceId } = await tx.project.update({
+    const {
+      key: pKey,
+      issueCounter,
+      workspaceId,
+    } = await tx.project.update({
       where: { id: board.projectId },
       data: { issueCounter: { increment: 1 } },
       select: { key: true, issueCounter: true, workspaceId: true },
@@ -89,12 +97,14 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: 
         id: genIssueId(),
         key: `${pKey}-${issueCounter}`,
         projectId,
-        parentId: restInput.parentId, // FIXME: kiểm tra quyền
+        parentId: restInput.parentId ?? null, // FIXME: kiểm tra quyền
         typeId: type.id,
         priorityId: priority.id,
         resolutionId: resolution?.id,
         statusId: status.id,
         resolvedAt: status.category === 'DONE' ? new Date() : null,
+        dueDate: restInput.dueDate ? new Date(restInput.dueDate) : null,
+        startDate: restInput.startDate ? new Date(restInput.startDate) : null,
       },
     });
 
@@ -118,7 +128,7 @@ const addIssue = async (boardId: string, input: BoardIssueCreateInput, context: 
         },
       });
     } catch (err) {
-        console.log(err);
+      console.log(err);
     }
 
     return Object.assign({}, boardIssue, issue);
@@ -242,7 +252,10 @@ const updateIssue = async (
 
   // create activity for update
   try {
-    const project = await prisma.project.findUnique({ where: { id: projectId }, select: { workspaceId: true } });
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { workspaceId: true },
+    });
     await prisma.activity.create({
       data: {
         userId: context.actorId,
@@ -256,7 +269,6 @@ const updateIssue = async (
     });
   } catch (err) {
     console.log(err);
-    
   }
 
   return { ...boardIssue, ...issue };

@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from '@/lib/prisma';
 
 export const starService = {
   // ⭐ Star một issue
   async addStar(userId: string, issueId: string) {
     // Kiểm tra issue tồn tại
     const issue = await prisma.issue.findUnique({ where: { id: issueId } });
-    if (!issue) throw new Error("Issue not found");
+    if (!issue) throw new Error('Issue not found');
 
     // Tạo star (nếu đã tồn tại thì Prisma sẽ lỗi do unique constraint)
     try {
@@ -15,7 +15,7 @@ export const starService = {
     } catch (e: any) {
       if (e.code === 'P2002') {
         // Already starred - bỏ qua hoặc throw error tuỳ ý
-        throw new Error("Already starred");
+        throw new Error('Already starred');
       }
       throw e;
     }
@@ -43,35 +43,35 @@ export const starService = {
 
   // 👥 Lấy danh sách user đã star issue
   async getStarredByUsers(issueId: string) {
-    return await prisma.star.findMany({
-      where: { issueId },
-      include: { user: { select: { id: true, name: true, avatar: true } } },
-    });
+    const stars = await prisma.star.findMany({ where: { issueId } });
+
+    const userIds = stars.map((star) => star.userId);
+    const users = await prisma.user.findMany({ where: { id: { in: userIds } } });
+
+    // map
+    const userMap = new Map(users.map((user) => [user.id, user]));
+
+    const starsWithUsers = stars.map((star) => ({
+      ...star,
+      user: userMap.get(star.userId),
+    }));
+    return starsWithUsers;
   },
 
   // ⭐ Lấy danh sách issue mà user đã star
   async getUserStarredIssues(userId: string) {
-    return await prisma.star.findMany({
-      where: { userId },
-      include: {
-        issue: {
-          select: { 
-            id: true, 
-            key: true, 
-            summary: true, 
-            projectId: true,
-            status: {
-              select: { name: true }
-            },
-            priority: {
-              select: { name: true }
-            },
-            assignee: {
-              select: { id: true, name: true, avatar: true }
-            }
-          },
-        },
-      },
-    });
+    const stars = await prisma.star.findMany({ where: { userId } });
+
+    const issueIds = stars.map((star) => star.issueId);
+    const issues = await prisma.issue.findMany({ where: { id: { in: issueIds } } });
+
+    // map
+    const issueMap = new Map(issues.map((issue) => [issue.id, issue]));
+
+    const starsWithIssues = stars.map((star) => ({
+      ...star,
+      issue: issueMap.get(star.issueId),
+    }));
+    return starsWithIssues;
   },
 };

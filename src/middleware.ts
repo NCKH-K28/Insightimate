@@ -1,6 +1,16 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+let isDebeziumPing = false;
+const pingDebezium = async (request: NextRequest) => {
+  const pingPath = '/api/system/debezium';
+  if (isDebeziumPing) return NextResponse.next();
+  isDebeziumPing = true;
+  const { pathname } = request.nextUrl;
+  if (pathname === pingPath) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}${pingPath}`);
+};
+
 let isSocketPing: boolean = false;
 const pingSocket = async (request: NextRequest) => {
   const pingPath = '/api/socket';
@@ -40,7 +50,7 @@ const authenticated = async (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
-  await Promise.all([pingSocket(request), pingHealthCheck(request)]);
+  await Promise.all([pingSocket(request), pingHealthCheck(request), pingDebezium(request)]);
 
   return authenticated(request);
 }

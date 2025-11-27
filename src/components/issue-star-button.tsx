@@ -4,12 +4,7 @@ import { useState, useEffect } from 'react';
 import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface IssueStarButtonProps {
   issueId: string;
@@ -46,9 +41,9 @@ export function IssueStarButton({
       try {
         const res = await fetch('/api/v2/auth/me');
         const data = await res.json();
-        setUserId(data.id);  // <-- userId tự gán ở đây
+        setUserId(data.id); // <-- userId tự gán ở đây
       } catch (err) {
-        console.error("❌ Error fetching current user:", err);
+        console.error('❌ Error fetching current user:', err);
       }
     };
     fetchUser();
@@ -65,6 +60,7 @@ export function IssueStarButton({
 
     try {
       const method = isStarred ? 'DELETE' : 'POST';
+      // FIXME: không xử lý auth như thế này
       const response = await fetch(`/api/v2/star/${issueId}`, {
         method,
         headers: {
@@ -115,7 +111,7 @@ export function IssueStarButton({
 
   const starButton = (
     <Button
-      variant="ghost"
+      variant='ghost'
       size={size === 'lg' ? 'default' : 'sm'}
       onClick={handleToggleStar}
       disabled={isLoading}
@@ -123,7 +119,7 @@ export function IssueStarButton({
         'gap-2 transition-all duration-200',
         isStarred ? 'text-yellow-500 hover:text-yellow-600' : 'text-gray-400 hover:text-yellow-500',
         variant === 'icon-only' && 'p-2',
-        className
+        className,
       )}
       title={isStarred ? 'Remove from favorites' : 'Add to favorites'}
     >
@@ -133,15 +129,12 @@ export function IssueStarButton({
       />
       {showCount && variant === 'button' && (
         <span
-          className={cn(
-            'text-xs font-medium',
-            isStarred ? 'text-yellow-500' : 'text-gray-500'
-          )}
+          className={cn('text-xs font-medium', isStarred ? 'text-yellow-500' : 'text-gray-500')}
         >
           {starCount > 0 ? starCount : ''}
         </span>
       )}
-      {isLoading && <span className="inline-block animate-spin">⏳</span>}
+      {isLoading && <span className='inline-block animate-spin'>⏳</span>}
     </Button>
   );
 
@@ -149,31 +142,27 @@ export function IssueStarButton({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="relative inline-block">
+          <div className='relative inline-block'>
             {starButton}
 
             {/* Dropdown danh sách người đã star */}
             {showStarredUsers && starredUsers.length > 0 && (
-              <div className="absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[240px]">
-                <div className="p-3 border-b border-gray-100">
-                  <p className="text-xs font-semibold text-gray-700">
+              <div className='absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[240px]'>
+                <div className='p-3 border-b border-gray-100'>
+                  <p className='text-xs font-semibold text-gray-700'>
                     Starred by {starCount} user{starCount !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <div className="max-h-[200px] overflow-y-auto">
+                <div className='max-h-[200px] overflow-y-auto'>
                   {starredUsers.map((user) => (
                     <div
                       key={user.id}
-                      className="px-3 py-2 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors"
+                      className='px-3 py-2 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors'
                     >
                       {user.avatar && (
-                        <img
-                          src={user.avatar}
-                          alt={user.name}
-                          className="w-6 h-6 rounded-full"
-                        />
+                        <img src={user.avatar} alt={user.name} className='w-6 h-6 rounded-full' />
                       )}
-                      <span className="text-sm text-gray-700">{user.name}</span>
+                      <span className='text-sm text-gray-700'>{user.name}</span>
                     </div>
                   ))}
                 </div>
@@ -181,15 +170,13 @@ export function IssueStarButton({
             )}
 
             {error && (
-              <div className="absolute top-full left-0 mt-2 bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-600 whitespace-nowrap">
+              <div className='absolute top-full left-0 mt-2 bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-600 whitespace-nowrap'>
                 {error}
               </div>
             )}
           </div>
         </TooltipTrigger>
-        <TooltipContent>
-          {isStarred ? 'Remove from favorites' : 'Add to favorites'}
-        </TooltipContent>
+        <TooltipContent>{isStarred ? 'Remove from favorites' : 'Add to favorites'}</TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
