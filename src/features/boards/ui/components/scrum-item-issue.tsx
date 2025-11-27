@@ -23,6 +23,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { BoardIssueActions } from './board-issue-actionts';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
+import BoardIssueSelectors from '../selectors/board-issue-selectors';
 
 export type IssueItemProps = {
   id: string;
@@ -131,6 +132,20 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
             const trimmed = summary?.trim();
             if (trimmed === issue.summary) return;
             handleUpdate({ summary: trimmed });
+          }}
+        />
+      </div>
+
+      <div className='flex flex-shrink-0 items-center gap-2'>
+        <BoardIssueSelectors
+          className='max-w-40 overflow-hidden'
+          placeholder='Select epic'
+          params={{ workspaceId: '', boardId: issue.boardId }}
+          defaultValue={issue.parentId ?? null}
+          disabled={updateIssue.isPending}
+          onChange={(value) => handleUpdate({ parentId: value })}
+          queryFilter={{
+            filter: { issueType: { hierarchy: 2 } },
           }}
         />
       </div>

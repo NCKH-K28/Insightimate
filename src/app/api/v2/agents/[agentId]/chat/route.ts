@@ -54,7 +54,7 @@ Respond concisely and accurately based on the tool outputs.
             inputSchema: z.object({}),
             outputSchema: z.any(),
             execute: async () => {
-              return { contexts };
+              return { contexts, currentUserId: actorId };
             },
           }),
           current_time: tool({
