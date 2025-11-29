@@ -1,12 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import axios from 'axios';
 
-export function useIssueStar(issueId: string, userId?: string) {
+export function useIssueStar(issueId: string) {
   const queryClient = useQueryClient();
 
   // Lấy trạng thái star + số lượng
   const { data, isLoading } = useQuery({
-    queryKey: ["issue-star", issueId],
+    queryKey: ['issue-star', issueId],
     queryFn: async () => {
       const res = await axios.get(`/api/v2/issues/${issueId}/star`);
       return res.data; // { isStarred: boolean, starCount: number }
@@ -19,7 +19,7 @@ export function useIssueStar(issueId: string, userId?: string) {
       return await axios.post(`/api/v2/issues/${issueId}/star`);
     },
     onSuccess: (res) => {
-      queryClient.setQueryData(["issue-star", issueId], res.data);
+      queryClient.setQueryData(['issue-star', issueId], res.data);
     },
   });
 
@@ -29,7 +29,7 @@ export function useIssueStar(issueId: string, userId?: string) {
       return await axios.delete(`/api/v2/issues/${issueId}/star`);
     },
     onSuccess: (res) => {
-      queryClient.setQueryData(["issue-star", issueId], res.data);
+      queryClient.setQueryData(['issue-star', issueId], res.data);
     },
   });
 

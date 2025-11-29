@@ -3,8 +3,8 @@ import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
 import { ChevronRight, MoreHorizontal } from 'lucide-react';
 import { toast } from 'sonner';
-import { CreateIssueButton } from '../buttons/create-issue-btn';
 import { cn } from '@/lib/utils/cn';
+import { CreateIssueButton } from '../../buttons/create-issue-btn';
 
 export type RowBacklogProps = {
   id: string; // row id
@@ -48,6 +48,7 @@ export const RowBacklog = ({ id, params, collapsed, toggle }: RowBacklogProps) =
         </Button>
         <CreateIssueButton
           params={params}
+          btnLabel='Add Issue'
           typeRequired={true}
           typeFilterFn={(t) => t.hierarchy == 1}
           typeFetched={(types, setType) => {

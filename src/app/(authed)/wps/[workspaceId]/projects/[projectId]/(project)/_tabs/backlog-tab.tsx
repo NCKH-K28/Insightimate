@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ColumnFilter } from '@/components/table';
 import { useIssuesToScrumRows } from '@/features/boards/hooks';
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
-import BoardLayout from './board-layout';
+import BacklogLayout from './backlog-layout';
 
 const BacklogSkeleton = () => {
   return (
@@ -117,7 +117,7 @@ export const BacklogTab = ({ params }: BacklogTabProps) => {
 
   if (isPending) return <BacklogSkeleton />;
 
-  return <BoardLayout table={table} tableConfig={tableConfig} rows={rows} params={params} />;
+  return <BacklogLayout table={table} tableConfig={tableConfig} rows={rows} params={params} />;
 };
 
 export default BacklogTab;

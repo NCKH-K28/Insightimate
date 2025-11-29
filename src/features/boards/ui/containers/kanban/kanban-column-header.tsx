@@ -15,13 +15,13 @@ import {
   DialogDescription,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { CreateIssueForm } from '../forms/create-issue-form';
 import { mutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import { boardApi } from '@/features/boards/api/http';
 import { toast } from 'sonner';
 import z from 'zod';
 import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
 import Image from 'next/image';
+import { CreateIssueForm } from '../../forms/create-issue-form';
 
 type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 

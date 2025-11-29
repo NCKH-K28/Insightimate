@@ -8,12 +8,12 @@ import {
   startBoardSprintMutationOptions,
 } from '@/features/boards/api/actions';
 
-import { UpdateSprintButton } from '../buttons/update-sprint-btn';
 import { ChevronRight, EditIcon } from 'lucide-react';
 import { SprintActions } from './sprint-actions';
-import { CompleteSprintButton } from '../buttons/complete-sprint-btn';
-import { CreateIssueButton } from '../buttons/create-issue-btn';
 import { cn } from '@/lib/utils';
+import { CreateIssueButton } from '../../buttons/create-issue-btn';
+import { CompleteSprintButton } from '../../buttons/complete-sprint-btn';
+import { UpdateSprintButton } from '../../buttons/update-sprint-btn';
 // ===
 
 const formatSprintDates = (start: Date, end: Date) => {
@@ -123,6 +123,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
         <CreateIssueButton
           params={context}
           typeRequired={true}
+          btnLabel='Add Issue'
           typeFilterFn={(t) => t.hierarchy == 1}
           typeFetched={(types, setType) => {
             const defaultType = types.find((t) => t.hierarchy === 1);

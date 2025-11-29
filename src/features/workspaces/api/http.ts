@@ -56,7 +56,7 @@ const WorkspaceEndpoints = {
     schemas: { body: ZWorkspaceItem, response: ZWorkspaceItem },
   },
   delete: { path: WORKSPACE_ITEM, method: 'delete' },
-  update: { path: WORKSPACE_ITEM, method: 'put' },
+  update: { path: WORKSPACE_ITEM, method: 'patch', schemas: { body: ZWorkspaceItem } },
   archive: { path: `${WORKSPACE_ITEM}/archive`, method: 'post' },
   unarchive: { path: `${WORKSPACE_ITEM}/unarchive`, method: 'post' },
 

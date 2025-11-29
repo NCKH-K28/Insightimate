@@ -11,6 +11,7 @@ import { signoutMutationOptions } from '@/features/authn/api/actions';
 import { redirect } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
 import { IconComet } from '@tabler/icons-react';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type AppLogoProps = { size?: number; type?: 'icon' | 'label' | 'full' };
 const AppLogo = (props: AppLogoProps) => {
@@ -41,6 +42,17 @@ const PageHeader = () => {
   );
 };
 
+const LoadingWorkspaces = () => {
+  return (
+    <div className='w-full flex flex-col items-center'>
+      <Skeleton className='h-6 w-3/4 mb-4' />
+      <Skeleton className='h-10 w-full mb-2' />
+      <Skeleton className='h-10 w-full mb-2' />
+      <Skeleton className='h-10 w-full mb-2' />
+    </div>
+  );
+};
+
 export default function Page() {
   return (
     <div className='w-screen h-screen flex flex-col'>
@@ -51,10 +63,10 @@ export default function Page() {
 
       <div className='size-full flex flex-col items-center justify-center py-2'>
         <div className={cn('w-lg mx-auto', 'flex flex-col items-center gap-2', 'min-h-[70vh]')}>
-          <h1 className='text-2xl font-bold'>Workspaces</h1>
-          <CreateWorkspaceForm />
+          <Suspense fallback={<LoadingWorkspaces />}>
+            <h1 className='text-2xl font-bold'>Workspaces</h1>
+            <CreateWorkspaceForm />
 
-          <Suspense fallback={<div>Loading workspaces...</div>}>
             <WorkspaceSelector />
           </Suspense>
         </div>

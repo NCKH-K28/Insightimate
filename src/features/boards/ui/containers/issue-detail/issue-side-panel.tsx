@@ -16,26 +16,25 @@ import {
   GitBranch,
   Clock,
   Target,
-  Link2,
   ChevronRight,
   Sparkles,
   AlertCircle,
   Copy,
   ExternalLink,
 } from 'lucide-react';
-import dynamic from 'next/dynamic';
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { formatDistanceToNow, format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
+import {
+  getBoardIssueQueryOptions,
+  updateBoardIssueMutationOptions,
+} from '@/features/boards/api/actions';
 import { IssueStatusSelector } from '../../selectors';
 import { IssueAssigneeSelector } from '../../selectors/issue-assignee-selector';
 import { IssueStartDateSelector } from '../../selectors/issue-start-date-selector';
 import { IssueDueDateSelector } from '../../selectors/issue-due-date-selector';
 import { IssueStoryPointInput } from '../../selectors/issue-story-point-input';
-import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
+import BoardIssueSelectors from '../../selectors/board-issue-selectors';
 
 // ============ Types ============
 
@@ -82,47 +81,6 @@ const FieldRow = ({ icon, label, children, className, tooltip }: FieldRowProps) 
   </div>
 );
 
-interface ParentIssueBadgeProps {
-  onClick?: () => void;
-  type?: { id: string; name: string; color?: string; iconURL?: string };
-  parent?: {
-    id: string;
-    key: string;
-    summary: string;
-    type?: { id: string; name: string; color?: string; iconURL?: string | null; hierarchy: number };
-  } | null;
-}
-
-const ParentIssueBadge = ({ parent, onClick }: ParentIssueBadgeProps) => {
-  if (!parent) {
-    return (
-      <Button
-        variant='outline'
-        size='sm'
-        className='h-8 text-muted-foreground border-dashed hover:border-solid hover:bg-accent/50'
-        onClick={onClick}
-      >
-        <Link2 className='h-3.5 w-3.5 mr-1.5' />
-        Add parent issue
-      </Button>
-    );
-  }
-
-  const { key: parentKey, summary: parentTitle, type } = parent;
-  return (
-    <Button variant='ghost' size='sm' className='h-auto p-1' onClick={onClick}>
-      <Badge variant='outline' className='text-xs font-medium'>
-        <Avatar className='size-4'>
-          <AvatarImage src={type?.iconURL ?? ''} alt={type?.name || 'Type Icon'} />
-          <AvatarFallback>{type?.name.charAt(0) || '?'}</AvatarFallback>
-        </Avatar>
-        <span className='text-sm font-medium'>{parentKey}</span>
-      </Badge>
-      <span className='text-sm text-foreground truncate max-w-[120px]'>{parentTitle}</span>
-    </Button>
-  );
-};
-
 interface SprintBadgeProps {
   sprint?: { id: string; name: string } | null;
   onClick?: () => void;
@@ -162,7 +120,7 @@ const SprintBadge = ({ sprint, onClick }: SprintBadgeProps) => {
 interface MetadataFooterProps {
   createdAt: Date | string;
   updatedAt: Date | string;
-  reporter?: { name: string };
+  reporter?: { name: string } | null;
 }
 
 const MetadataFooter = ({ createdAt, updatedAt, reporter }: MetadataFooterProps) => {
@@ -227,6 +185,13 @@ const MetadataFooter = ({ createdAt, updatedAt, reporter }: MetadataFooterProps)
 function IssueSidePanel({ className, params }: IssueSidePanelProps) {
   const { data: issue } = useSuspenseQuery(getBoardIssueQueryOptions(params));
 
+  const updateIssue = useMutation(updateBoardIssueMutationOptions(params));
+  const handleUpdate = (data: typeof updateIssue.variables) => {
+    if (updateIssue.isPending) return;
+    if (!data) throw new Error('No data to update');
+    updateIssue.mutate(data);
+  };
+
   return (
     <aside
       className={cn(
@@ -269,7 +234,17 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
 
                   {/* Parent Issue */}
                   <FieldRow icon={<GitBranch className='h-4 w-4' />} label='Parent Issue'>
-                    <ParentIssueBadge parent={issue.parent} />
+                    <BoardIssueSelectors
+                      className='max-w-40 overflow-hidden'
+                      placeholder={issue.parent ? issue.parent.summary : 'Select epic'}
+                      disabled={updateIssue.isPending}
+                      params={{ workspaceId: '', boardId: issue.boardId }}
+                      defaultValue={issue.parentId ?? null}
+                      onChange={(value) => handleUpdate({ parentId: value })}
+                      queryFilter={{
+                        filter: { issueType: { hierarchy: issue.type.hierarchy + 1 } },
+                      }}
+                    />
                   </FieldRow>
 
                   {/* Sprint */}

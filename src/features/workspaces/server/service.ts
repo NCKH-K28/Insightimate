@@ -7,6 +7,7 @@ import {
   WORKSPACE_ACTIONS,
   ZWorkspaceItem,
   WorkspaceActionKey,
+  WorkspaceUpdateInput,
 } from '@/contracts/workspaces';
 import { prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
@@ -73,7 +74,7 @@ const getWorkspaceById = async (
 ) => {
   const include = { permissions: false, ...options?.include };
 
-  const ws = await prisma.workspace.findUnique({ where: { id } });
+  const ws = await prisma.workspace.findUnique({ where: { id }, include: { owner: true } });
   if (!ws) throw new WorkspaceNotFoundError();
 
   await ensureCanViewWorkspace(id, context.actorId);
@@ -128,6 +129,33 @@ const createWorkspace = async (input: WorkspaceCreateInput, context: WorkspaceSe
   return workspace;
 };
 
+const updateWorkspaceById = async (
+  id: string,
+  input: Partial<WorkspaceUpdateInput>,
+  context: WorkspaceServiceContext,
+  options?: { include?: { permissions?: boolean } },
+) => {
+  const workspace = await getWorkspaceById(id, context, { include: { permissions: true } });
+  if (!isWorkspaceActionAllowed('update', workspace.permissions)) {
+    throw new WorkspacePermissionError();
+  }
+
+  const updatedWorkspace = await prisma.workspace.update({
+    where: { id },
+    data: { ...input, updatedAt: new Date() },
+  });
+
+  if (!options?.include?.permissions) return ZWorkspaceItem.parse(updatedWorkspace);
+  const resource = workspaceResourceFactory(updatedWorkspace);
+  const principal = await loadPrincipal(context, { workspaceId: id });
+
+  const actions = Array.from(WORKSPACE_ACTIONS);
+  const check = await cerbosEdge.checkResource({ principal, resource, actions });
+
+  const permissions = mapCerbosActionsToBooleans(check.actions);
+  return ZWorkspaceItem.parse({ ...updatedWorkspace, permissions });
+};
+
 const archiveWorkspace = async (id: string, context: WorkspaceServiceContext) => {
   const workspace = await getWorkspaceById(id, context, { include: { permissions: true } });
   if (!isWorkspaceActionAllowed('delete', workspace.permissions)) {
@@ -159,6 +187,7 @@ const deleteWorkspace = async (id: string, context: WorkspaceServiceContext) => 
 export const workspaceService = {
   getById: getWorkspaceById,
   list: listWorkspacesOfUser,
+  updateById: updateWorkspaceById,
   create: createWorkspace,
   archive: archiveWorkspace,
   restore: restoreWorkspace,

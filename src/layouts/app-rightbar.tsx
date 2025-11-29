@@ -1,17 +1,7 @@
 import * as React from 'react';
-import { Plus, XIcon } from 'lucide-react';
+import { XIcon } from 'lucide-react';
 
-import { DatePicker } from '@/components/date-picker';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarSeparator,
-} from '@/components/ui/sidebar';
+import { Sidebar, SidebarContent, SidebarHeader, SidebarMenuButton } from '@/components/ui/sidebar';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';

@@ -8,7 +8,8 @@ import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigat
 import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
-import { BacklogTab, KanbanTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
+import { BacklogTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
+import KanbanPage from './_tabs/kanban-tab-v2';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
 type WrapperProps = { Component: React.ComponentType<{ params: WrapperParams }> };
@@ -43,8 +44,8 @@ const tabs = {
     contentEl: <Wrapper Component={BacklogTab} />,
   },
   board: {
-    labelEl: 'Board',
-    contentEl: <Wrapper Component={KanbanTab} />,
+    labelEl: 'Kanban',
+    contentEl: <Wrapper Component={KanbanPage} />,
   },
   list: {
     labelEl: 'List',
@@ -66,13 +67,19 @@ export default function ProjectWithViewModePage() {
   const params = useParams<{ projectId: string; workspaceId: string }>();
   if (!params) throw new Error('Params not found');
 
-  const { data: projectForView } = useQuery(getProjectQueryOptions({ projectId: params.projectId }));
+  const { data: projectForView } = useQuery(
+    getProjectQueryOptions({ projectId: params.projectId }),
+  );
 
   useEffect(() => {
     if (!projectForView?.id) return;
-    viewItem(params.workspaceId, { type: 'PROJECT', entityId: projectForView.id, context: { boardId: projectForView.boardId } }).catch(() => {});
-  }, [projectForView?.id]);
-  
+    viewItem(params.workspaceId, {
+      type: 'PROJECT',
+      entityId: projectForView.id,
+      context: { boardId: projectForView.boardId },
+    }).catch(() => {});
+  }, [params.workspaceId, projectForView]);
+
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

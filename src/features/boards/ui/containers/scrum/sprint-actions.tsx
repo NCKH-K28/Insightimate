@@ -9,9 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-
-import { UpdateSprintButton } from '../buttons/update-sprint-btn';
-import { UpdateFormData } from '../forms/update-sprint-form';
+import { UpdateSprintButton } from '../../buttons/update-sprint-btn';
+import { UpdateFormData } from '../../forms/update-sprint-form';
 
 type SprintActionsProps = {
   onEdit?: () => void;

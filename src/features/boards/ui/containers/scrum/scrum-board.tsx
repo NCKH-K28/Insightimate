@@ -76,6 +76,7 @@ export type ScrumRowProps = {
 };
 
 export type ScrumBoardProps = {
+  className?: string;
   rows: ScrumRowProps[];
   autoExpandOnHoverMs?: number; // default 500; 0 to disable
   /**
@@ -674,7 +675,7 @@ const ScrumRow = React.memo((props: ScrumRowProps) => {
 
 ScrumRow.displayName = 'ScrumRow';
 
-export const ScrumBoard = (props: ScrumBoardProps) => {
+export const ScrumBoard = ({ className, ...props }: ScrumBoardProps) => {
   const { rows, sensors, onDragStart, onDragOver, onDragEnd, announcements } = useScrumBoard(props);
   const dndContext = useDndContext();
   const active = dndContext?.active;
@@ -693,7 +694,12 @@ export const ScrumBoard = (props: ScrumBoardProps) => {
       if (!row) return null;
 
       return (
-        <div className='shadow-xl bg-gray-100 rounded-lg p-3 cursor-grabbing opacity-95'>
+        <div
+          className={cn(
+            'shadow-xl bg-gray-100 rounded-lg p-3 cursor-grabbing opacity-95',
+            className,
+          )}
+        >
           <div className='font-semibold text-lg mb-2'>{row.label}</div>
           <div className='flex flex-col gap-2 max-h-40 overflow-hidden'>
             {row.items.slice(0, 3).map((item) => (

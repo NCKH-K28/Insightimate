@@ -36,7 +36,7 @@ const DynamicRelative = z.object({ type: z.enum(['after', 'before']), refId: z.s
 const ZRelative = z.union([StaticRelative, DynamicRelative]);
 
 export const ZBoardIssueMoveInput = z.object({
-  parentType: z.enum(['sprint', 'column']),
+  parentType: z.enum(['sprint', 'status']),
   relative: ZRelative,
   from: z.object({ parentId: z.string().nullable() }),
   to: z.object({ parentId: z.string().nullable() }),

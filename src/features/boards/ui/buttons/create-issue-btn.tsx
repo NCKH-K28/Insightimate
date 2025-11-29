@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
 import { mutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import z from 'zod';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { boardApi } from '@/features/boards/api/http';
@@ -22,6 +22,8 @@ type FormData = z.infer<typeof ZBoardIssueCreateInput>;
 type CreateIssueButtonProps = {
   params: { projectId: string; boardId: string; sprintId?: string };
   btnLabel?: string;
+  btnClassName?: string;
+  renderBtnLabel?: (open: () => void) => React.ReactNode;
 
   typeRequired?: boolean;
   typeFilterFn?: (type: IssueType, types: IssueType[]) => boolean;
@@ -30,6 +32,8 @@ type CreateIssueButtonProps = {
 export const CreateIssueButton = ({
   params,
   btnLabel,
+  btnClassName,
+  renderBtnLabel,
   typeRequired,
   typeFilterFn,
   typeFetched,
@@ -46,13 +50,21 @@ export const CreateIssueButton = ({
 
   const createIssue = useMutation(createMutationOptions);
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
+  const LabelElm = useMemo(() => {
+    if (renderBtnLabel) return renderBtnLabel(() => setOpen(true));
+    else
+      return (
         <Button variant='outline' size='sm' className='ml-2'>
           <PlusIcon className='h-4 w-4' />
-          <span className='ml-1.5'>{btnLabel ?? 'New Issue'}</span>
+          <span className='ml-1.5'>{btnLabel ? btnLabel : 'Create Issue'}</span>
         </Button>
+      );
+  }, [btnLabel, renderBtnLabel]);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild className={btnClassName}>
+        {LabelElm}
       </DialogTrigger>
       <DialogContent className='sm:max-w-[600px] max-h-[90vh] overflow-y-auto'>
         <DialogHeader className='space-y-3'>

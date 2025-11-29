@@ -19,8 +19,8 @@ import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
 
 import { cn } from '@/lib/utils';
-import IssueMainPanel from '@/features/boards/ui/components/issue-detail/issue-main-panel';
-import IssueSidePanel from '@/features/boards/ui/components/issue-detail/issue-side-panel';
+import IssueMainPanel from '@/features/boards/ui/containers/issue-detail/issue-main-panel';
+import IssueSidePanel from '@/features/boards/ui/containers/issue-detail/issue-side-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

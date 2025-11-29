@@ -20,6 +20,20 @@ export const GET = middlewareHandler<Params>([authenticated], async (req, { para
   return NextResponse.json(result, { status: 200 });
 });
 
+export const PATCH = middlewareHandler<Params>([authenticated], async (req, { params }) => {
+  const auth = await getAuthFromRequest(req);
+  const actorId = auth.user.id;
+  const body = await req.json();
+
+  const result = await workspaceService.updateById(
+    params.workspaceId,
+    body,
+    { actorId },
+    { include: { permissions: true } },
+  );
+  return NextResponse.json(result, { status: 200 });
+});
+
 export const DELETE = middlewareHandler<Params>([authenticated], async (req, { params }) => {
   const workspace = await prisma.workspace.findUnique({ where: { id: params.workspaceId } });
   if (!workspace) return NextResponse.json({ message: 'Not found' }, { status: 404 });

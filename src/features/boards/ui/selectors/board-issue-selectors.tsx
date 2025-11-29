@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CheckIcon, ChevronsUpDown, Loader2 } from 'lucide-react';
+import { CheckIcon, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useControlledState } from '@/hooks/use-controlled-state';
@@ -36,20 +36,24 @@ type BoardIssueSelectorsProps = {
   onChange?: (value: string | null) => void;
   defaultValue?: string | null;
   placeholder?: string;
+  renderPlaceholder?: () => React.ReactNode;
   disabled?: boolean;
   className?: string;
   onFetched?: (issues: IssueOption[], setValue: (value: string | null) => void) => void;
   queryFilter?: BoardIssueQueryParams;
+  fetchMode?: 'mount' | 'always';
 };
 
 const BoardIssueSelectors: React.FC<BoardIssueSelectorsProps> = ({
   params,
   onChange,
+  renderPlaceholder,
   placeholder = 'Select an issue.. .',
   disabled = false,
   className,
   onFetched,
   queryFilter,
+  fetchMode = 'mount',
   ...props
 }) => {
   const [value, setValue] = useControlledState<string | null>(
@@ -61,11 +65,16 @@ const BoardIssueSelectors: React.FC<BoardIssueSelectorsProps> = ({
   const [open, setOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const [isFetchEnabled, setIsFetchEnabled] = useState(fetchMode === 'always');
+
   const {
     data: issues,
     isLoading,
     isError,
-  } = useQuery(listBoardIssuesQueryOptions(params.boardId, queryFilter));
+  } = useQuery({
+    ...listBoardIssuesQueryOptions(params.boardId, queryFilter),
+    enabled: isFetchEnabled,
+  });
 
   // Call onFetched callback when issues are loaded
   useEffect(() => {
@@ -109,6 +118,11 @@ const BoardIssueSelectors: React.FC<BoardIssueSelectorsProps> = ({
     }
   }, []);
 
+  const RenderedPlaceholder = useMemo(() => {
+    if (renderPlaceholder) return renderPlaceholder();
+    return <span className='text-muted-foreground'>{placeholder}</span>;
+  }, [renderPlaceholder, placeholder]);
+
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
@@ -118,6 +132,9 @@ const BoardIssueSelectors: React.FC<BoardIssueSelectorsProps> = ({
           role='combobox'
           aria-expanded={open}
           disabled={disabled || isLoading}
+          onClick={() => {
+            setIsFetchEnabled(true);
+          }}
           className={cn(
             'w-full justify-between font-normal',
             !selectedIssue && 'text-muted-foreground',
@@ -134,7 +151,7 @@ const BoardIssueSelectors: React.FC<BoardIssueSelectorsProps> = ({
               <span className='truncate'>{selectedIssue.summary}</span>
             </span>
           ) : (
-            placeholder
+            RenderedPlaceholder
           )}
         </Button>
       </PopoverTrigger>

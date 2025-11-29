@@ -5,46 +5,90 @@ import Decimal from 'decimal.js';
 
 const ranker = LexRank.create({ precision: 10, initialRank: 1, stepSize: 1 });
 
-const getLastIssue = async (parentId: string | null, parentField: 'sprintId') => {
-  const issue = await prisma.boardIssue.findFirst({
-    where: { [parentField]: parentId },
-    orderBy: { rank: 'desc' },
-  });
-  return issue;
+const getLastIssue = async (parentId: string | null, parentField: 'sprintId' | 'statusId') => {
+  if (parentField === 'statusId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { issue: { statusId: parentId ?? undefined } }, // nullable statusId
+      orderBy: { rank: 'desc' },
+    });
+    return issue;
+  } else if (parentField === 'sprintId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { sprintId: parentId },
+      orderBy: { rank: 'desc' },
+    });
+    return issue;
+  }
+
+  throw new Error('Invalid parent field');
 };
 
-const getFirstIssue = async (parentId: string | null, parentField: 'sprintId') => {
-  const issue = await prisma.boardIssue.findFirst({
-    where: { [parentField]: parentId },
-    orderBy: { rank: 'asc' },
-  });
-  return issue;
+const getFirstIssue = async (parentId: string | null, parentField: 'sprintId' | 'statusId') => {
+  if (parentField === 'statusId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { issue: { statusId: parentId ?? undefined } }, // nullable statusId
+      orderBy: { rank: 'asc' },
+    });
+    return issue;
+  }
+  if (parentField === 'sprintId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { sprintId: parentId },
+      orderBy: { rank: 'asc' },
+    });
+    return issue;
+  }
+  throw new Error('Invalid parent field');
 };
 
-const getAfterIssue = async (rank: Decimal, parentId: string | null, parentField: 'sprintId') => {
-  const issue = await prisma.boardIssue.findFirst({
-    where: { [parentField]: parentId, rank: { gt: rank } },
-    orderBy: { rank: 'asc' },
-  });
-  return issue;
+const getAfterIssue = async (
+  rank: Decimal,
+  parentId: string | null,
+  parentField: 'sprintId' | 'statusId',
+) => {
+  if (parentField === 'statusId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { issue: { statusId: parentId ?? undefined }, rank: { gt: rank } }, // nullable statusId
+      orderBy: { rank: 'asc' },
+    });
+    return issue;
+  } else if (parentField === 'sprintId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { [parentField]: parentId, rank: { gt: rank } },
+      orderBy: { rank: 'asc' },
+    });
+    return issue;
+  }
+
+  throw new Error('Invalid parent field');
 };
 
 const getBeforeIssue = async (
   rank: Decimal,
   parentId: string | null,
-  parentField: 'sprintId' | 'columnId',
+  parentField: 'sprintId' | 'statusId',
 ) => {
-  const issue = await prisma.boardIssue.findFirst({
-    where: { [parentField]: parentId, rank: { lt: rank } },
-    orderBy: { rank: 'desc' },
-  });
-  return issue;
+  if (parentField === 'statusId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { issue: { statusId: parentId ?? undefined }, rank: { lt: rank } }, // nullable statusId
+      orderBy: { rank: 'desc' },
+    });
+    return issue;
+  } else if (parentField === 'sprintId') {
+    const issue = await prisma.boardIssue.findFirst({
+      where: { [parentField]: parentId, rank: { lt: rank } },
+      orderBy: { rank: 'desc' },
+    });
+    return issue;
+  }
+
+  throw new Error('Invalid parent field');
 };
 
 const getDestRanks = async (
   params: { issueId: string; boardId: string },
   input: BoardIssueMoveInput,
-  parentField: 'sprintId',
+  parentField: 'sprintId' | 'statusId',
 ) => {
   const srcIssue = await prisma.boardIssue.findUniqueOrThrow({
     where: { issueId_boardId: params },
@@ -106,12 +150,26 @@ export const moveBoardIssue = async (
   params: { boardId: string; issueId: string },
   input: BoardIssueMoveInput,
 ) => {
-  const destRanks = await getDestRanks(params, input, 'sprintId');
+  const parentField = input.parentType === 'sprint' ? 'sprintId' : 'statusId';
+  const destRanks = await getDestRanks(params, input, parentField);
 
-  const updated = await prisma.boardIssue.update({
-    where: params,
-    data: { sprintId: input.to.parentId, rank: destRanks.newRank },
-  });
-  if (!updated) throw new Error('Failed to update issue rank');
-  return updated;
+  if (input.parentType === 'status') {
+    const updated = await prisma.boardIssue.update({
+      where: params,
+      data: {
+        issue: { update: { statusId: input.to.parentId ?? undefined } },
+        rank: destRanks.newRank,
+      },
+    });
+    if (!updated) throw new Error('Failed to update issue rank');
+    return updated;
+  } else if (input.parentType === 'sprint') {
+    const updated = await prisma.boardIssue.update({
+      where: params,
+      data: { sprintId: input.to.parentId, rank: destRanks.newRank },
+    });
+    if (!updated) throw new Error('Failed to update issue rank');
+    return updated;
+  }
+  throw new Error('Invalid parent field');
 };

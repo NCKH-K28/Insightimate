@@ -17,7 +17,7 @@ import {
 } from '@tanstack/react-table';
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
 import { DottedSeparator } from '@/components/dotted-separator';
-import { DataKanban } from '@/features/boards/ui/components/data-kanban';
+import { DataKanban } from '@/features/boards/ui/containers/kanban/data-kanban';
 import { CreateStatusButton } from '@/features/projects/ui/buttons/create-status-btn';
 
 type KanbanTabProps = {

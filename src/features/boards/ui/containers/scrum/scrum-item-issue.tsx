@@ -2,8 +2,8 @@ import { useCallback, useMemo } from 'react';
 import { GripVertical } from 'lucide-react';
 
 import type { BoardIssueItem } from '@/contracts/boards/boards.query';
-import { fieldToOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
-import { unassignedUser, UserSelectors, userToOption } from '../../../users/ui/user-selector';
+import { fieldToOption, IssueFieldSelectors } from '../../selectors/issue-field-selectors';
+import { unassignedUser, UserSelectors, userToOption } from '../../../../users/ui/user-selector';
 import { cn } from '@/lib/utils';
 import {
   getProjectQueryOptions,
@@ -20,10 +20,10 @@ import { EditableStorypoints } from '@/components/editable-storypoints';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSortable } from '@dnd-kit/sortable';
-import { BoardIssueActions } from './board-issue-actionts';
+import { BoardIssueActions } from '../../components/board-issue-actionts';
 import Link from 'next/link';
 import { useParams, usePathname } from 'next/navigation';
-import BoardIssueSelectors from '../selectors/board-issue-selectors';
+import BoardIssueSelectors from '../../selectors/board-issue-selectors';
 
 export type IssueItemProps = {
   id: string;
@@ -94,7 +94,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
     >
       {/* Drag Handle */}
       <div
-        className='flex-shrink-0 cursor-grab opacity-0 transition-opacity group-hover:opacity-100'
+        className='shrink-0 cursor-grab opacity-0 transition-opacity group-hover:opacity-100'
         {...dnd.listeners}
         {...dnd.attributes}
       >
@@ -102,7 +102,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
       </div>
 
       {/* Issue Type */}
-      <div className='flex-shrink-0'>
+      <div className='shrink-0'>
         <IssueFieldSelectors
           value={fieldToOption(issue.type)}
           triggerOptions={{ showLabel: false }}
@@ -136,10 +136,10 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
         />
       </div>
 
-      <div className='flex flex-shrink-0 items-center gap-2'>
+      <div className='flex shrink-0 items-center gap-2'>
         <BoardIssueSelectors
           className='max-w-40 overflow-hidden'
-          placeholder='Select epic'
+          placeholder={issue.parent ? issue.parent.summary : 'Select epic'}
           params={{ workspaceId: '', boardId: issue.boardId }}
           defaultValue={issue.parentId ?? null}
           disabled={updateIssue.isPending}
@@ -151,7 +151,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
       </div>
 
       {/* Right side controls with consistent spacing */}
-      <div className='flex flex-shrink-0 items-center gap-2'>
+      <div className='flex shrink-0 items-center gap-2'>
         {/* Status */}
         <div className='w-32'>
           <IssueFieldSelectors
@@ -169,7 +169,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
         <Separator orientation='vertical' className='h-5' />
 
         {/* Priority */}
-        <div className='flex-shrink-0'>
+        <div className='shrink-0'>
           <IssueFieldSelectors
             value={fieldToOption(issue.priority)}
             triggerOptions={{ showLabel: false }}
@@ -214,7 +214,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
         <Separator orientation='vertical' className='h-5' />
 
         {/* Actions */}
-        <div className='flex-shrink-0 opacity-0 transition-opacity group-hover:opacity-100'>
+        <div className='shrink-0 opacity-0 transition-opacity group-hover:opacity-100'>
           <BoardIssueActions onDelete={() => handleDelete()} disabled={deleteIssue.isPending} />
         </div>
       </div>
