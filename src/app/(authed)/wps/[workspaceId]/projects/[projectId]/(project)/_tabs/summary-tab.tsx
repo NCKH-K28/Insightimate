@@ -59,7 +59,7 @@ export const SummaryTab: React.FC<{
     <div className='grid grid-cols-1 lg:grid-cols-3 gap-6 items-start'>
       <div className='lg:col-span-2 flex flex-col gap-6'>
         <div className='grid grid-cols-1 sm:grid-cols-4 gap-4'>
-          <StatCard title='Total Issues' value={totalIssues} delta='Last 30 days' />
+          <StatCard title='Total' value={totalIssues} delta='Last 30 days' />
           <StatCard title='To Do' value={totalToDo} delta='Currently open' />
           <StatCard title='In Progress' value={totalInProgress} delta='Active items' />
           <StatCard title='Done' value={totalDone} delta='Closed this month' />

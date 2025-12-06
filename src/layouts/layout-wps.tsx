@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { SearchButton } from '@/features/query/ui/search-button';
 import { Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AppBreadcrumbs from './app-breadcrumbs';
 
 function WpsLayout({ children }: { children: React.ReactNode }) {
   const params = useParams<{ workspaceId: string }>();
@@ -52,11 +53,17 @@ function WpsLayout({ children }: { children: React.ReactNode }) {
           <div className='w-full flex items-center gap-2 px-4'>
             <SidebarTrigger className='-ml-1' />
             <Separator orientation='vertical' className='mr-2 data-[orientation=vertical]:h-4' />
-            <SearchButton variant='outline' />
-            <Button size='sm' variant='outline' className='ml-auto' onClick={toggleInsightAI}>
-              <Sparkles />
-              <span>InsightAI</span>
-            </Button>
+            <div className='flex flex-1 items-center min-w-0'>
+              <AppBreadcrumbs />
+            </div>
+
+            <div className='ml-auto flex items-center gap-2'>
+              <SearchButton variant='outline' />
+              <Button size='sm' variant='outline' onClick={toggleInsightAI}>
+                <Sparkles />
+                <span>InsightAI</span>
+              </Button>
+            </div>
           </div>
         </header>
 
