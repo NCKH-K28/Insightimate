@@ -2,9 +2,8 @@
 
 import { useMemo, Suspense, useEffect } from 'react';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import {
-  ArrowLeft,
   MoreHorizontal,
   Share2,
   Star,
@@ -19,11 +18,12 @@ import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
 
 import { cn } from '@/lib/utils';
-import IssueMainPanel from '@/features/boards/ui/containers/issue-detail/issue-main-panel';
+import IssueMainPanel, {
+  EditableSummary,
+} from '@/features/boards/ui/containers/issue-detail/issue-main-panel';
 import IssueSidePanel from '@/features/boards/ui/containers/issue-detail/issue-side-panel';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   DropdownMenu,
@@ -32,14 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from '@/components/ui/breadcrumb';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { useState } from 'react';
 
@@ -156,27 +148,20 @@ const PageSkeleton = () => (
 // ============ Header Component ============
 
 interface IssueHeaderProps {
-  issueKey: string;
-  projectName: string;
-  workspaceId: string;
-  projectId: string;
   isStarred?: boolean;
   onToggleStar?: () => void;
   isSidePanelCollapsed?: boolean;
   onToggleSidePanel?: () => void;
+  params: { boardId: string; projectId: string; issueId: string };
 }
 
 const IssueHeader = ({
-  issueKey,
-  projectName,
-  workspaceId,
-  projectId,
+  params,
   isStarred = false,
   onToggleStar,
   isSidePanelCollapsed = false,
   onToggleSidePanel,
 }: IssueHeaderProps) => {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
   const handleCopyLink = async () => {
@@ -185,49 +170,10 @@ const IssueHeader = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleBack = () => {
-    router.push(`/wps/${workspaceId}/projects/${projectId}?tab=backlog`);
-  };
-
   return (
     <header className='flex items-center justify-between px-4 py-2.5 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10'>
       <div className='flex items-center gap-3'>
-        {/* Back button */}
-        <TooltipProvider delayDuration={300}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant='ghost' size='icon' className='h-8 w-8 shrink-0' onClick={handleBack}>
-                <ArrowLeft className='h-4 w-4' />
-                <span className='sr-only'>Back to board</span>
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side='bottom'>
-              <p>Back to board</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        {/* Breadcrumb */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink
-                href={`/wps/${workspaceId}/projects/${projectId}`}
-                className='text-sm text-muted-foreground hover:text-foreground transition-colors'
-              >
-                {projectName}
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>
-                <Badge variant='secondary' className='font-mono text-xs tracking-wide'>
-                  {issueKey}
-                </Badge>
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        <EditableSummary params={params} />
       </div>
 
       {/* Actions */}
@@ -347,7 +293,9 @@ const IssueContent = ({
 
   useEffect(() => {
     if (!issue?.id) return;
-    viewItem(workspaceId, { type: 'ISSUE', entityId: issue.id, context: { boardId } }).catch(() => {});
+    viewItem(workspaceId, { type: 'ISSUE', entityId: issue.id, context: { boardId } }).catch(
+      () => {},
+    );
   }, [issue?.id]);
 
   if (isPending) return <PageSkeleton />;
@@ -388,10 +336,7 @@ const IssueContent = ({
     <div className='flex flex-col h-full w-full bg-background'>
       {/* Header */}
       <IssueHeader
-        issueKey={issue.key}
-        projectName={projectName}
-        workspaceId={workspaceId}
-        projectId={projectId}
+        params={{ boardId, projectId, issueId }}
         isStarred={isStarred}
         onToggleStar={() => setIsStarred(!isStarred)}
         isSidePanelCollapsed={isSidePanelCollapsed}

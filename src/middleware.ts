@@ -28,7 +28,7 @@ const pingHealthCheck = async (request: NextRequest) => {
   await fetch(`${request.nextUrl.origin}${pingPath}`);
 };
 
-const authRoutes = ['/signin', '/signup', '/landing', '/'];
+const authRoutes = ['/signin', '/signup'];
 const authenticated = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
@@ -41,10 +41,6 @@ const authenticated = async (request: NextRequest) => {
   const isAuthRoute = authRoutes.includes(pathname);
 
   if (!token && isAuthRoute) return NextResponse.next();
-  if (!token && !isAuthRoute) {
-    // Redirect to landing page for all protected paths when not authenticated
-    return NextResponse.redirect(new URL('/landing', request.url));
-  }
 
   return NextResponse.next();
 };

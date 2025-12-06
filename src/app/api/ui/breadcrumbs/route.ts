@@ -34,7 +34,7 @@ const getIssueBreadcrumbs = async (issueId: string): Promise<Breadcrumb[]> => {
 
   // Project
   breadcrumbs.push({
-    label: project.name,
+    label: project.key,
     href: projectHref,
     iconURL: project.avatar,
   });

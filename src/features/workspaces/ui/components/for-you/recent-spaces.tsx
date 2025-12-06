@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import ProjectCard from '@/components/for-you/project-card';
+import ProjectCard from './project-card';
 
 export default function RecentSpaces({
   spaces = [],
@@ -21,12 +21,18 @@ export default function RecentSpaces({
       const type = p.projectType ?? 'PROJECT';
       const openItems = p.totalIssues ?? p.openItems ?? 0;
       const doneItems = p.doneIssues ?? p.doneItems ?? 0;
-      const colors = ['bg-sky-400', 'bg-violet-500', 'bg-emerald-400', 'bg-amber-400', 'bg-indigo-400'];
+      const colors = [
+        'bg-sky-400',
+        'bg-violet-500',
+        'bg-emerald-400',
+        'bg-amber-400',
+        'bg-indigo-400',
+      ];
       const color = p.color ?? colors[Math.abs(hashCode(id)) % colors.length];
       return { id, name, type, avatar, color, openItems, doneItems };
     });
 
-  const itemsToRender = (spaces && spaces.length > 0) ? spaces : derivedFromViewed;
+  const itemsToRender = spaces && spaces.length > 0 ? spaces : derivedFromViewed;
 
   if (!itemsToRender || itemsToRender.length === 0) {
     return (

@@ -87,7 +87,7 @@ const ProjectsList = ({ params }: ProjectsListProps) => {
   });
 
   return (
-    <div id='projects-toolbar' className={cn('w-full', 'p-4 sm:p-6 lg:p-8', 'space-y-4')}>
+    <div id='projects-toolbar' className={cn('w-full', 'space-y-4')}>
       <Suspense
         fallback={
           <div className='w-full h-12 flex items-center justify-center text-sm text-gray-500' />
@@ -109,12 +109,9 @@ const ProjectsList = ({ params }: ProjectsListProps) => {
 
 const ProjectsHeader = () => {
   return (
-    <div
-      id='projects-header'
-      className={cn('w-full', 'px-4 sm:px-6 lg:px-8', 'py-4', 'flex flex-col space-y-2')}
-    >
-      <div className={cn('text-2xl font-bold')}>Projects</div>
-      <Separator orientation='horizontal' className='w-full' />
+    <div id='projects-header' className={cn('w-full', 'flex flex-col gap-2')}>
+      <h1 className='text-2xl font-semibold'>Projects</h1>
+      <span className='text-sm text-muted-foreground'>Manage your workspace projects here.</span>
     </div>
   );
 };
@@ -123,13 +120,12 @@ export default function ProjectsPage() {
   const params = useParams<{ workspaceId: string }>();
   if (!params) throw new Error('ProjectsPage must be used within a route with workspaceId param');
 
-  if (!params) {
-    return null;
-  }
+  if (!params) return null;
 
   return (
-    <section className={cn('w-full h-full', 'relative')}>
+    <section className={cn('w-full h-full', 'relative flex flex-col gap-4')}>
       <ProjectsHeader />
+      <Separator orientation='horizontal' />
       <Suspense fallback={<div>Loading...</div>}>
         <ProjectsList params={params} />
       </Suspense>

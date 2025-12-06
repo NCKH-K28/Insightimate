@@ -10,18 +10,16 @@ import { useMutation } from '@tanstack/react-query';
 import { signoutMutationOptions } from '@/features/authn/api/actions';
 import { redirect } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
-import { IconComet } from '@tabler/icons-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { InsightmateLogoFull } from '@/components/icons/insightmate';
+import Link from 'next/link';
 
-type AppLogoProps = { size?: number; type?: 'icon' | 'label' | 'full' };
-const AppLogo = (props: AppLogoProps) => {
-  const { size = 32 } = props;
-  const IconElement = IconComet;
+const AppLogo = ({ type }: { type: 'icon' | 'label' }) => {
   return (
-    <div className='flex items-center'>
-      <IconElement size={size} />
-      <span className='ml-2 text-xl font-bold'>Insightmate</span>
-    </div>
+    <Link href='/'>
+      <InsightmateLogoFull height={40} />
+      <span className='sr-only'>Insightmate</span>
+    </Link>
   );
 };
 

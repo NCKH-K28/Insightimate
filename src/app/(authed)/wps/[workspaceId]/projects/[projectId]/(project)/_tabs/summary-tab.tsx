@@ -1,16 +1,18 @@
 'use client';
 
 import React from 'react';
-import StatCard from '@/components/summary/stat-card';
 import { useQuery } from '@tanstack/react-query';
 
-import SummaryLoading from '@/components/summary/summary-loading';
-import StatusCard from '@/components/summary/status-card';
-import PriorityCard from '@/components/summary/priority-card';
-import ProjectOverview from '@/components/summary/project-overview';
-import QuickStats from '@/components/summary/quick-stats';
+import {
+  SummaryLoading,
+  StatusCard,
+  PriorityCard,
+  ProjectOverview,
+  QuickStats,
+} from '@/features/projects/ui/components/summary';
 
 import { fetchProjectSummaryQueryOptions } from '@/features/projects/api/actions';
+import { StatCard } from '@/features/projects/ui/components/summary';
 
 const priorityChartData = [
   { priority: 'lowest', issues: 0 },

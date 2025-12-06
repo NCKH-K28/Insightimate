@@ -3,14 +3,11 @@
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { FileText, ListTree, MessageSquare, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { FileText, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import IssueActivity from '../../components/issue-activity';
 import EditableText from '../../components/editable-text';
 import EditableRichText from '../../components/editable-rich-text';
-import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { IssueItem } from '@/contracts/issues/issues.query';
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
@@ -19,7 +16,6 @@ import {
   updateBoardIssueMutationOptions,
 } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import SubIssues from './sub-issues';
 
 // ============ Types ============
@@ -144,7 +140,7 @@ const LoadingSkeleton = () => (
 );
 
 type EditableSummaryProps = { params: { boardId: string; projectId: string; issueId: string } };
-const EditableSummary = ({ params }: EditableSummaryProps) => {
+export const EditableSummary = ({ params }: EditableSummaryProps) => {
   const { data: summary, isPending } = useQuery({
     ...getBoardIssueQueryOptions(params),
     select: (data) => data.summary,
@@ -243,22 +239,6 @@ function IssueMainPanel({ className, params }: IssueMainPanelProps) {
       aria-label='Issue details'
       className={cn('flex flex-col gap-2 p-4', 'animate-in fade-in duration-300', className)}
     >
-      {/* Summary / Title */}
-      <div className='flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3'>
-        <div className='group h-10'>
-          <EditableSummary params={params} />
-        </div>
-        <Badge variant='outline' className='px-2 py-1 text-xs font-medium'>
-          <Avatar className='size-4'>
-            <AvatarImage src={issue.type.iconURL ?? ''} alt={issue.type.name} />
-            <AvatarFallback>{issue.type.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <span className='font-mono'>{issue.type.name}</span>
-        </Badge>
-      </div>
-      <Separator />
-
-      {/* Description Section */}
       <Section icon={<FileText className='size-4' />} title='Description'>
         <EditableDescription params={params} />
       </Section>
