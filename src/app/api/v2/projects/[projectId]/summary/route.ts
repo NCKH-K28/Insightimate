@@ -110,7 +110,7 @@ export const GET = middlewareHandler<{ projectId: string }>(
 
     // Quick stats
     const backlog = await prisma.issue.count({
-      where: { projectId, archived: false, sprint: { none: {} } },
+      where: { projectId, archived: false },
     });
     const bugs = await prisma.issue.count({
       where: { projectId, type: { name: { equals: 'Bug', mode: 'insensitive' } } },

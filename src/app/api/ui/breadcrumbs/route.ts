@@ -79,6 +79,38 @@ const getProjectBreadcrumbs = async (projectId: string): Promise<Breadcrumb[]> =
   ];
 };
 
+const getSprintBreadcrumbs = async (sprintId: string): Promise<Breadcrumb[]> => {
+  const sprint = await prisma.sprint.findUnique({
+    where: { id: sprintId },
+    include: {
+      board: {
+        include: {
+          project: true,
+        },
+      },
+    },
+  });
+
+  if (!sprint || !sprint.board || !sprint.board.project) {
+    return [];
+  }
+
+  const project = sprint.board.project;
+  const projectHref = `/wps/${project.workspaceId}/projects/${project.id}`;
+
+  return [
+    {
+      label: project.name,
+      href: projectHref,
+      iconURL: project.avatar,
+    },
+    {
+      label: sprint.name,
+      href: `${projectHref}/sprints/${sprint.id}`,
+    },
+  ];
+};
+
 // api/ui/breadcrumbs?path=/wps/[workspaceId]/projects/[projectId]/issues/[issueId]
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -86,21 +118,30 @@ export async function GET(request: Request) {
 
   // /wps/{workspaceId}/projects/{projectId}
   // /wps/{workspaceId}/projects/{projectId}/issues/{issueId}
-  const regex = /^\/wps\/[^/]+\/projects\/([^/]+)(?:\/issues\/([^/]+))?/;
+  // /wps/{workspaceId}/sprints/{sprintId}
+  // const regex = /^\/wps\/[^/]+\/projects\/([^/]+)(?:\/issues\/([^/]+))?/;
+  const regex = /^\/wps\/[^/]+\/(projects|sprints)\/([^/]+)(?:\/issues\/([^/]+))?/;
   const match = path ? path.match(regex) : null;
 
   let breadcrumbs: Breadcrumb[] = [];
 
   if (match) {
-    const projectId = match[1];
-    const issueId = match[2];
+    const entityType = match[1]; // 'projects' or 'sprints'
+    if (entityType === 'projects') {
+      const projectId = match[2];
+      const issueId = match[3];
 
-    if (issueId) {
-      // Có issueId → lấy luôn chain [project, parent?, issue]
-      breadcrumbs = await getIssueBreadcrumbs(issueId);
-    } else {
-      // Chỉ có project
-      breadcrumbs = await getProjectBreadcrumbs(projectId);
+      if (issueId) {
+        // Breadcrumbs cho issue
+        breadcrumbs = await getIssueBreadcrumbs(issueId);
+      } else {
+        // Breadcrumbs cho project
+        breadcrumbs = await getProjectBreadcrumbs(projectId);
+      }
+    } else if (entityType === 'sprints') {
+      const sprintId = match[2];
+      // Breadcrumbs cho sprint
+      breadcrumbs = await getSprintBreadcrumbs(sprintId);
     }
   }
 

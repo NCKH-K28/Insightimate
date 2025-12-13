@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { EditIcon, MoreHorizontal, Trash2 } from 'lucide-react';
+import { EditIcon, Eye, MoreHorizontal, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -11,14 +11,20 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { UpdateSprintButton } from '../../buttons/update-sprint-btn';
 import { UpdateFormData } from '../../forms/update-sprint-form';
+import { useRouter } from 'next/navigation';
 
 type SprintActionsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
-  params: { boardId: string; sprintId: string };
+  params: {
+    workspaceId: string;
+    boardId: string;
+    sprintId: string;
+  };
   defaultValues?: Partial<UpdateFormData>;
 };
 export const SprintActions = ({ onDelete, params, defaultValues }: SprintActionsProps) => {
+  const router = useRouter();
   const [updateDialogOpen, setUpdateDialogOpen] = React.useState(false);
 
   return (
@@ -38,6 +44,17 @@ export const SprintActions = ({ onDelete, params, defaultValues }: SprintActions
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align='end'>
+          <DropdownMenuItem
+            onClick={(e) => {
+              e.stopPropagation();
+              const path = `/wps/${params.workspaceId}/sprints/${params.sprintId}`;
+              router.push(path);
+            }}
+          >
+            <Eye className='mr-2 h-4 w-4' />
+            View Detail
+          </DropdownMenuItem>
+
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();

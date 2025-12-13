@@ -154,10 +154,21 @@ export const moveBoardIssue = async (
   const destRanks = await getDestRanks(params, input, parentField);
 
   if (input.parentType === 'status') {
+    const statuId = input.to.parentId ?? undefined;
+    let resolvedAt: Date | null | undefined = undefined;
+
+    if (statuId) {
+      const status = await prisma.issueStatus.findUnique({ where: { id: statuId } });
+      if (!status) throw new Error('Status not found');
+      const isDone = status.category === 'DONE';
+      if (isDone) resolvedAt = new Date();
+      else resolvedAt = null;
+    }
+
     const updated = await prisma.boardIssue.update({
       where: params,
       data: {
-        issue: { update: { statusId: input.to.parentId ?? undefined } },
+        issue: { update: { statusId: statuId, resolvedAt: resolvedAt } },
         rank: destRanks.newRank,
       },
     });

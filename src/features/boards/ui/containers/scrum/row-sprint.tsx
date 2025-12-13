@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 import { CreateIssueButton } from '../../buttons/create-issue-btn';
 import { CompleteSprintButton } from '../../buttons/complete-sprint-btn';
 import { UpdateSprintButton } from '../../buttons/update-sprint-btn';
+import { useRouter } from 'next/navigation';
 // ===
 
 const formatSprintDates = (start: Date, end: Date) => {
@@ -25,7 +26,7 @@ const formatSprintDates = (start: Date, end: Date) => {
 
 type RowSprintProps = {
   id: string; // this is rowId
-  params: { boardId: string; projectId: string };
+  params: { boardId: string; projectId: string; workspaceId: string };
   sprint: {
     id: string;
     boardId: string;
@@ -39,7 +40,19 @@ type RowSprintProps = {
 };
 
 export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintProps) => {
-  const context = { boardId: params.boardId, sprintId: sprint.id, projectId: params.projectId };
+  const route = useRouter();
+
+  const toSprintDetail = () => {
+    const path = `/wps/${params.workspaceId}/sprints/${sprint.id}`;
+    route.push(path);
+  };
+
+  const context = {
+    boardId: params.boardId,
+    sprintId: sprint.id,
+    projectId: params.projectId,
+    workspaceId: params.workspaceId,
+  };
   const deleteSprint = useMutation(deleteBoardSprintMutationOptions(context));
   const startSprint = useMutation(startBoardSprintMutationOptions(context));
   // const completeSprint = useMutation(completeBoardSprintMutationOptions(context));
@@ -86,7 +99,9 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
         <ChevronRight className={cn('w-4 h-4 transition-transform', !collapsed && 'rotate-90')} />
       </Button>
       <div className='w-full flex items-center gap-2 text-sm'>
-        <span className='text-foreground font-semibold'>{sprint.name}</span>
+        <Button variant='link' onClick={toSprintDetail}>
+          <span className='font-medium'>{sprint.name}</span>
+        </Button>
         <span className='text-muted-foreground text-xs'>({items.length} issues)</span>
         <div>
           {sprint.startAt && sprint.endAt ? (

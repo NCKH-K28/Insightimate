@@ -95,21 +95,8 @@ model Sprint {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  board       Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  issues      SprintIssue[] @relation("SprintIssue")
+  board       Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardIssues BoardIssue[]
 
   @@map("sprints")
-}
-
-model SprintIssue {
-  issueId  String @id
-  sprintId String @map("sprint_id")
-
-  rank Decimal?
-
-  issue  Issue  @relation("SprintIssue", fields: [issueId], references: [id], onDelete: Cascade)
-  sprint Sprint @relation("SprintIssue", fields: [sprintId], references: [id], onDelete: Cascade)
-
-  @@map("sprint_issues")
 }

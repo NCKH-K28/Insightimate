@@ -2,17 +2,13 @@ import z from 'zod';
 import { isoDateString, isoString } from '../common';
 import { ZIssue } from '../issues/issue';
 
+/** Helpers */
 const ZRankDecimal = z.preprocess((v) => {
   if (typeof v === 'string') return parseFloat(v);
   return parseFloat(v as any);
 }, z.number());
 
-export const ZBoardIssue = ZIssue.extend({
-  rank: ZRankDecimal,
-  boardId: z.string(),
-  sprintId: z.string().nullable(),
-});
-
+/** Core schemas */
 export const ZBoard = z.object({
   id: z.string(),
   name: z.string(),
@@ -26,6 +22,7 @@ export const ZBoardSprint = z.object({
   id: z.string(),
   name: z.string(),
   state: z.enum(['FUTURE', 'ACTIVE', 'CLOSED']),
+  boardId: z.string(),
   startAt: isoDateString.nullable(),
   endAt: isoDateString.nullable(),
   goal: z.string().nullable(),
@@ -37,6 +34,9 @@ export const ZBoardColumn = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string().nullish(),
+  boardId: z.string(),
+  sequence: z.number(),
+
   createdAt: isoString,
   updatedAt: isoString,
 
@@ -44,10 +44,21 @@ export const ZBoardColumn = z.object({
   // groupParams: z.array(z.string()),
 });
 
+export const ZBoardIssue = ZIssue.extend({
+  rank: ZRankDecimal,
+  boardId: z.string(),
+  sprintId: z.string().nullable(),
+});
+
+/** Aliases */
 export const ZColumn = ZBoardColumn;
 export const ZSprint = ZBoardSprint;
 
+/** Types */
 export type Board = z.infer<typeof ZBoard>;
-export type BoardIssue = z.infer<typeof ZBoardIssue>;
 export type BoardSprint = z.infer<typeof ZBoardSprint>;
 export type BoardColumn = z.infer<typeof ZBoardColumn>;
+export type BoardIssue = z.infer<typeof ZBoardIssue>;
+
+export type Column = BoardColumn;
+export type Sprint = BoardSprint;

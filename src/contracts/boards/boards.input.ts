@@ -1,4 +1,7 @@
 import z from 'zod';
+import { ZSprint } from './board';
+
+/** ===================== BOARD ISSUES ===================== */
 
 export const ZBoardIssueCreateInput = z.object({
   summary: z.string().min(1, 'Summary is required'),
@@ -30,9 +33,9 @@ export const ZBoardIssueRankUpdate = z.object({
   in: z.enum(['SCRUM', 'KANBAN']),
 });
 
+/** Move helpers */
 const StaticRelative = z.object({ type: z.enum(['top', 'bottom']) });
 const DynamicRelative = z.object({ type: z.enum(['after', 'before']), refId: z.string() });
-
 const ZRelative = z.union([StaticRelative, DynamicRelative]);
 
 export const ZBoardIssueMoveInput = z.object({
@@ -42,12 +45,14 @@ export const ZBoardIssueMoveInput = z.object({
   to: z.object({ parentId: z.string().nullable() }),
 });
 
+/** Issue types */
 export type BoardIssueCreateInput = z.infer<typeof ZBoardIssueCreateInput>;
 export type BoardIssueUpdateInput = z.infer<typeof ZBoardIssueUpdateInput>;
 export type BoardIssueRankUpdate = z.infer<typeof ZBoardIssueRankUpdate>;
 export type BoardIssueMoveInput = z.infer<typeof ZBoardIssueMoveInput>;
 
-// ========= BOARD SPRINTS ==========
+/** ===================== BOARD SPRINTS ===================== */
+
 export const ZBoardSprintCreateInput = z.object({
   name: z.string().min(1, 'Sprint name is required').optional(),
   goal: z.string().nullish(),
@@ -58,6 +63,7 @@ export const ZBoardSprintCreateInput = z.object({
 
 export const ZBoardSprintUpdateInput = ZBoardSprintCreateInput.omit({ state: true }).partial();
 
+/** Sprint complete */
 type ToMoveToSprint = `to:sp_${string}`;
 const ZMoveToSprint = z
   .string()
@@ -75,6 +81,31 @@ export const ZBoardSprintCompleteInput = z.object({
   ]),
 });
 
+/** Board sprint types */
 export type BoardSprintCreateInput = z.infer<typeof ZBoardSprintCreateInput>;
 export type BoardSprintUpdateInput = z.infer<typeof ZBoardSprintUpdateInput>;
 export type BoardSprintCompleteInput = z.infer<typeof ZBoardSprintCompleteInput>;
+
+/** ===================== SPRINT (business rules) ===================== */
+
+export const ZSprintWithBusiness = ZSprint.superRefine((data, ctx) => {
+  if (data.startAt && data.endAt && new Date(data.startAt) >= new Date(data.endAt)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['startAt', 'endAt'],
+      message: 'Sprint start date must be before end date',
+    });
+  }
+});
+
+export const ZSprintCreateInput = ZSprintWithBusiness.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).partial({ name: true });
+
+export const ZSprintUpdateInput = ZSprintCreateInput;
+
+/** Sprint types */
+export type SprintCreateInput = z.infer<typeof ZSprintCreateInput>;
+export type SprintUpdateInput = z.infer<typeof ZSprintUpdateInput>;

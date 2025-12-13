@@ -45,7 +45,6 @@ model Issue {
     resolution   IssueResolution? @relation("IssueResolution", fields: [resolutionId], references: [id], onDelete: Cascade)
     links        IssueLink[]      @relation("IssueLinkSource")
     linkedBy     IssueLink[]      @relation("IssueLinkTarget")
-    sprint       SprintIssue[]    @relation("SprintIssue")
     parent       Issue?           @relation("IssueParent", fields: [parentId], references: [id], onDelete: Cascade)
     subIssues    Issue[]          @relation("IssueParent")
 

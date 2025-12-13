@@ -1,7 +1,9 @@
 import * as dotenv from 'dotenv';
+import dotenvExpand from 'dotenv-expand';
+
 import path from 'node:path';
 import fs from 'node:fs/promises';
-import { defineConfig, env } from 'prisma/config';
+import { defineConfig, env as prismaEnv } from 'prisma/config';
 
 const listFiles = async (): Promise<string[]> => {
   const basePath = path.resolve(process.cwd());
@@ -19,12 +21,14 @@ const listFiles = async (): Promise<string[]> => {
   return envFiles;
 };
 
-dotenv.config({ override: true, path: await listFiles() });
+const envFiles = await listFiles();
+const env = dotenv.config({ override: true, path: envFiles });
+dotenvExpand.expand(env);
 
 export default defineConfig({
   schema: path.join('src', 'lib', 'prisma', 'schema'),
   datasource: {
-    url: env('DATABASE_URL'),
+    url: prismaEnv('DATABASE_URL'),
   },
   migrations: { path: path.join('src', 'lib', 'prisma', 'migrations') },
 });
