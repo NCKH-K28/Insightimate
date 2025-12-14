@@ -9,6 +9,7 @@ import {
 import s3Client from './client';
 import { createId as cuid } from '@paralleldrive/cuid2';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { Readable } from 'node:stream';
 
 export const BUCKET_NAME = 'avatar-storage';
 const int = async () => {
@@ -120,7 +121,22 @@ export const getDownloadURL = async (
   return getSignedUrl(s3Client, command, { expiresIn });
 };
 
-const aiStorage = {
+export const streamObject = async (key: string) => {
+  const bucket = getBucketName();
+  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const response = await s3Client.send(command);
+
+  if (!response.Body) throw new Error('No body in S3 object response');
+  return {
+    body: response.Body as Readable,
+    contentType: response.ContentType,
+    contentLength: response.ContentLength,
+    etag: response.ETag,
+    lastModified: response.LastModified,
+  };
+};
+
+const avatarStorage = {
   bucketName: getBucketName(),
   upload: uploadObject,
   delete: deleteObject,
@@ -128,6 +144,7 @@ const aiStorage = {
   head: getObjectMetadata,
   getUploadURL,
   getDownloadURL,
+  streamObject,
 };
 
-export default aiStorage;
+export default avatarStorage;

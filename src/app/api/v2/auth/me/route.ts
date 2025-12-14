@@ -41,3 +41,18 @@ export const PUT = compose(authenticatedV2, zodBodyPipe(ZMeUpdateInput), async (
 
   return NextResponse.json(result, { status: 200 });
 });
+
+export const PATCH = compose(authenticatedV2, zodBodyPipe(ZMeUpdateInput), async (req) => {
+  const auth = await getAuthFromRequest(req);
+  const userId = auth.user.id;
+
+  const input = getZodBody(req, ZMeUpdateInput);
+  const updatedUser = await prisma.user.update({
+    where: { id: userId },
+    data: { name: input.name, avatar: input.avatar },
+  });
+
+  const result = ZUserPublic.parse(updatedUser);
+
+  return NextResponse.json(result, { status: 200 });
+});
