@@ -99,7 +99,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
         <ChevronRight className={cn('w-4 h-4 transition-transform', !collapsed && 'rotate-90')} />
       </Button>
       <div className='w-full flex items-center gap-2 text-sm'>
-        <Button variant='link' onClick={toSprintDetail}>
+        <Button size='sm' className='p-0' variant='link' onClick={toSprintDetail}>
           <span className='font-medium'>{sprint.name}</span>
         </Button>
         <span className='text-muted-foreground text-xs'>({items.length} issues)</span>

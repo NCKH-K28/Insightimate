@@ -15,23 +15,23 @@ export const sumStoryPoints = (issues: Issue[]) => {
 
 export const listIssuesWithDescendants = async (sprintId: string) => {
   const issues = await prisma.boardIssue.findMany({ where: { sprintId } });
+  if (issues.length === 0) return [];
 
   const issueIds = issues.map((i) => i.issueId);
   type IssueDescendant = Issue;
   const descendants = await prisma.$queryRaw<IssueDescendant[]>(Prisma.sql`
-     WITH RECURSIVE issue_tree AS (
-       SELECT i.*
-       FROM "issues" i
-       WHERE i."id" IN (${Prisma.join(issueIds)})
- 
-       UNION ALL
- 
-       -- Children: mọi issue có parent_id trỏ tới issue trong issue_tree
-       SELECT c.*
-       FROM "issues" c
-       JOIN issue_tree p ON c."parent_id" = p."id"
-     )
-     SELECT DISTINCT * FROM issue_tree;
+    WITH RECURSIVE issue_tree AS (
+      SELECT i.*, ARRAY[i."id"] AS path
+      FROM "issues" i
+      WHERE i."id" IN (${Prisma.join(issueIds)})
+
+      UNION ALL
+      SELECT c.*, p.path || c."id"
+      FROM "issues" c
+      JOIN issue_tree p ON c."parent_id" = p."id"
+      WHERE NOT (c."id" = ANY(p.path))  -- chống cycle
+    )
+    SELECT DISTINCT ON ("id") * FROM issue_tree;
    `);
 
   // map field

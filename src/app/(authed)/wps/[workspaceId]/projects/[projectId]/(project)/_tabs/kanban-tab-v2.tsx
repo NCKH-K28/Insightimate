@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo } from 'react';
 
-import { Card, Column, MoveRelative } from '@/features/boards/ui/containers/kanbanV2/types';
-import { KanbanBoard } from '@/features/boards/ui/containers/kanbanV2';
+import { Card, Column, MoveRelative } from '@/features/boards/ui/containers/kanban/types';
+import { KanbanBoard } from '@/features/boards/ui/containers/kanban';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -18,7 +18,6 @@ import { toast } from 'sonner';
 type KanbanTabProps = { params: { boardId: string; projectId: string; workspaceId: string } };
 export default function KanbanTab({ params }: KanbanTabProps) {
   const boardId = params.boardId;
-  // const { data: board } = useSuspenseQuery(getBoardQueryOptions(boardId));
   const { data: statuses } = useSuspenseQuery({
     ...getProjectQueryOptions(params),
     select: (res) => res.statuses,
