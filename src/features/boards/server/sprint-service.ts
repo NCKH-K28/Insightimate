@@ -1,53 +1,7 @@
 import { prisma } from '@/lib/prisma/client';
-import { Issue, IssueStatus, IssueType, Prisma } from '@prisma/client';
-import {
-  format,
-  differenceInDays,
-  startOfDay,
-  addDays,
-  endOfDay,
-  differenceInCalendarDays,
-} from 'date-fns';
+import { format, startOfDay, addDays, endOfDay, differenceInCalendarDays } from 'date-fns';
 import Decimal from 'decimal.js';
-import camelCase from 'lodash/camelCase';
-import isPlainObject from 'lodash/isPlainObject';
-
-export function snakeToCamelDeep<T>(input: any): T {
-  if (Array.isArray(input)) return input.map(snakeToCamelDeep) as T;
-  if (isPlainObject(input)) {
-    return Object.fromEntries(
-      Object.entries(input).map(([key, value]) => [camelCase(key), snakeToCamelDeep(value)]),
-    ) as T;
-  }
-
-  return input;
-}
-
-const listIssuesWithDescendants = async (sprintId: string) => {
-  const issues = await prisma.boardIssue.findMany({ where: { sprintId } });
-
-  const issueIds = issues.map((i) => i.issueId);
-  type IssueDescendant = Issue;
-  const descendants = await prisma.$queryRaw<IssueDescendant[]>(Prisma.sql`
-     WITH RECURSIVE issue_tree AS (
-       SELECT i.*
-       FROM "issues" i
-       WHERE i."id" IN (${Prisma.join(issueIds)})
- 
-       UNION ALL
- 
-       -- Children: mọi issue có parent_id trỏ tới issue trong issue_tree
-       SELECT c.*
-       FROM "issues" c
-       JOIN issue_tree p ON c."parent_id" = p."id"
-     )
-     SELECT DISTINCT * FROM issue_tree;
-   `);
-
-  // map field
-  const formatted = descendants.map((descendant) => snakeToCamelDeep<IssueDescendant>(descendant));
-  return formatted;
-};
+import { listIssuesWithDescendants, summary } from './cqrs/q-sprint-summary';
 
 const listIssues = async (sprintId: string) => {
   const sprint = await prisma.sprint.findUnique({ where: { id: sprintId } });
@@ -153,36 +107,8 @@ const burnup = async (sprintId: string) => {
   };
 };
 
-const summary = async (sprintId: string) => {
-  const sprint = await prisma.sprint.findUnique({ where: { id: sprintId } });
-  if (!sprint) throw new Error('Sprint not found');
-
-  const issues = await listIssuesWithDescendants(sprintId);
-  const doneIssues = issues.filter((i) => i.resolvedAt !== null);
-
-  const totalPoints = issues
-    .filter((i) => typeof i.storyPoints === 'number')
-    .reduce((sum, i) => sum.plus(i.storyPoints ?? 0), new Decimal(0))
-    .toNumber();
-
-  const completedPoints = doneIssues
-    .filter((i) => typeof i.storyPoints === 'number')
-    .reduce((sum, i) => sum.plus(i.storyPoints ?? 0), new Decimal(0))
-    .toNumber();
-
-  const result = {
-    sprintId,
-    issue: { total: issues.length, done: doneIssues.length },
-    storyPoints: { total: totalPoints, completed: completedPoints },
-  };
-
-  return result;
-};
-
 export const sprintService = {
   listIssues,
-  listIssuesWithDescendants,
-
   burndown,
   burnup,
   summary,

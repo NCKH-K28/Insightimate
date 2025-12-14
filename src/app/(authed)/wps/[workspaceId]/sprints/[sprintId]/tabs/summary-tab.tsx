@@ -1,637 +1,396 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import React, { useMemo } from 'react';
+import { Card, CardHeader, CardDescription, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Button } from '@/components/ui/button';
 import {
-  Flag,
-  CalendarDays,
-  AlertTriangle,
-  Users,
-  TrendingDown,
-  TrendingUp,
-  CheckCircle,
-  Circle,
-  Bug,
   Target,
-  BarChart3,
-  Clock,
-  Minus,
   Layers,
-  Lightbulb,
-  ArrowRight,
+  TrendingUp,
+  TrendingDown,
+  Clock,
+  AlertTriangle,
+  Circle,
 } from 'lucide-react';
-import { Sprint } from '@/contracts/sprints/sprint';
+import { useQuery } from '@tanstack/react-query';
+import { SprintItem, SprintSummary } from '@/contracts/boards/boards.query';
+import { BreakdownCard } from '../components/summary/breakdown-card';
+import { cn } from '@/lib/utils';
 
 // ============ Types ============
-
-export type SprintStatus = 'FUTURE' | 'ACTIVE' | 'CLOSED';
-
-export type IssueStatus = 'todo' | 'inProgress' | 'inReview' | 'done';
-
-export type IssuePriority = 'low' | 'medium' | 'high' | 'critical';
-
-export interface SprintIssue {
-  id: string;
-  key: string;
-  title: string;
-  status: IssueStatus;
-  priority: IssuePriority;
-  storyPoints?: number;
-  assignee?: {
-    id: string;
-    name: string;
-    avatarUrl?: string;
-  };
-  isHighlight?: boolean;
-  dueDate?: string;
-}
-
-export interface SprintMember {
-  id: string;
-  name: string;
-  role?: string;
-  avatarUrl?: string;
-  availability?: 'full' | 'partial' | 'off';
-  timeOffDays?: number;
-}
-
-export interface SprintBlockerOrRisk {
-  id: string;
-  title: string;
-  description?: string;
-  ownerName?: string;
-  severity?: 'low' | 'medium' | 'high';
-}
-
-export interface SprintDecision {
-  id: string;
-  description: string;
-  decidedBy?: string;
-  decidedAt?: string;
-}
-
-export interface BurndownPoint {
-  dayLabel: string;
-  remainingPoints: number;
-}
-
-export interface SprintSummaryMetrics {
-  totalStoryPoints: number;
-  completedStoryPoints: number;
-  totalIssues: number;
-  issuesAddedAfterStart: number;
-  newBugs: number;
-  resolvedBugs: number;
-  burndownTrend: BurndownPoint[];
-  burndownStatus?: 'onTrack' | 'behind' | 'ahead';
-}
-
-export interface SprintSummaryTabProps {
-  sprint: Sprint;
-
-  sprintName: string;
-  projectName?: string;
-  status: SprintStatus;
-  startDate: string;
-  endDate: string;
-  sprintGoal?: string;
-  teamName?: string;
-
-  metrics: SprintSummaryMetrics;
-
-  inProgressIssues: SprintIssue[];
-  doneHighlightIssues: SprintIssue[];
-
-  blockers: SprintBlockerOrRisk[];
-  risks: SprintBlockerOrRisk[];
-  decisions: SprintDecision[];
-
-  teamMembers: SprintMember[];
-  plannedStoryPoints?: number;
-  committedStoryPoints?: number;
-
-  upcomingIssues?: SprintIssue[];
-
-  onViewBoard?: () => void;
-  onViewReport?: () => void;
-}
+type SprintSummaryTabProps = { sprint: SprintItem };
+type MetricMode = 'counts' | 'points';
 
 // ============ Helper Functions ============
+const formatNumber = (n: number) => new Intl.NumberFormat().format(Math.round(n));
 
-const formatDate = (isoDate: string): string => {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: '2-digit',
-    year: 'numeric',
-  }).format(new Date(isoDate));
+const getDaysRemaining = (endDate: string | Date) => {
+  const end = new Date(endDate);
+  const now = new Date();
+  const diff = Math.ceil((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return diff;
 };
 
-const getInitials = (name: string): string => {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2);
+const getSprintHealthStatus = (progressPct: number, timeElapsedPct: number, scopeCreep: number) => {
+  const velocity = progressPct / Math.max(timeElapsedPct, 1);
+
+  if (velocity >= 0.9 && scopeCreep < 10) {
+    return { status: 'healthy', label: 'On Track', color: 'text-green-600', bg: 'bg-green-50' };
+  } else if (velocity >= 0.7 && scopeCreep < 20) {
+    return { status: 'warning', label: 'At Risk', color: 'text-amber-600', bg: 'bg-amber-50' };
+  } else {
+    return { status: 'critical', label: 'Behind', color: 'text-red-600', bg: 'bg-red-50' };
+  }
 };
 
-// ============ Sub-Components ============
+// ============ Sub Components ============
 
-const StatusBadge: React.FC<{ status: SprintStatus }> = ({ status }) => {
-  const config: Record<
-    SprintStatus,
-    { label: string; variant: 'default' | 'secondary' | 'outline'; className: string }
-  > = {
-    FUTURE: {
-      label: 'Upcoming',
-      variant: 'outline',
-      className: 'border-blue-500 text-blue-600 bg-blue-50',
-    },
-    ACTIVE: {
-      label: 'Active',
-      variant: 'default',
-      className: 'bg-green-500 text-white hover:bg-green-600',
-    },
-    CLOSED: {
-      label: 'Completed',
-      variant: 'secondary',
-      className: 'bg-gray-500 text-white',
-    },
-  };
-
-  const { label, className } = config[status];
-
-  return <Badge className={className}>{label}</Badge>;
-};
-
-const PriorityBadge: React.FC<{ priority: IssuePriority }> = ({ priority }) => {
-  const config: Record<IssuePriority, { label: string; className: string }> = {
-    critical: { label: 'P0', className: 'bg-red-600 text-white' },
-    high: { label: 'P1', className: 'bg-orange-500 text-white' },
-    medium: { label: 'P2', className: 'bg-yellow-500 text-white' },
-    low: { label: 'P3', className: 'bg-gray-400 text-white' },
-  };
-
-  const { label, className } = config[priority];
-
-  return (
-    <Badge variant='secondary' className={`text-xs px-1. 5 py-0.5 ${className}`}>
-      {label}
-    </Badge>
-  );
-};
-
-const IssueStatusBadge: React.FC<{ status: IssueStatus }> = ({ status }) => {
-  const config: Record<IssueStatus, { label: string; className: string }> = {
-    todo: { label: 'To Do', className: 'bg-gray-100 text-gray-700' },
-    inProgress: { label: 'In Progress', className: 'bg-blue-100 text-blue-700' },
-    inReview: { label: 'In Review', className: 'bg-purple-100 text-purple-700' },
-    done: { label: 'Done', className: 'bg-green-100 text-green-700' },
-  };
-
-  const { label, className } = config[status];
-
-  return (
-    <Badge variant='outline' className={`text-xs ${className}`}>
-      {label}
-    </Badge>
-  );
-};
-
-const SeverityBadge: React.FC<{ severity: 'low' | 'medium' | 'high' }> = ({ severity }) => {
-  const config: Record<string, { label: string; className: string }> = {
-    low: { label: 'Low', className: 'bg-gray-100 text-gray-600' },
-    medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700' },
-    high: { label: 'High', className: 'bg-red-100 text-red-700' },
-  };
-
-  const { label, className } = config[severity];
-
-  return (
-    <Badge variant='outline' className={`text-xs ${className}`}>
-      {label}
-    </Badge>
-  );
-};
-
-const AvailabilityBadge: React.FC<{
-  availability: 'full' | 'partial' | 'off';
-}> = ({ availability }) => {
-  const config: Record<string, { label: string; className: string }> = {
-    full: { label: 'Full', className: 'bg-green-100 text-green-700' },
-    partial: { label: 'Partial', className: 'bg-yellow-100 text-yellow-700' },
-    off: { label: 'Off', className: 'bg-gray-100 text-gray-500' },
-  };
-
-  const { label, className } = config[availability];
-
-  return (
-    <Badge variant='outline' className={`text-xs ${className}`}>
-      {label}
-    </Badge>
-  );
-};
-
-const AssigneeAvatar: React.FC<{
-  assignee?: { name: string; avatarUrl?: string };
-  size?: 'sm' | 'md';
-}> = ({ assignee, size = 'sm' }) => {
-  if (!assignee) return null;
-
-  const sizeClass = size === 'sm' ? 'h-6 w-6' : 'h-8 w-8';
-
-  return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Avatar className={sizeClass}>
-            {assignee.avatarUrl && <AvatarImage src={assignee.avatarUrl} alt={assignee.name} />}
-            <AvatarFallback className='text-xs'>{getInitials(assignee.name)}</AvatarFallback>
-          </Avatar>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{assignee.name}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-const MiniSparkline: React.FC<{ data: BurndownPoint[] }> = ({ data }) => {
-  if (data.length === 0) return null;
-
-  const maxValue = Math.max(...data.map((d) => d.remainingPoints), 1);
-  const height = 40;
-
-  return (
-    <div className='flex items-end gap-0.5 h-10'>
-      {data.map((point, index) => {
-        const barHeight = (point.remainingPoints / maxValue) * height;
-        return (
-          <TooltipProvider key={index}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div
-                  className='bg-blue-400 hover:bg-blue-500 rounded-t-sm transition-colors cursor-pointer min-w-[4px] flex-1'
-                  style={{ height: `${Math.max(barHeight, 2)}px` }}
-                />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {point.dayLabel}: {point.remainingPoints} pts
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        );
-      })}
+// Loading Skeleton
+const SummarySkeleton = () => (
+  <div className='flex flex-col gap-6'>
+    <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+      {[...Array(4)].map((_, i) => (
+        <Card key={i}>
+          <CardHeader className='pb-2'>
+            <Skeleton className='h-4 w-20' />
+            <Skeleton className='h-8 w-16 mt-2' />
+          </CardHeader>
+          <CardContent>
+            <Skeleton className='h-2 w-full' />
+            <Skeleton className='h-4 w-24 mt-2' />
+          </CardContent>
+        </Card>
+      ))}
     </div>
-  );
-};
-
-const IssueItem: React.FC<{
-  issue: SprintIssue;
-  showStatus?: boolean;
-  showCheckIcon?: boolean;
-}> = ({ issue, showStatus = true, showCheckIcon = false }) => {
-  return (
-    <div className='flex items-center gap-3 py-2 px-2 rounded-md hover:bg-muted/50 transition-colors'>
-      {showCheckIcon && <CheckCircle className='h-4 w-4 text-green-500 flex-shrink-0' />}
-      {showStatus && !showCheckIcon && <IssueStatusBadge status={issue.status} />}
-      <div className='flex-1 min-w-0'>
-        <div className='flex items-center gap-2'>
-          <span className='text-xs text-muted-foreground font-mono'>{issue.key}</span>
-          <span className='text-sm truncate'>{issue.title}</span>
-        </div>
-        {issue.dueDate && (
-          <div className='flex items-center gap-1 mt-0.5 text-xs text-muted-foreground'>
-            <Clock className='h-3 w-3' />
-            <span>{formatDate(issue.dueDate)}</span>
-          </div>
-        )}
-      </div>
-      <div className='flex items-center gap-2 flex-shrink-0'>
-        <PriorityBadge priority={issue.priority} />
-        {issue.storyPoints !== undefined && (
-          <Badge variant='outline' className='text-xs'>
-            {issue.storyPoints} SP
-          </Badge>
-        )}
-        <AssigneeAvatar assignee={issue.assignee} />
-      </div>
+    <div className='grid grid-cols-1 md: grid-cols-3 gap-4'>
+      {[...Array(3)].map((_, i) => (
+        <Skeleton key={i} className='h-[300px]' />
+      ))}
     </div>
-  );
-};
-
-const EmptyState: React.FC<{ message: string }> = ({ message }) => (
-  <div className='flex items-center justify-center py-6 text-muted-foreground text-sm'>
-    {message}
   </div>
 );
 
-// ============ Main Component ============
+// Stat Card Component
+const StatCard: React.FC<{
+  icon: React.ReactNode;
+  title: string;
+  value: string | number;
+  subtitle?: string;
+  trend?: { value: number; label: string };
+  warning?: string;
+  progress?: number;
+  className?: string;
+}> = ({ icon, title, value, subtitle, trend, warning, progress, className }) => (
+  <Card className={cn('hover:shadow-md transition-all duration-200', className)}>
+    <CardHeader className='pb-2'>
+      <div className='flex items-center justify-between'>
+        <CardDescription className='flex items-center gap-1.5 text-muted-foreground'>
+          {icon}
+          {title}
+        </CardDescription>
+        {trend && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge
+                  variant='secondary'
+                  className={cn(
+                    'text-xs',
+                    trend.value >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50',
+                  )}
+                >
+                  {trend.value >= 0 ? (
+                    <TrendingUp className='h-3 w-3 mr-1' />
+                  ) : (
+                    <TrendingDown className='h-3 w-3 mr-1' />
+                  )}
+                  {Math.abs(trend.value)}%
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{trend.label}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
+      </div>
+      <div className='text-3xl font-bold tracking-tight mt-1'>{value}</div>
+    </CardHeader>
+    <CardContent className='space-y-2'>
+      {progress !== undefined && <Progress value={progress} className='h-2' />}
+      {subtitle && <p className='text-sm text-muted-foreground'>{subtitle}</p>}
+      {warning && (
+        <p className='text-sm text-amber-600 flex items-center gap-1'>
+          <AlertTriangle className='h-3.5 w-3.5' />
+          {warning}
+        </p>
+      )}
+    </CardContent>
+  </Card>
+);
 
-const SprintSummaryTab: React.FC<SprintSummaryTabProps> = ({
-  sprint,
-  teamName,
-  metrics,
-  inProgressIssues,
-  doneHighlightIssues,
-  blockers,
-  risks,
-  decisions,
-  teamMembers,
-  plannedStoryPoints,
-  committedStoryPoints,
-  upcomingIssues,
-  onViewBoard,
-  onViewReport,
-}) => {
-  const progressPercentage =
-    metrics.totalStoryPoints > 0
-      ? Math.round((metrics.completedStoryPoints / metrics.totalStoryPoints) * 100)
-      : 0;
+// Burndown Mini Chart
+const BurndownMiniChart: React.FC<{
+  ideal: number[];
+  actual: number[];
+}> = ({ ideal, actual }) => {
+  const maxValue = Math.max(...ideal, ...actual);
+  const points = actual.length;
 
-  const capacityPercentage =
-    plannedStoryPoints && plannedStoryPoints > 0 && committedStoryPoints
-      ? Math.round((committedStoryPoints / plannedStoryPoints) * 100)
-      : 0;
+  const idealPath = ideal
+    .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
+    .join(' ');
 
-  const getBurndownStatusIcon = () => {
-    switch (metrics.burndownStatus) {
-      case 'ahead':
-        return <TrendingDown className='h-4 w-4 text-green-500' />;
-      case 'behind':
-        return <TrendingUp className='h-4 w-4 text-red-500' />;
-      default:
-        return <Minus className='h-4 w-4 text-blue-500' />;
-    }
-  };
-
-  const getBurndownStatusText = () => {
-    switch (metrics.burndownStatus) {
-      case 'ahead':
-        return 'Ahead of schedule';
-      case 'behind':
-        return 'Behind schedule';
-      default:
-        return 'On track';
-    }
-  };
-
-  const getBurndownStatusClass = () => {
-    switch (metrics.burndownStatus) {
-      case 'ahead':
-        return 'text-green-600';
-      case 'behind':
-        return 'text-red-600';
-      default:
-        return 'text-blue-600';
-    }
-  };
+  const actualPath = actual
+    .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
+    .join(' ');
 
   return (
-    <div className='flex flex-col gap-4'>
-      {/* 1. Header: Sprint Information */}
+    <div className='h-16 w-full'>
+      <svg viewBox='0 0 100 100' className='w-full h-full' preserveAspectRatio='none'>
+        {/* Ideal line */}
+        <polyline
+          fill='none'
+          stroke='hsl(var(--muted-foreground))'
+          strokeWidth='1'
+          strokeDasharray='4 2'
+          points={idealPath}
+          opacity='0.5'
+        />
+        {/* Actual line */}
+        <polyline
+          fill='none'
+          stroke='hsl(var(--primary))'
+          strokeWidth='2'
+          points={actualPath}
+          strokeLinecap='round'
+          strokeLinejoin='round'
+        />
+      </svg>
+    </div>
+  );
+};
 
-      {/* 2. Key Metrics Row */}
-      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4'>
+// Status Distribution Mini Bar
+const StatusDistribution: React.FC<{
+  done: number;
+  inProgress: number;
+  todo: number;
+}> = ({ done, inProgress, todo }) => {
+  const total = done + inProgress + todo;
+  if (total === 0) return null;
+
+  const doneWidth = (done / total) * 100;
+  const inProgressWidth = (inProgress / total) * 100;
+  const todoWidth = (todo / total) * 100;
+
+  return (
+    <div className='space-y-2'>
+      <div className='flex h-2.5 w-full rounded-full overflow-hidden bg-muted'>
+        <div
+          className='bg-green-500 transition-all duration-300'
+          style={{ width: `${doneWidth}%` }}
+        />
+        <div
+          className='bg-blue-500 transition-all duration-300'
+          style={{ width: `${inProgressWidth}%` }}
+        />
+        <div
+          className='bg-gray-300 transition-all duration-300'
+          style={{ width: `${todoWidth}%` }}
+        />
+      </div>
+      <div className='flex justify-between text-xs text-muted-foreground'>
+        <span className='flex items-center gap-1'>
+          <Circle className='h-2 w-2 fill-green-500 text-green-500' />
+          Done {done}
+        </span>
+        <span className='flex items-center gap-1'>
+          <Circle className='h-2 w-2 fill-blue-500 text-blue-500' />
+          In Progress {inProgress}
+        </span>
+        <span className='flex items-center gap-1'>
+          <Circle className='h-2 w-2 fill-gray-300 text-gray-300' />
+          Todo {todo}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+// ============ Main Component ============
+const SprintSummaryTab: React.FC<SprintSummaryTabProps> = ({ sprint }) => {
+  const [metricMode, setMetricMode] = React.useState<MetricMode>('points');
+
+  const {
+    data: summary,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['sprintSummary', sprint.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/v2/sprints/${sprint.id}/summary`);
+      if (!res.ok) throw new Error('Failed to fetch sprint summary');
+      return res.json() as Promise<SprintSummary>;
+    },
+  });
+
+  const sMetrics = summary?.metrics;
+
+  // Calculate derived metrics
+  const metrics = useMemo(() => {
+    if (!sMetrics) return null;
+
+    const totalPoints = sMetrics.points?.total || 0;
+    const donePoints = sMetrics.points?.done || 0;
+    const totalIssues = sMetrics.counts?.total || 0;
+    const doneIssues = sMetrics.counts?.done || 0;
+
+    const progressPoints = totalPoints > 0 ? Math.round((donePoints / totalPoints) * 100) : 0;
+    const progressIssues = totalIssues > 0 ? Math.round((doneIssues / totalIssues) * 100) : 0;
+
+    const daysRemaining = sprint.endAt ? getDaysRemaining(sprint.endAt) : 0;
+    const totalDays =
+      sprint.endAt && sprint.startAt
+        ? Math.ceil(
+            (new Date(sprint.endAt).getTime() - new Date(sprint.startAt).getTime()) /
+              (1000 * 60 * 60 * 24),
+          )
+        : 0;
+    const timeElapsedPct = Math.min(100, ((totalDays - daysRemaining) / totalDays) * 100);
+
+    const scopeCreep = sMetrics.scope?.addedAfterStart || 0;
+    const scopeCreepPct = totalIssues > 0 ? (scopeCreep / totalIssues) * 100 : 0;
+
+    return {
+      totalPoints,
+      donePoints,
+      totalIssues,
+      doneIssues,
+      progressPoints,
+      progressIssues,
+      daysRemaining,
+      totalDays,
+      timeElapsedPct,
+      scopeCreep,
+      scopeCreepPct,
+      velocity: donePoints / Math.max(1, totalDays - daysRemaining),
+      health: getSprintHealthStatus(progressPoints, timeElapsedPct, scopeCreepPct),
+    };
+  }, [sMetrics, sprint]);
+
+  // Loading state
+  if (isLoading) {
+    return <SummarySkeleton />;
+  }
+
+  // Error state
+  if (error || !metrics) {
+    return (
+      <Card className='p-6'>
+        <div className='flex flex-col items-center justify-center text-center py-8'>
+          <AlertTriangle className='h-12 w-12 text-amber-500 mb-4' />
+          <h3 className='text-lg font-semibold'>Unable to load sprint summary</h3>
+          <p className='text-sm text-muted-foreground mt-1'>
+            Please try again later or contact support if the problem persists.
+          </p>
+        </div>
+      </Card>
+    );
+  }
+
+  return (
+    <div className='flex flex-col gap-6'>
+      {/* Quick Stats Grid */}
+      <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4'>
         {/* Progress Card */}
-        <Card className='hover:shadow-md transition-shadow'>
-          <CardHeader className='pb-2'>
-            <div className='flex items-center justify-between'>
-              <CardDescription className='flex items-center gap-1. 5'>
-                <Target className='h-4 w-4' />
-                Progress
-              </CardDescription>
-              <span className='text-2xl font-bold'>{progressPercentage}%</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Progress value={progressPercentage} className='h-2' />
-            <p className='text-sm text-muted-foreground mt-2'>
-              {metrics.completedStoryPoints} / {metrics.totalStoryPoints} SP done
-            </p>
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={<Target className='h-4 w-4' />}
+          title='Progress'
+          value={`${metrics.progressPoints}%`}
+          subtitle={`${formatNumber(metrics.donePoints)} / ${formatNumber(metrics.totalPoints)} SP completed`}
+          progress={metrics.progressPoints}
+          trend={
+            metrics.progressPoints >= metrics.timeElapsedPct
+              ? {
+                  value: Math.round(metrics.progressPoints - metrics.timeElapsedPct),
+                  label: 'Ahead of schedule',
+                }
+              : {
+                  value: -Math.round(metrics.timeElapsedPct - metrics.progressPoints),
+                  label: 'Behind schedule',
+                }
+          }
+        />
 
         {/* Scope Card */}
-        <Card className='hover:shadow-md transition-shadow'>
-          <CardHeader className='pb-2'>
-            <div className='flex items-center justify-between'>
-              <CardDescription className='flex items-center gap-1.5'>
-                <Layers className='h-4 w-4' />
-                Scope
-              </CardDescription>
-              <span className='text-2xl font-bold'>{metrics.totalIssues}</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <p className='text-sm text-muted-foreground'>Total issues</p>
-            {metrics.issuesAddedAfterStart > 0 && (
-              <p className='text-sm text-amber-600 mt-1'>
-                +{metrics.issuesAddedAfterStart} added after start
-              </p>
-            )}
-          </CardContent>
-        </Card>
+        <StatCard
+          icon={<Layers className='h-4 w-4' />}
+          title='Scope'
+          value={`${metrics.doneIssues}/${metrics.totalIssues}`}
+          subtitle='Issues completed'
+          progress={metrics.progressIssues}
+          warning={
+            metrics.scopeCreep > 0
+              ? `+${metrics.scopeCreep} added after start (${metrics.scopeCreepPct.toFixed(0)}%)`
+              : undefined
+          }
+        />
 
-        {/* Quality Card */}
-        <Card className='hover:shadow-md transition-shadow'>
-          <CardHeader className='pb-2'>
-            <div className='flex items-center justify-between'>
-              <CardDescription className='flex items-center gap-1.5'>
-                <Bug className='h-4 w-4' />
-                Quality
-              </CardDescription>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className='flex items-center gap-4'>
-              <div>
-                <span className='text-2xl font-bold text-red-500'>{metrics.newBugs}</span>
-                <p className='text-xs text-muted-foreground'>New bugs</p>
-              </div>
-              <Separator orientation='vertical' className='h-10' />
-              <div>
-                <span className='text-2xl font-bold text-green-500'>{metrics.resolvedBugs}</span>
-                <p className='text-xs text-muted-foreground'>Resolved</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Velocity Card */}
+        <StatCard
+          icon={<TrendingUp className='h-4 w-4' />}
+          title='Velocity'
+          value={metrics.velocity.toFixed(1)}
+          subtitle='Story points per day'
+        />
 
-        {/* Burndown Card */}
-        <Card
-          className={`hover:shadow-md transition-shadow ${onViewReport ? 'cursor-pointer' : ''}`}
-          onClick={onViewReport}
-        >
-          <CardHeader className='pb-2'>
-            <div className='flex items-center justify-between'>
-              <CardDescription className='flex items-center gap-1. 5'>
-                <BarChart3 className='h-4 w-4' />
-                Burndown
-              </CardDescription>
-              {getBurndownStatusIcon()}
-            </div>
-          </CardHeader>
-          <CardContent>
-            <MiniSparkline data={metrics.burndownTrend} />
-            <p className={`text-sm mt-2 font-medium ${getBurndownStatusClass()}`}>
-              {getBurndownStatusText()}
-            </p>
-          </CardContent>
-        </Card>
+        {/* Time Card */}
+        <StatCard
+          icon={<Clock className='h-4 w-4' />}
+          title='Time'
+          value={metrics.daysRemaining > 0 ? `${metrics.daysRemaining}d` : 'Ended'}
+          subtitle={`${Math.round(metrics.timeElapsedPct)}% of sprint elapsed`}
+          progress={metrics.timeElapsedPct}
+        />
       </div>
 
-      {/* 3. Work in Progress & Done Highlights */}
-      <div className='grid grid-cols-1 lg:grid-cols-2 gap-4'>
-        {/* In Progress Card */}
-        <Card className='hover:shadow-md transition-shadow'>
-          <CardHeader>
-            <CardTitle className='text-lg flex items-center gap-2'>
-              <Circle className='h-4 w-4 text-blue-500' />
-              In Progress
-              <Badge variant='secondary' className='ml-auto'>
-                {inProgressIssues.length}
-              </Badge>
-            </CardTitle>
-            <CardDescription>High priority work in progress</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {inProgressIssues.length > 0 ? (
-              <ScrollArea className='max-h-64'>
-                <div className='space-y-1'>
-                  {inProgressIssues.map((issue) => (
-                    <IssueItem key={issue.id} issue={issue} showStatus />
-                  ))}
-                </div>
-              </ScrollArea>
-            ) : (
-              <EmptyState message='No work in progress' />
-            )}
-          </CardContent>
-        </Card>
+      {/* Breakdown Cards */}
+      <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
+        <BreakdownCard
+          title='By Type'
+          subtitle='Issue type distribution'
+          items={summary?.metrics?.breakdowns?.type}
+          totalCounts={summary?.metrics?.counts?.total}
+          totalPoints={summary?.metrics?.points?.total}
+          mode={metricMode}
+          showModeToggle={false}
+          defaultView='bar'
+        />
 
-        <Card className='hover:shadow-md transition-shadow'>
-          <CardHeader>
-            <CardTitle className='text-lg flex items-center gap-2'>
-              <CheckCircle className='h-4 w-4 text-green-500' />
-              Done (Highlights)
-              <Badge variant='secondary' className='ml-auto'>
-                {doneHighlightIssues.length}
-              </Badge>
-            </CardTitle>
-            <CardDescription>Key completed work this sprint</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {doneHighlightIssues.length > 0 ? (
-              <ScrollArea className='max-h-64'>
-                <div className='space-y-1'>
-                  {doneHighlightIssues.map((issue) => (
-                    <IssueItem key={issue.id} issue={issue} showStatus={false} showCheckIcon />
-                  ))}
-                </div>
-              </ScrollArea>
-            ) : (
-              <EmptyState message='No highlights yet' />
-            )}
-          </CardContent>
-        </Card>
+        <BreakdownCard
+          title='By Status'
+          subtitle='Current workflow status'
+          items={summary?.metrics?.breakdowns?.status}
+          totalCounts={summary?.metrics?.counts?.total}
+          totalPoints={summary?.metrics?.points?.total}
+          mode={metricMode}
+          showModeToggle={false}
+          defaultView='pie'
+        />
+
+        <BreakdownCard
+          title='By Priority'
+          subtitle='Priority distribution'
+          items={summary?.metrics?.breakdowns?.priority}
+          totalCounts={summary?.metrics?.counts?.total}
+          totalPoints={summary?.metrics?.points?.total}
+          mode={metricMode}
+          showModeToggle={false}
+          defaultView='list'
+        />
       </div>
-
-      <Card className='hover:shadow-md transition-shadow'>
-        <CardHeader>
-          <CardTitle className='text-lg flex items-center gap-2'>
-            <Users className='h-5 w-5' />
-            Team & Capacity
-          </CardTitle>
-          <CardDescription>Team members and sprint capacity</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className='grid grid-cols-1 lg:grid-cols-2 gap-6'>
-            {/* Team Members */}
-            <div>
-              <h4 className='font-semibold text-sm mb-3'>Team Members</h4>
-              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
-                {teamMembers.map((member) => (
-                  <div
-                    key={member.id}
-                    className='flex items-center gap-3 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors'
-                  >
-                    <Avatar className='h-10 w-10'>
-                      {member.avatarUrl && <AvatarImage src={member.avatarUrl} alt={member.name} />}
-                      <AvatarFallback>{getInitials(member.name)}</AvatarFallback>
-                    </Avatar>
-                    <div className='flex-1 min-w-0'>
-                      <p className='text-sm font-medium truncate'>{member.name}</p>
-                      {member.role && (
-                        <p className='text-xs text-muted-foreground'>{member.role}</p>
-                      )}
-                    </div>
-                    <div className='flex flex-col items-end gap-1'>
-                      {member.availability && (
-                        <AvailabilityBadge availability={member.availability} />
-                      )}
-                      {member.timeOffDays !== undefined && member.timeOffDays > 0 && (
-                        <span className='text-xs text-muted-foreground'>
-                          {member.timeOffDays}d off
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Capacity Summary */}
-            <div>
-              <h4 className='font-semibold text-sm mb-3'>Capacity Summary</h4>
-              {plannedStoryPoints !== undefined && (
-                <div className='space-y-4'>
-                  <div>
-                    <div className='flex items-center justify-between mb-2'>
-                      <span className='text-sm text-muted-foreground'>Committed vs Planned</span>
-                      <span className='text-sm font-medium'>
-                        {committedStoryPoints ?? 0} / {plannedStoryPoints} SP
-                      </span>
-                    </div>
-                    <Progress
-                      value={Math.min(capacityPercentage, 100)}
-                      className={`h-3 ${capacityPercentage > 100 ? 'bg-red-200' : ''}`}
-                    />
-                    <p className='text-xs text-muted-foreground mt-1'>
-                      {capacityPercentage}% capacity committed
-                      {capacityPercentage > 100 && (
-                        <span className='text-red-500 ml-1'>(Over capacity!)</span>
-                      )}
-                    </p>
-                  </div>
-                  <Separator />
-                  <div className='grid grid-cols-2 gap-4'>
-                    <div className='text-center p-3 bg-muted/30 rounded-lg'>
-                      <p className='text-2xl font-bold'>{plannedStoryPoints}</p>
-                      <p className='text-xs text-muted-foreground'>Planned SP</p>
-                    </div>
-                    <div className='text-center p-3 bg-muted/30 rounded-lg'>
-                      <p className='text-2xl font-bold'>{committedStoryPoints ?? 0}</p>
-                      <p className='text-xs text-muted-foreground'>Committed SP</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {plannedStoryPoints === undefined && (
-                <p className='text-sm text-muted-foreground italic'>No capacity data available</p>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

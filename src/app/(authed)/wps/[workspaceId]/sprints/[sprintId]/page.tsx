@@ -14,8 +14,8 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 
 import { Loader2, Plus, Eye, LayoutGrid, BarChart3 } from 'lucide-react';
-import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { IssueTypeIcon, PriorityIcon, UserAvatar } from './components/board-view/helper-components';
 import SprintHeader from './components/sprint-header';
@@ -219,8 +219,12 @@ function CreateIssueDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 }
 
 export default function SprintPage() {
+  const searchparams = useSearchParams();
+  if (!searchparams) throw new Error('Search params are undefined');
   const params = useParams<{ workspaceId: string; sprintId: string }>();
   if (!params) throw new Error('Params are undefined');
+  const router = useRouter();
+  const pathname = usePathname();
 
   const { data: sprint } = useSuspenseQuery({
     queryKey: ['sprint', params.sprintId],
@@ -241,7 +245,20 @@ export default function SprintPage() {
     },
   });
 
-  const [activeTab, setActiveTab] = useState('board');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const tab = searchparams.get('tab');
+    if (tab === 'board' || tab === 'reports' || tab === 'list') return tab;
+    return 'summary';
+  });
+
+  const handleTabChange = (tab: string) => {
+    const searchParams = new URLSearchParams(searchparams.toString());
+    searchParams.set('tab', tab);
+    const queryString = searchParams.toString();
+    router.replace(`${pathname}?${queryString}`);
+    setActiveTab(tab);
+  };
+
   const [isCreateIssueOpen, setIsCreateIssueOpen] = useState(false);
 
   return (
@@ -251,7 +268,7 @@ export default function SprintPage() {
 
         <Separator />
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className='flex-1 flex flex-col'>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className='flex-1 flex flex-col'>
           <TabsList>
             <TabsTrigger value='summary'>
               <Eye className='h-4 w-4' />
@@ -274,10 +291,7 @@ export default function SprintPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value='summary' className='flex-1'>
-            <SprintSummaryTab
-              {...behindScheduleSprintProps}
-              sprint={behindScheduleSprintProps.sprint}
-            />
+            <SprintSummaryTab {...behindScheduleSprintProps} sprint={sprint} />
           </TabsContent>
 
           <TabsContent value='board' className='flex-1 flex flex-col'>

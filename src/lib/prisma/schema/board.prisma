@@ -88,8 +88,9 @@ model Sprint {
   endAt   DateTime? @map("end_at")
 
   // -- Actual (internal) 
-  startedAt DateTime? @map("started_at")
-  endedAt   DateTime? @map("ended_at")
+  startedAt       DateTime? @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  committedPoints Decimal?  @map("committed_points")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")

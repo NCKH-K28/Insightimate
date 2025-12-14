@@ -17,21 +17,10 @@ import { format } from 'date-fns/format';
 import { Loader2Icon } from 'lucide-react';
 import { updateBoardSprintMutationOptions } from '../../api/actions';
 import { validateBoardSprint } from '@/lib/validators';
-import { cn } from '@/lib/utils';
 import { DurationPresetSelectors } from '../selectors/duration-preset-selectors';
-import { IssueDateSelectors } from '../selectors/issue-date-selectors';
 import { Textarea } from '@/components/ui/textarea';
-
-const dateToOption = (date?: string | null) => {
-  if (!date) return null;
-  const d = new Date(date);
-  return { label: d.toDateString(), value: d };
-};
-
-const optionToIsoDate = (option: { label: string; value: Date | null } | null) => {
-  if (!option || !option.value) return null;
-  return format(option.value, 'yyyy-MM-dd');
-};
+import { DateRangePicker } from '@/components/date-range-picker';
+import { useMemo } from 'react';
 
 const ZUpdateFormData = ZBoardSprintUpdateInput.superRefine(validateBoardSprint);
 export type UpdateFormData = z.infer<typeof ZUpdateFormData>;
@@ -45,11 +34,15 @@ type UpdateSprintFormProps = {
 export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSprintFormProps) => {
   const updateSprint = useMutation(updateBoardSprintMutationOptions(params));
 
-  // log
-  console.log('defaultValues', defaultValues);
   const form = useForm<UpdateFormData>({
     resolver: zodResolver(ZUpdateFormData),
-    defaultValues: { name: '', goal: '', ...defaultValues },
+    defaultValues: {
+      name: '',
+      goal: '',
+      startAt: undefined,
+      endAt: undefined,
+      ...defaultValues,
+    },
     mode: 'onBlur',
   });
 
@@ -70,6 +63,27 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
       },
     });
   });
+
+  const dates = useMemo(() => {
+    const startAt = form.getValues('startAt');
+    const endAt = form.getValues('endAt');
+    if (!startAt || !endAt) return undefined;
+    return { from: new Date(startAt), to: new Date(endAt) };
+  }, [form]);
+
+  const onDatesChange = (dates?: { from?: Date; to?: Date }) => {
+    const startAt = dates?.from;
+    const endAt = dates?.to;
+    const options = { shouldTouch: true };
+    if (!startAt) {
+      form.setValue('startAt', undefined, options);
+      form.setValue('endAt', undefined, options);
+      return;
+    }
+    form.setValue('startAt', format(startAt, 'yyyy-MM-dd'), options);
+    if (endAt) form.setValue('endAt', format(endAt, 'yyyy-MM-dd'), options);
+    else form.setValue('endAt', format(startAt, 'yyyy-MM-dd'), options);
+  };
 
   return (
     <Form {...form}>
@@ -119,41 +133,13 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
 
         <DurationPresetSelectors value={'custom'} onValueChange={() => {}} disabled />
 
-        <div className={cn('grid grid-cols-1 gap-4 sm:grid-cols-2', 'items-start')}>
-          <FormField
-            name='startAt'
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start At</FormLabel>
-                <FormControl>
-                  <IssueDateSelectors
-                    value={dateToOption(field.value)}
-                    onChange={(date) => field.onChange(optionToIsoDate(date))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            name='endAt'
-            control={form.control}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>End At</FormLabel>
-                <FormControl>
-                  <IssueDateSelectors
-                    value={dateToOption(field.value)}
-                    onChange={(date) => field.onChange(optionToIsoDate(date))}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormItem>
+          <FormLabel>Date Range</FormLabel>
+          <FormControl>
+            <DateRangePicker dates={dates} onDatesChange={onDatesChange} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
 
         <div className='flex justify-end pt-4'>
           <Button
