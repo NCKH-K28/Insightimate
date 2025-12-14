@@ -16,5 +16,3 @@ export const GET = compose<Params>(async (req) => {
 
   return NextResponse.json(result);
 });
-
-export const PUT = compose<Params>(async (req) => {});

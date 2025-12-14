@@ -74,7 +74,7 @@ export const UpdateSprintForm = ({ params, defaultValues, onSuccess }: UpdateSpr
   const onDatesChange = (dates?: { from?: Date; to?: Date }) => {
     const startAt = dates?.from;
     const endAt = dates?.to;
-    const options = { shouldTouch: true };
+    const options = { shouldDirty: true, shouldTouch: true, shouldValidate: true };
     if (!startAt) {
       form.setValue('startAt', undefined, options);
       form.setValue('endAt', undefined, options);

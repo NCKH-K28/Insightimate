@@ -4,15 +4,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  Target,
-  Layers,
-  TrendingUp,
-  TrendingDown,
-  Clock,
-  AlertTriangle,
-  Circle,
-} from 'lucide-react';
+import { Target, Layers, TrendingUp, TrendingDown, Clock, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { SprintItem, SprintSummary } from '@/contracts/boards/boards.query';
 import { BreakdownCard } from '../components/summary/breakdown-card';
@@ -63,7 +55,7 @@ const SummarySkeleton = () => (
         </Card>
       ))}
     </div>
-    <div className='grid grid-cols-1 md: grid-cols-3 gap-4'>
+    <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
       {[...Array(3)].map((_, i) => (
         <Skeleton key={i} className='h-[300px]' />
       ))}
@@ -130,98 +122,98 @@ const StatCard: React.FC<{
   </Card>
 );
 
-// Burndown Mini Chart
-const BurndownMiniChart: React.FC<{
-  ideal: number[];
-  actual: number[];
-}> = ({ ideal, actual }) => {
-  const maxValue = Math.max(...ideal, ...actual);
-  const points = actual.length;
+// // Burndown Mini Chart
+// const BurndownMiniChart: React.FC<{
+//   ideal: number[];
+//   actual: number[];
+// }> = ({ ideal, actual }) => {
+//   const maxValue = Math.max(...ideal, ...actual);
+//   const points = actual.length;
 
-  const idealPath = ideal
-    .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
-    .join(' ');
+//   const idealPath = ideal
+//     .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
+//     .join(' ');
 
-  const actualPath = actual
-    .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
-    .join(' ');
+//   const actualPath = actual
+//     .map((v, i) => `${(i / (points - 1)) * 100},${100 - (v / maxValue) * 100}`)
+//     .join(' ');
 
-  return (
-    <div className='h-16 w-full'>
-      <svg viewBox='0 0 100 100' className='w-full h-full' preserveAspectRatio='none'>
-        {/* Ideal line */}
-        <polyline
-          fill='none'
-          stroke='hsl(var(--muted-foreground))'
-          strokeWidth='1'
-          strokeDasharray='4 2'
-          points={idealPath}
-          opacity='0.5'
-        />
-        {/* Actual line */}
-        <polyline
-          fill='none'
-          stroke='hsl(var(--primary))'
-          strokeWidth='2'
-          points={actualPath}
-          strokeLinecap='round'
-          strokeLinejoin='round'
-        />
-      </svg>
-    </div>
-  );
-};
+//   return (
+//     <div className='h-16 w-full'>
+//       <svg viewBox='0 0 100 100' className='w-full h-full' preserveAspectRatio='none'>
+//         {/* Ideal line */}
+//         <polyline
+//           fill='none'
+//           stroke='hsl(var(--muted-foreground))'
+//           strokeWidth='1'
+//           strokeDasharray='4 2'
+//           points={idealPath}
+//           opacity='0.5'
+//         />
+//         {/* Actual line */}
+//         <polyline
+//           fill='none'
+//           stroke='hsl(var(--primary))'
+//           strokeWidth='2'
+//           points={actualPath}
+//           strokeLinecap='round'
+//           strokeLinejoin='round'
+//         />
+//       </svg>
+//     </div>
+//   );
+// };
 
-// Status Distribution Mini Bar
-const StatusDistribution: React.FC<{
-  done: number;
-  inProgress: number;
-  todo: number;
-}> = ({ done, inProgress, todo }) => {
-  const total = done + inProgress + todo;
-  if (total === 0) return null;
+// // Status Distribution Mini Bar
+// const StatusDistribution: React.FC<{
+//   done: number;
+//   inProgress: number;
+//   todo: number;
+// }> = ({ done, inProgress, todo }) => {
+//   const total = done + inProgress + todo;
+//   if (total === 0) return null;
 
-  const doneWidth = (done / total) * 100;
-  const inProgressWidth = (inProgress / total) * 100;
-  const todoWidth = (todo / total) * 100;
+//   const doneWidth = (done / total) * 100;
+//   const inProgressWidth = (inProgress / total) * 100;
+//   const todoWidth = (todo / total) * 100;
 
-  return (
-    <div className='space-y-2'>
-      <div className='flex h-2.5 w-full rounded-full overflow-hidden bg-muted'>
-        <div
-          className='bg-green-500 transition-all duration-300'
-          style={{ width: `${doneWidth}%` }}
-        />
-        <div
-          className='bg-blue-500 transition-all duration-300'
-          style={{ width: `${inProgressWidth}%` }}
-        />
-        <div
-          className='bg-gray-300 transition-all duration-300'
-          style={{ width: `${todoWidth}%` }}
-        />
-      </div>
-      <div className='flex justify-between text-xs text-muted-foreground'>
-        <span className='flex items-center gap-1'>
-          <Circle className='h-2 w-2 fill-green-500 text-green-500' />
-          Done {done}
-        </span>
-        <span className='flex items-center gap-1'>
-          <Circle className='h-2 w-2 fill-blue-500 text-blue-500' />
-          In Progress {inProgress}
-        </span>
-        <span className='flex items-center gap-1'>
-          <Circle className='h-2 w-2 fill-gray-300 text-gray-300' />
-          Todo {todo}
-        </span>
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className='space-y-2'>
+//       <div className='flex h-2.5 w-full rounded-full overflow-hidden bg-muted'>
+//         <div
+//           className='bg-green-500 transition-all duration-300'
+//           style={{ width: `${doneWidth}%` }}
+//         />
+//         <div
+//           className='bg-blue-500 transition-all duration-300'
+//           style={{ width: `${inProgressWidth}%` }}
+//         />
+//         <div
+//           className='bg-gray-300 transition-all duration-300'
+//           style={{ width: `${todoWidth}%` }}
+//         />
+//       </div>
+//       <div className='flex justify-between text-xs text-muted-foreground'>
+//         <span className='flex items-center gap-1'>
+//           <Circle className='h-2 w-2 fill-green-500 text-green-500' />
+//           Done {done}
+//         </span>
+//         <span className='flex items-center gap-1'>
+//           <Circle className='h-2 w-2 fill-blue-500 text-blue-500' />
+//           In Progress {inProgress}
+//         </span>
+//         <span className='flex items-center gap-1'>
+//           <Circle className='h-2 w-2 fill-gray-300 text-gray-300' />
+//           Todo {todo}
+//         </span>
+//       </div>
+//     </div>
+//   );
+// };
 
 // ============ Main Component ============
 const SprintSummaryTab: React.FC<SprintSummaryTabProps> = ({ sprint }) => {
-  const [metricMode, setMetricMode] = React.useState<MetricMode>('points');
+  const [metricMode] = React.useState<MetricMode>('points');
 
   const {
     data: summary,

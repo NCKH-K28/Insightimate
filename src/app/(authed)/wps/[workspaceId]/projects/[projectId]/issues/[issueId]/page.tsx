@@ -171,7 +171,7 @@ const IssueHeader = ({
   };
 
   return (
-    <header className='flex items-center justify-between px-4 py-2.5 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10'>
+    <header className='flex items-center justify-between px-4 py-2.5 border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 sticky top-0 z-10'>
       <div className='flex items-center gap-3'>
         <EditableSummary params={params} />
       </div>
@@ -275,16 +275,9 @@ interface IssueContentProps {
   projectId: string;
   boardId: string;
   issueId: string;
-  projectName: string;
 }
 
-const IssueContent = ({
-  workspaceId,
-  projectId,
-  boardId,
-  issueId,
-  projectName,
-}: IssueContentProps) => {
+const IssueContent = ({ workspaceId, projectId, boardId, issueId }: IssueContentProps) => {
   const [isSidePanelCollapsed, setIsSidePanelCollapsed] = useState(false);
   const [isStarred, setIsStarred] = useState(false);
 
@@ -420,7 +413,6 @@ function IssuePageContent({ params }: IssuePageContentProps) {
       projectId={params.projectId}
       boardId={project.boardId}
       issueId={params.issueId}
-      projectName={project.name || 'Project'}
     />
   );
 }

@@ -1,10 +1,35 @@
+enum CommentTargetType {
+  ISSUE
+}
+
+model CommentThread {
+  id         String            @id @default(cuid())
+  targetType CommentTargetType @map("target_type")
+  targetId   String            @map("target_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  comments Comment[]
+
+  @@unique([targetType, targetId])
+  @@index([targetType, targetId])
+  @@map("comment_threads")
+}
+
 model Comment {
-  id        String   @id @default(cuid())
-  content   String
-  userId    String
-  userName  String?
-  issueId   String
-  parentId  String? // nếu có -> đây là reply
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id       String @id @default(cuid())
+  threadId String @map("thread_id")
+  content  String
+  authorId String @map("author_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  thread CommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  author User          @relation("UserComments", fields: [authorId], references: [id])
+
+  @@index([threadId, createdAt])
+  @@index([authorId, createdAt])
+  @@map("comments")
 }

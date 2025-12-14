@@ -16,7 +16,6 @@ import { openfgaClient } from '@/lib/authz/openfga';
 import {
   genBoardId,
   genColumnId,
-  genColumnStatusId,
   genProjectActorId,
   genProjectId,
   genSprintId,
@@ -132,7 +131,7 @@ const createDefaultBoard = async (
           name: status.name,
           sequence: index,
           statuses: {
-            create: {statusId: status.id },
+            create: { statusId: status.id },
           },
         })),
       },

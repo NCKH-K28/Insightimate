@@ -17,7 +17,7 @@ type InsightEstimateProps = {
   params: { boardId: string; issueId: string; projectId: string };
   onSuggest?: (value: number | null) => void;
 };
-const InsightEstimate = ({ params, value }: InsightEstimateProps) => {
+const InsightEstimate = (_props: InsightEstimateProps) => {
   return (
     <Button size='sm' className='h-7'>
       <Sparkles className='size-3' />

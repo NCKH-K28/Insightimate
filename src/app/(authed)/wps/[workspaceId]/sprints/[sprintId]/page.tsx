@@ -15,7 +15,7 @@ import { Button } from '@/components/ui/button';
 
 import { Loader2, Plus, Eye, LayoutGrid, BarChart3 } from 'lucide-react';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { IssueTypeIcon, PriorityIcon, UserAvatar } from './components/board-view/helper-components';
 import SprintHeader from './components/sprint-header';

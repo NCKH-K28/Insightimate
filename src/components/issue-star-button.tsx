@@ -99,13 +99,6 @@ export function IssueStarButton({
     }
   };
 
-  const handleShowStarredUsers = async () => {
-    if (!showStarredUsers) {
-      await fetchStarredUsers();
-    }
-    setShowStarredUsers(!showStarredUsers);
-  };
-
   const iconSizeMap = { sm: 16, md: 18, lg: 20 };
   const iconSize = iconSizeMap[size];
 
@@ -147,7 +140,7 @@ export function IssueStarButton({
 
             {/* Dropdown danh sách người đã star */}
             {showStarredUsers && starredUsers.length > 0 && (
-              <div className='absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-[240px]'>
+              <div className='absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-60'>
                 <div className='p-3 border-b border-gray-100'>
                   <p className='text-xs font-semibold text-gray-700'>
                     Starred by {starCount} user{starCount !== 1 ? 's' : ''}

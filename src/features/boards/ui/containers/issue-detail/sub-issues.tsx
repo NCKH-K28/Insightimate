@@ -11,7 +11,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -33,15 +32,11 @@ import {
   Circle,
   Clock,
   AlertCircle,
-  Link2,
   Trash2,
-  ExternalLink,
-  ArrowUpRight,
   Loader2,
   ListTree,
   X,
   Search,
-  Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -61,7 +56,6 @@ import {
   DragEndEvent,
 } from '@dnd-kit/core';
 import {
-  arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
@@ -120,24 +114,6 @@ const getStatusColor = (category?: string) => {
       return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
     default:
       return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
-  }
-};
-
-const getPriorityColor = (priority?: string) => {
-  switch (priority?.toLowerCase()) {
-    case 'highest':
-    case 'critical':
-      return 'text-red-500';
-    case 'high':
-      return 'text-orange-500';
-    case 'medium':
-      return 'text-yellow-500';
-    case 'low':
-      return 'text-blue-500';
-    case 'lowest':
-      return 'text-gray-400';
-    default:
-      return 'text-muted-foreground';
   }
 };
 
@@ -610,11 +586,8 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        const oldIndex = subIssues.findIndex((item) => item.id === active.id);
-        const newIndex = subIssues.findIndex((item) => item.id === over.id);
-
-        const newOrder = arrayMove(subIssues, oldIndex, newIndex);
-
+        // const oldIndex = subIssues.findIndex((item) => item.id === active.id);
+        // const newIndex = subIssues.findIndex((item) => item.id === over.id);
         // FIXME: Update order in local state for instant UI feedback
         // Update order in backend
         // newOrder.forEach((issue, index) => {
@@ -627,7 +600,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
         // });
       }
     },
-    [subIssues, updateMutation],
+    [subIssues],
   );
 
   // Filtered & Sorted Issues

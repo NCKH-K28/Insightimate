@@ -1,7 +1,5 @@
-import { compose } from '@/lib/http/api-compose';
+// import { compose } from '@/lib/http/api-compose';
 
-type Params = { sprintId: string };
+// type Params = { sprintId: string };
 
-export const GET = compose<Params>(async (req) => {
-  const { sprintId } = req.params;
-});
+// export const GET = compose<Params>(async (req) => {});

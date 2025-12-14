@@ -30,7 +30,6 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ZSignUpInput } from '@/contracts/auth/auth.input';
 import { signUpMutationOptions } from '../../api/actions';
-import Image from 'next/image';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { InsightmateLogoFull } from '@/components/icons/insightmate';

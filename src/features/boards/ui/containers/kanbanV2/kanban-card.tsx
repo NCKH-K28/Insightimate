@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { EllipsisVertical, GripVertical, Pencil, Trash2 } from 'lucide-react';
+import { EllipsisVertical, GripVertical, Trash2 } from 'lucide-react';
 import { Card as CardUI, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { Card } from './types';
@@ -46,7 +46,7 @@ interface KanbanCardProps {
   onDelete: (cardId: string) => void;
 }
 
-export function KanbanCard({ card, onEdit, onDelete }: KanbanCardProps) {
+export function KanbanCard({ card }: KanbanCardProps) {
   // Setup sortable functionality for drag & drop
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,

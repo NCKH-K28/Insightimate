@@ -33,6 +33,7 @@ model User {
     teamsLed         Team[]            @relation("UserLedTeams")
     invitesSent      Invitation[]      @relation("UserInvites")
     aiAgents         AIAgent[]         @relation("UserAIAgents")
+    comments         Comment[]         @relation("UserComments")
 
     @@map("users")
 }

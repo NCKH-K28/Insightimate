@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -44,7 +43,7 @@ export default function ProjectCard({
       }}
     >
       <Card
-  className="
+        className="
     relative overflow-hidden isolate group border-muted/60 transition-transform duration-200 ease-out p-2
     hover:-translate-y-0.5 hover:shadow-md
 
@@ -56,7 +55,7 @@ export default function ProjectCard({
     after:w-0 after:h-full after:bg-black/70 after:pointer-events-none after:transition-[width] after:duration-300
     group-hover:after:w-12 after:-z-10
   "
->
+      >
         <div className={`absolute left-0 top-0 h-full w-1 ${color}`} />
 
         <CardHeader className='pb-0.5'>
@@ -88,8 +87,7 @@ export default function ProjectCard({
         </CardContent>
 
         <CardFooter className='flex items-center justify-between pt-0'>
-          <div className='text-[11px] text-muted-foreground flex items-center gap-1'>
-          </div>
+          <div className='text-[11px] text-muted-foreground flex items-center gap-1'></div>
           <Button variant='ghost' size='sm' className='h-6 px-2 text-xs'>
             Open <ExternalLink className='ml-1 h-3 w-3' />
           </Button>

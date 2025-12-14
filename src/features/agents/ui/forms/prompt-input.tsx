@@ -65,7 +65,7 @@ export default function PromptInput({
   return (
     <form onSubmit={handleSubmit}>
       <div className='bg-background border border-border rounded-2xl overflow-hidden'>
-        <input ref={fileInputRef} type='file' multiple className='sr-only' onChange={(e) => {}} />
+        <input ref={fileInputRef} type='file' multiple className='sr-only' />
 
         <div className='px-1 py-1'>
           <SelectionBar

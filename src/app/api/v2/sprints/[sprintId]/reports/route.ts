@@ -1,9 +1,6 @@
 import { sprintService } from '@/features/boards/server/sprint-service';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';
-import { Sprint } from '@prisma/client';
-import { format } from 'date-fns';
-import Decimal from 'decimal.js';
 import { NextResponse } from 'next/server';
 
 export const GET = compose<{ sprintId: string }>(async (res) => {

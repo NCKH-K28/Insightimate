@@ -7,7 +7,7 @@ export function AssignedRow({
   meta,
   Icon,
   status,
-  onClick
+  onClick,
 }: {
   title: string;
   meta: string;
@@ -17,9 +17,11 @@ export function AssignedRow({
   onClick?: () => void;
 }) {
   return (
-    <div role='button' className='flex items-center gap-3 rounded-xl border p-3 hover:bg-accent/30 cursor-pointer' onClick={(e) => {
-        onClick?.();
-      }} >
+    <div
+      role='button'
+      className='flex items-center gap-3 rounded-xl border p-3 hover:bg-accent/30 cursor-pointer'
+      onClick={onClick}
+    >
       <Icon className='mt-0.5 h-5 w-5 text-muted-foreground' />
       <div className='flex-1 min-w-0'>
         <div className='flex items-center gap-2'>
@@ -30,9 +32,7 @@ export function AssignedRow({
 
       <div className='ml-auto flex items-center gap-2'>
         {status ? (
-          <div className='rounded px-2 py-1 text-xs font-medium bg-muted/20'>
-            {status.name}
-          </div>
+          <div className='rounded px-2 py-1 text-xs font-medium bg-muted/20'>{status.name}</div>
         ) : null}
       </div>
     </div>

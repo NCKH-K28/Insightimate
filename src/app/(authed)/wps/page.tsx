@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { InsightmateLogoFull } from '@/components/icons/insightmate';
 import Link from 'next/link';
 
-const AppLogo = ({ type }: { type: 'icon' | 'label' }) => {
+const AppLogo = () => {
   return (
     <Link href='/'>
       <InsightmateLogoFull height={40} />
@@ -32,7 +32,7 @@ const PageHeader = () => {
 
   return (
     <div className='flex items-center justify-between w-full px-4'>
-      <AppLogo type='label' />
+      <AppLogo />
       <Button size='sm' variant='outline' onClick={handleSignOut} disabled={signOut.isPending}>
         Sign Out
       </Button>

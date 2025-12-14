@@ -15,7 +15,6 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   if (!actorId) return NextResponse.json({ items: [] }, { status: 200 });
 
-  
   const rows = await prisma.activity.findMany({
     where: { userId: actorId, workspaceId, type: 'VIEWED' },
     orderBy: { createdAt: 'desc' },
@@ -36,7 +35,12 @@ export const GET = middlewareHandler([authenticated], async (req) => {
   const projectIds = rowsToUse.filter((r) => r.sourceType === 'PROJECT').map((r) => r.sourceId);
 
   const [issues, projects] = await Promise.all([
-    issueIds.length ? prisma.issue.findMany({ where: { id: { in: issueIds } }, include: { project: true, type: true, status: true } }) : [],
+    issueIds.length
+      ? prisma.issue.findMany({
+          where: { id: { in: issueIds } },
+          include: { project: true, type: true, status: true },
+        })
+      : [],
     projectIds.length ? prisma.project.findMany({ where: { id: { in: projectIds } } }) : [],
   ]);
 
@@ -49,14 +53,22 @@ export const GET = middlewareHandler([authenticated], async (req) => {
       projects.map(async (p) => {
         const [total, done] = await Promise.all([
           prisma.issue.count({ where: { projectId: p.id, archived: false } }),
-          prisma.issue.count({ where: { projectId: p.id, archived: false, status: { is: { category: 'DONE' } } } }),
+          prisma.issue.count({
+            where: { projectId: p.id, archived: false, status: { is: { category: 'DONE' } } },
+          }),
         ]);
         projectCounts.set(p.id, { total, done });
       }),
     );
   }
 
-  const projectColors = ['bg-sky-400', 'bg-violet-500', 'bg-emerald-400', 'bg-amber-400', 'bg-indigo-400'];
+  const projectColors = [
+    'bg-sky-400',
+    'bg-violet-500',
+    'bg-emerald-400',
+    'bg-amber-400',
+    'bg-indigo-400',
+  ];
   function hashCode(s: string) {
     let h = 0;
     for (let i = 0; i < s.length; i++) {
@@ -74,8 +86,12 @@ export const GET = middlewareHandler([authenticated], async (req) => {
         type: 'ISSUE',
         title: i?.summary ?? 'Untitled',
         projectId: i?.projectId ?? null,
-        meta: i?.key ? `${i.key}${i.project ? ` · ${i.project.name}` : ''}`.trim() : (i?.project?.name ?? ''),
-        status: i?.status ? { id: i.status.id, name: i.status.name, category: i.status.category } : null,
+        meta: i?.key
+          ? `${i.key}${i.project ? ` · ${i.project.name}` : ''}`.trim()
+          : (i?.project?.name ?? ''),
+        status: i?.status
+          ? { id: i.status.id, name: i.status.name, category: i.status.category }
+          : null,
         iconName: i?.type?.iconURL,
         occurredAt: r.createdAt?.toISOString?.(),
       };
@@ -115,6 +131,7 @@ export const POST = middlewareHandler([authenticated], async (req) => {
   try {
     body = await req.json();
   } catch (e) {
+    console.error('Failed to parse JSON body', e);
     return NextResponse.json({ ok: false, error: 'invalid_body' }, { status: 400 });
   }
 

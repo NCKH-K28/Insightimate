@@ -22,7 +22,7 @@ export const ZProjectListOutput = z.object({ data: z.array(ZProjectItem) });
 export type ProjectListInput = z.infer<typeof ZProjectListInput>;
 export type ProjectListOutput = z.infer<typeof ZProjectListOutput>;
 
-export const listProjects = async (input: ProjectListInput, context: { actorId: string }) => {
+export const listProjects = async (input: ProjectListInput, _context: { actorId: string }) => {
   const where: any = {};
 
   if (input.filter?.q) {

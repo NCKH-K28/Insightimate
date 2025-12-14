@@ -131,7 +131,7 @@ export type ListIssuesInput = z.infer<typeof ZListIssuesInput>;
 export type ListIssuesOutput = z.infer<typeof ZListIssuesOutput>;
 export const listIssues = async (
   input: ListIssuesInput,
-  context: { actorId: string },
+  _context: { actorId: string },
 ): Promise<ListIssuesOutput> => {
   const parsed = ZListIssuesInput.parse(input);
   const where = buildIssueWhere(parsed.filter);

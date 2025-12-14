@@ -3,7 +3,7 @@
 import React from 'react';
 import EmptyState from './empty-state';
 
-export default function StarredTab({ workspaceId }: { workspaceId?: string }) {
+export default function StarredTab() {
   // TODO: implement starred items API and query
   return (
     <div>

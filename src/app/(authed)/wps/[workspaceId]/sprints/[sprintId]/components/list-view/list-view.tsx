@@ -43,7 +43,6 @@ import {
   StoryPointsBadge,
 } from '../board-view/helper-components';
 import { BoardIssueItem } from '@/contracts/boards/boards.query';
-import { useQuery } from '@tanstack/react-query';
 
 function EmptyState({
   icon: Icon,

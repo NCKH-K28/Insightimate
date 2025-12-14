@@ -25,7 +25,7 @@ export const ZStatusListOutput = z.object({ data: z.array(ZStatusItem) });
 export type StatusListInput = z.infer<typeof ZStatusListInput>;
 export type StatusListOutput = z.infer<typeof ZStatusListOutput>;
 
-const buildWhereClause = (input: StatusListInput, context?: { actorId: string }) => {
+const buildWhereClause = (input: StatusListInput, _context?: { actorId: string }) => {
   const { filter } = input;
 
   const whereClause: Prisma.IssueStatusWhereInput & {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { AlertCircle, Calendar, CheckCircle2, FileText, Loader2, Settings2 } from 'lucide-react';
 import z from 'zod';
 
@@ -67,7 +67,7 @@ export const CreateIssueForm = ({
   });
 
   const { isSubmitting, isValid, isDirty, errors } = form.formState;
-  const summaryValue = form.watch('summary');
+  const summaryValue = useWatch({ control: form.control, name: 'summary' });
   const characterCount = summaryValue?.length || 0;
   const maxCharacters = 100;
 
