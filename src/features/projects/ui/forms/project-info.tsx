@@ -43,9 +43,7 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
               <ProjectIconSelect
                 disabled={field.disabled}
                 value={field.value}
-                onValueChange={(val) => {
-                  field.onChange(val, { shouldTouch: true, shouldValidate: true });
-                }}
+                onValueChange={(val) => field.onChange(val, { shouldDirty: true })}
               />
             </FormControl>
           </FormItem>

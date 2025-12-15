@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
+import { ActionsMenu } from '../actions-menu';
 
 const ProjectHeaderSkeleton = () => {
   return (
@@ -50,8 +51,35 @@ const ProjectHeader = () => {
             {project.description || 'No description'}
           </p>
         </div>
-        <div className='ml-auto'>
+        <div className='ml-auto space-x-2 flex items-center'>
           <ProjectActions params={params} />
+          <ActionsMenu
+            actions={[
+              {
+                id: 'export-project',
+                label: 'Export Project',
+                onClick: () => {
+                  //TODO: show a proper file save dialog
+                  fetch(`/api/v2/projects/${params.projectId}/export`).then((res) => {
+                    if (!res.ok) {
+                      alert('Failed to export project');
+                      return;
+                    }
+                    res.blob().then((blob) => {
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `${project.name}-export.json`;
+                      document.body.appendChild(a);
+                      a.click();
+                      a.remove();
+                      window.URL.revokeObjectURL(url);
+                    });
+                  });
+                },
+              },
+            ]}
+          />
         </div>
       </div>
       <Separator />

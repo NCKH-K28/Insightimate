@@ -12,8 +12,6 @@ export const config = { api: { bodyParser: false } };
 
 export default function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
   if (!res.socket.server.io) {
-    console.log('🚀 Starting new Socket.io server...');
-
     const io = new IOServer(res.socket.server, {
       path: '/api/socket',
       cors: { origin: '*' },

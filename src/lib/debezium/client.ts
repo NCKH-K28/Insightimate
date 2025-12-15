@@ -24,9 +24,8 @@ const createConnector = async (config: DebeziumConfig) => {
   return res.data;
 };
 
-const updateConnector = async (config: DebeziumConfig) => {
-  const { name, ...restConfig } = config;
-  const res = await debeziumAxios.put(`/connectors/${name}/config`, restConfig);
+const updateConnector = async ({ name, config }: DebeziumConfig) => {
+  const res = await debeziumAxios.put(`/connectors/${name}/config`, config);
   return res.data;
 };
 

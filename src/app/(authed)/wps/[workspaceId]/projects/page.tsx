@@ -66,6 +66,10 @@ const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<Pro
             label: 'Create Project',
             onClick: () => router.push(`/wps/${workspaceId}/projects/create`),
           },
+          {
+            label: 'Import Project',
+            onClick: () => router.push(`/wps/${workspaceId}/projects/import`),
+          },
         ],
       }}
     />

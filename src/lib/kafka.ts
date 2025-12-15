@@ -7,7 +7,7 @@ const kafkaConfig = serverConfig.kafka;
 const brokers = kafkaConfig.brokers;
 const clientId = kafkaConfig.clientId;
 
-const getKafka = async () => {
+const getKafka = () => {
   const key = '__kafkaInstance_';
   const kafka = get(globalThis, key) as Kafka | undefined;
   if (kafka) return kafka;
@@ -17,6 +17,8 @@ const getKafka = async () => {
   return newKafka;
 };
 
-const kafka = await getKafka();
+const kafka = getKafka();
+const kafkaClient = kafka;
 
 export { kafka, getKafka };
+export default kafkaClient;

@@ -5,15 +5,26 @@ import { Dialog, DialogContent, DialogTitle, DialogTrigger } from '@/components/
 import React from 'react';
 import { CreateTeamForm } from '../forms/create-team-form';
 
-type CreateTeamDialogProps = { params: { workspaceId: string } };
-export const CreateTeamBtn = ({ params }: CreateTeamDialogProps) => {
+type CreateTeamDialogProps = {
+  params: { workspaceId: string };
+  label?: string;
+  renderLabel?: () => React.ReactNode;
+};
+export const CreateTeamBtn = ({
+  params,
+  label = 'Create Team',
+  renderLabel,
+}: CreateTeamDialogProps) => {
+  const renderedLabel = renderLabel ? (
+    renderLabel()
+  ) : (
+    <Button size='sm' variant='outline'>
+      {label}
+    </Button>
+  );
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button size='sm' variant='outline'>
-          Create Team
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{renderedLabel}</DialogTrigger>
 
       <DialogContent>
         <DialogTitle></DialogTitle>

@@ -1,5 +1,6 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { teamApi } from './http';
+import { TeamList } from '@/contracts/teams';
 
 export const deleteTeamMutationOptions = (teamId: string) => {
   return mutationOptions({
@@ -31,7 +32,7 @@ export const listTeamsQueryOptions = () => {
     queryKey: ['teams'],
     queryFn: async () => {
       const res = await teamApi.list();
-      return res as { data: any[]; meta: { total: number } };
+      return res as TeamList;
     },
     select: (res) => res.data,
     staleTime: 5 * 60 * 1000, // 5 minutes
