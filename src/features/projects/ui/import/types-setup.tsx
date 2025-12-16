@@ -15,11 +15,8 @@ const TypesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: 'project.types',
-  });
-  const types = useWatch({ control: form.control, name: 'project.types' });
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'types' });
+  const types = useWatch({ control: form.control, name: 'types' });
 
   return (
     <Collapsible
@@ -92,12 +89,12 @@ const TypesSetup = () => {
               >
                 <GripVertical className='h-4 w-4 cursor-grab text-muted-foreground' />
                 <Input
-                  {...form.register(`project.types.${index}.name`)}
+                  {...form.register(`types.${index}.name`)}
                   placeholder='Type name (e.g., Bug, Feature)'
                   className='flex-1'
                 />
                 <Input
-                  {...form.register(`project.types.${index}.color`)}
+                  {...form.register(`types.${index}.color`)}
                   type='color'
                   className='h-9 w-14 cursor-pointer p-1'
                 />

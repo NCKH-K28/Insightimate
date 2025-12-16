@@ -9,7 +9,7 @@ const ActorsSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const actors = useWatch({ control: form.control, name: 'project.actors' });
+  const actors = useWatch({ control: form.control, name: 'actors' });
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>

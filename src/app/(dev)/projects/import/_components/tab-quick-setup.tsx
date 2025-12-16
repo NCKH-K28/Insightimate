@@ -32,7 +32,7 @@ export default function QuickSetupTab() {
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 items-start'>
         <FormField
           control={form.control}
-          name='project.name'
+          name='name'
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project Name</FormLabel>
@@ -47,7 +47,7 @@ export default function QuickSetupTab() {
 
         <FormField
           control={form.control}
-          name='project.key'
+          name='key'
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project Key</FormLabel>
@@ -65,7 +65,7 @@ export default function QuickSetupTab() {
 
       <FormField
         control={form.control}
-        name='project.description'
+        name='description'
         render={({ field }) => (
           <FormItem>
             <FormLabel>Project Description</FormLabel>

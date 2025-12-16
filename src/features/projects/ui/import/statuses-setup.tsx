@@ -15,9 +15,8 @@ const StatusesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const keyName = 'project.statuses';
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: keyName });
-  const statuses = useWatch({ control: form.control, name: keyName });
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'statuses' });
+  const statuses = useWatch({ control: form.control, name: 'statuses' });
 
   return (
     <Collapsible
@@ -89,12 +88,12 @@ const StatusesSetup = () => {
                 <GripVertical className='h-4 w-4 cursor-grab text-muted-foreground' />
 
                 <Input
-                  {...form.register(`project.statuses.${index}.name`)}
+                  {...form.register(`statuses.${index}.name`)}
                   placeholder='Status name (e.g., To Do, In Progress)'
                   className='flex-1'
                 />
                 <Input
-                  {...form.register(`project.statuses.${index}.color`)}
+                  {...form.register(`statuses.${index}.color`)}
                   type='color'
                   className='h-9 w-14 cursor-pointer p-1'
                 />

@@ -13,9 +13,8 @@ const PrioritiesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const keyName = 'project.priorities';
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: keyName });
-  const priorities = useWatch({ control: form.control, name: keyName });
+  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'priorities' });
+  const priorities = useWatch({ control: form.control, name: 'priorities' });
 
   return (
     <Collapsible
@@ -89,12 +88,12 @@ const PrioritiesSetup = () => {
                 >
                   <GripVertical className='h-4 w-4 cursor-grab text-muted-foreground' />
                   <Input
-                    {...form.register(`project.priorities.${index}.name`)}
+                    {...form.register(`priorities.${index}.name`)}
                     placeholder={`Priority name (e.g., Low, Medium, High)`}
                     className='flex-1'
                   />
                   <Input
-                    {...form.register(`project.priorities.${index}.color`)}
+                    {...form.register(`priorities.${index}.color`)}
                     type='color'
                     className='h-9 w-14 cursor-pointer p-1'
                   />

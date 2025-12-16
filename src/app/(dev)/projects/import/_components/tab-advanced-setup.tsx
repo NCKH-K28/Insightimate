@@ -7,6 +7,7 @@ import {
   StatusesSetup,
   PrioritiesSetup,
   ActorsSetup,
+  RolesSetup,
 } from '@/features/projects/ui/import';
 
 export default function AdvancedSetupTab() {
@@ -15,6 +16,7 @@ export default function AdvancedSetupTab() {
       <TypesSetup />
       <StatusesSetup />
       <PrioritiesSetup />
+      <RolesSetup />
       <ActorsSetup />
     </div>
   );

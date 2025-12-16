@@ -2,29 +2,29 @@ import { z } from 'zod';
 import { ZProjectRole } from './project';
 import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '../issues/issue';
 import countBy from 'lodash/countBy';
+import { ZProjectCreateInput } from './projects.input';
 
 export const ZProjectImport = z.object({
-  metadata: z.any(),
-  project: z.object({
-    id: z.string(),
-    key: z.string(),
-    name: z.string(),
-    description: z.string().nullable(),
-    avatar: z.string().nullable(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    leadId: z.string(),
+  id: z.string(),
+  key: ZProjectCreateInput.shape.key,
+  name: z.string(),
+  description: z.string().nullable(),
+  avatar: z.string().nullable(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+  leadId: z.string(),
 
-    // === Related Data ===
-    actors: z
-      .object({ actorId: z.string(), actorType: z.enum(['USER']), roleId: z.string() })
-      .array(),
-    roles: ZProjectRole.omit({ projectId: true }).array(),
-    types: ZIssueType.omit({ projectId: true }).array(),
-    priorities: ZIssuePriority.omit({ projectId: true }).array(),
-    statuses: ZIssueStatus.omit({ projectId: true }).array(),
-    issues: ZIssue.omit({ projectId: true }).array(),
-  }),
+  // === Related Data ===
+  actors: z
+    .object({ actorId: z.string(), actorType: z.enum(['USER']), roleId: z.string() })
+    .array(),
+  roles: ZProjectRole.omit({ projectId: true })
+    .extend({ createdAt: z.string().optional(), updatedAt: z.string().optional() })
+    .array(),
+  types: ZIssueType.omit({ projectId: true }).array(),
+  priorities: ZIssuePriority.omit({ projectId: true }).array(),
+  statuses: ZIssueStatus.omit({ projectId: true }).array(),
+  issues: ZIssue.omit({ projectId: true }).array(),
 });
 export type ProjectImport = z.infer<typeof ZProjectImport>;
 
@@ -44,7 +44,7 @@ const addDuplicateIdIssues = (
 };
 
 export const ZProjectImportWithLogic = ZProjectImport.superRefine((data, ctx) => {
-  const { actors, roles, types, priorities, statuses, issues } = data.project;
+  const { actors, roles, types, priorities, statuses, issues } = data;
 
   addDuplicateIdIssues(ctx, ['project', 'roles'], roles, 'role');
   addDuplicateIdIssues(ctx, ['project', 'types'], types, 'type');

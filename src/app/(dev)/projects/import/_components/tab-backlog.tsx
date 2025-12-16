@@ -203,15 +203,15 @@ const useBacklogPage = () => {
   return { page, setPage, updateURL };
 };
 
-export default function BacklogPreviewTab() {
+export default function BacklogTab() {
   'use no memo';
 
   const form = useFormContext<ProjectImport>();
 
-  const types = useWatch({ control: form.control, name: 'project.types' });
-  const statuses = useWatch({ control: form.control, name: 'project.statuses' });
-  const priorities = useWatch({ control: form.control, name: 'project.priorities' });
-  const issues = useWatch({ control: form.control, name: 'project.issues' });
+  const types = useWatch({ control: form.control, name: 'types' });
+  const statuses = useWatch({ control: form.control, name: 'statuses' });
+  const priorities = useWatch({ control: form.control, name: 'priorities' });
+  const issues = useWatch({ control: form.control, name: 'issues' });
 
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);

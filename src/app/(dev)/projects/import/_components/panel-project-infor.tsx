@@ -8,15 +8,22 @@ import { useFormContext } from 'react-hook-form';
 import { ProjectImport } from '@/contracts/projects';
 import QuickSetupTab from './tab-quick-setup';
 import AdvancedSetupTab from './tab-advanced-setup';
+import { usePathname, useRouter } from 'next/navigation';
+import { getDefaultProject } from '@/features/projects/contants';
 
 // ================== Components ================== //
 
 export const ProjectInfoPanel = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  if (!pathname) throw new Error('No pathname');
+
   const form = useFormContext<ProjectImport>();
   const handleReset = () => form.reset();
 
   const handleClear = () => {
-    form.reset();
+    form.reset(getDefaultProject());
+    router.replace(pathname);
   };
 
   return (
@@ -40,14 +47,14 @@ export const ProjectInfoPanel = () => {
         </TabsContent>
       </div>
       <div className='mt-auto p-4 border-t border-border flex justify-end gap-2'>
-        <Button size='sm' type='button' variant='ghost' onClick={handleReset}>
-          Reset
-        </Button>
-        <Button size='sm' type='button'>
+        <Button size='sm' type='submit'>
           Create Project
         </Button>
         <Button size='sm' type='button' variant='destructive' onClick={handleClear}>
           Clear All
+        </Button>
+        <Button size='sm' type='button' variant='ghost' onClick={handleReset}>
+          Reset
         </Button>
       </div>
     </Tabs>
