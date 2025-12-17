@@ -1,3 +1,5 @@
+// JSON Patch - RFC 6902
+// JSON Merge Patch - RFC 7396
 import { z } from 'zod';
 
 // ==== Response Schemas ====

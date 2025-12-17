@@ -10,7 +10,8 @@ import { assertProjectKeyAvailable } from '../projects.service';
 import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { createDefaultBoard } from '@/features/boards/server/cqrs';
-import { genProjectActorId } from '../../configs/id-generators';
+import { genIssueResolutionId, genProjectActorId } from '../../configs/id-generators';
+import omit from 'lodash/omit';
 
 export const importProject = async (
   params: { workspaceId: string; data: ProjectImport },
@@ -22,6 +23,7 @@ export const importProject = async (
   const parsed = ZProjectImportWithLogic.parse(params.data);
 
   // 2) giữ invariant như createProject
+  parsed.leadId = context.actorId; // FIXME: handle leadId in schema
   if (parsed.leadId !== context.actorId) {
     throw new Error('Project lead must be the actor importing the project');
   }
@@ -38,15 +40,34 @@ export const importProject = async (
     // --- basic conflicts
     await assertProjectKeyAvailable(tx, workspaceId, data.key);
 
-    const idExists = await tx.project.findUnique({ where: { id: data.id } });
-    if (idExists) throw new Error(`Conflict: project id ${data.id} already exists`);
-
     const actorRows = data.actors.map((a) => ({
       id: genProjectActorId(),
       projectId: data.id,
       actorId: a.actorId,
       actorType: a.actorType,
       roleId: a.roleId,
+    }));
+
+    // default resousoltion
+    const resolutions = [
+      { id: genIssueResolutionId(), name: 'Done', projectId: data.id },
+      { id: genIssueResolutionId(), name: 'Backlog', projectId: data.id },
+    ];
+    const _resolutions = resolutions.map((r) => omit(r, 'projectId'));
+
+    // items without projectid
+    const _roles = data.roles.map((r) => omit(r, 'projectId'));
+    const _types = data.types.map((t) => omit(t, 'projectId'));
+    const _priorities = data.priorities.map((p) => omit(p, 'projectId'));
+    const _statuses = data.statuses.map((s) => omit(s, 'projectId'));
+    const _actors = actorRows.map((a) => omit(a, 'projectId'));
+    const _issues = data.issues.map((i) => ({
+      ...omit(i, 'projectId', 'resolutionId'),
+      assigneeId: null,
+      dueDate: i.dueDate ? new Date(i.dueDate) : null,
+      startDate: i.startDate ? new Date(i.startDate) : null,
+      reporterId: data.leadId,
+      resolutionId: resolutions[0].id,
     }));
 
     // --- create project (ID MỚI)
@@ -62,12 +83,13 @@ export const importProject = async (
         leadId: data.leadId,
         createdAt: now,
         updatedAt: now,
-        roles: { createMany: { data: data.roles } },
-        types: { createMany: { data: data.types } },
-        priorities: { createMany: { data: data.priorities } },
-        statuses: { createMany: { data: data.statuses } },
-        actors: { createMany: { data: actorRows } },
-        issues: { createMany: { data: data.issues } },
+        roles: { createMany: { data: _roles } },
+        types: { createMany: { data: _types } },
+        priorities: { createMany: { data: _priorities } },
+        statuses: { createMany: { data: _statuses } },
+        actors: { createMany: { data: _actors } },
+        resolutions: { createMany: { data: _resolutions } },
+        issues: { createMany: { data: _issues } },
       },
     });
 
@@ -76,6 +98,7 @@ export const importProject = async (
       projectLeadId: data.leadId,
       inputKey: data.key,
       statuses: data.statuses,
+      issues: data.issues,
     });
 
     const projectTuples = buildProjectTuples({

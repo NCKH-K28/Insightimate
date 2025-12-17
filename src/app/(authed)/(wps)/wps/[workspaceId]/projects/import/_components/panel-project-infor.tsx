@@ -3,7 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 
-import { Settings, Zap } from 'lucide-react';
+import { Loader2, Settings, Zap } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import { ProjectImport } from '@/contracts/projects';
 import QuickSetupTab from './tab-quick-setup';
@@ -47,8 +47,9 @@ export const ProjectInfoPanel = () => {
         </TabsContent>
       </div>
       <div className='mt-auto p-4 border-t border-border flex justify-end gap-2'>
-        <Button size='sm' type='submit'>
-          Create Project
+        <Button size='sm' type='submit' disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting && <Loader2 className='h-4 w-4 animate-spin' />}
+          {form.formState.isSubmitting ? 'Creating...' : 'Create Project'}
         </Button>
         <Button size='sm' type='button' variant='destructive' onClick={handleClear}>
           Clear All

@@ -1,8 +1,13 @@
 import { z } from 'zod';
 import { ZProjectRole } from './project';
-import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '../issues/issue';
+import {
+  ZIssue,
+  ZIssuePriority,
+  ZIssueStatus,
+  ZIssueType,
+  ZIssueResolution,
+} from '../issues/issue';
 import countBy from 'lodash/countBy';
-import { ZProjectCreateInput } from './projects.input';
 
 const ZActor = z.object({ actorId: z.string(), actorType: z.enum(['USER']), roleId: z.string() });
 const ZRole = ZProjectRole.omit({ projectId: true }).extend({
@@ -12,6 +17,7 @@ const ZRole = ZProjectRole.omit({ projectId: true }).extend({
 const ZType = ZIssueType.omit({ projectId: true });
 const ZPriority = ZIssuePriority.omit({ projectId: true });
 const ZStatus = ZIssueStatus.omit({ projectId: true });
+const ZResolution = ZIssueResolution.omit({ projectId: true });
 const ZPIssue = ZIssue.omit({ projectId: true });
 
 export const ZProjectImport = z.object({

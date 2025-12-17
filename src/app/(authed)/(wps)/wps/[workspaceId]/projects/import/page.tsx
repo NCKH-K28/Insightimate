@@ -14,21 +14,35 @@ import InstructionInput from './_components/instruction-input';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 import { applyPatch } from 'fast-json-patch';
-import { projectAtom } from '@/features/projects/state/project-import-atom';
+import {
+  contextsAtom,
+  instructionAtom,
+  projectAtom,
+} from '@/features/projects/state/project-import-atom';
 import { ContextOption } from './_components/contexts-bar';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { projectDraftByIdAtomFamily } from '@/features/projects/state/project-draft-atom';
+import { useParams } from 'next/navigation';
+import axiosInstance from '@/lib/api/_client';
+import { useRouter } from 'next/navigation';
 
 const ZGenerateOutput = ZJsonPatchOp.array();
 
 export default function Page() {
+  const params = useParams<{ workspaceId: string }>();
   const searchParams = useSearchParams();
-  if (!searchParams) throw new Error('Search params not found');
+  const router = useRouter();
+  const pathname = usePathname();
+  if (!params) throw new Error('Params is required');
+  if (!searchParams) throw new Error('Search params is required');
+  if (!router) throw new Error('Router is required');
 
   const draftId = String(searchParams.get('d') ?? '');
   const draft = useAtomValue(projectDraftByIdAtomFamily(draftId));
 
   const [project] = useAtom<ProjectImport>(projectAtom);
+  const [instruction] = useAtom<string>(instructionAtom);
+  const [contexts] = useAtom<ContextOption[]>(contextsAtom);
 
   const form = useForm<ProjectImport>({
     resolver: zodResolver(ZProjectImport) as Resolver<ProjectImport>,
@@ -76,6 +90,15 @@ export default function Page() {
     }
   }, [aiGenerated, snapshot, form]);
 
+  useEffect(() => {
+    const qA = searchParams.get('a');
+    const qI = searchParams.get('i');
+    if (qA == 'send') onSend(qI ?? instruction, contexts);
+    const newSearch = new URLSearchParams(searchParams);
+    newSearch.delete('a');
+    router.replace(`${pathname}?${newSearch.toString()}`);
+  }, []);
+
   //
   useEffect(() => {
     const callback = form.subscribe({
@@ -97,8 +120,10 @@ export default function Page() {
     return () => callback();
   }, [form]);
 
-  const handleSubmit = form.handleSubmit((data) => {
-    console.log('Submitted data:', data);
+  const handleSubmit = form.handleSubmit(async (data) => {
+    const path = `/v2/workspaces/${params.workspaceId}/projects/import`;
+    const res = await axiosInstance.post(path, data);
+    router.push(`/wps/${params.workspaceId}/projects/${res.data.id}`);
   });
 
   return (

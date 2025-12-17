@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { ZProject } from '../projects';
 import { isoDateString, isoString } from '../common';
 
 export const ZIssueField = z.object({
@@ -9,7 +8,7 @@ export const ZIssueField = z.object({
   description: z.string().nullish(),
   iconURL: z.string().nullish(),
   color: z.string().nullish(),
-  projectId: ZProject.shape.id,
+  projectId: z.string(),
 });
 
 export const statusCategoryEnum = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
@@ -26,7 +25,7 @@ export const ZIssue = z.object({
   key: z.string(),
   summary: z.string(),
   description: z.string().nullable(),
-  projectId: ZProject.shape.id,
+  projectId: z.string(),
   parentId: z.string().nullish(),
   typeId: ZIssueType.shape.id,
   statusId: ZIssueStatus.shape.id,

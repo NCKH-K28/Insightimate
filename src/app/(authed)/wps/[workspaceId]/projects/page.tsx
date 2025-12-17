@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { DataTable, DataTableToolbar, DataTablePagination } from '@/components/table';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { ProjectItem } from '@/contracts/projects';
+import { ProjectImport, ProjectItem } from '@/contracts/projects';
 import { Loader2 } from 'lucide-react';
 import {
   fetchProjectFacetsQueryOptions,
@@ -24,11 +24,27 @@ import {
 import { useProjectsQueryParams } from '@/hooks/use-projects-params';
 import { projectColumns } from '@/features/projects/ui/table/project-column';
 import { Separator } from '@/components/ui/separator';
+import ImportProjectButton from '@/features/projects/ui/buttons/import-project-button';
+import { useSetAtom } from 'jotai';
+import { upsertProjectDraftAtom } from '@/features/projects/state/project-draft-atom';
+import { createId } from '@paralleldrive/cuid2';
+import AICreateProjectButton from '@/features/projects/ui/buttons/ai-create-project';
 
 const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<ProjectItem>> }) => {
   const params = useParams<{ workspaceId: string }>();
   if (!params) throw new Error('Params are undefined');
   const { query } = useProjectsQueryParams();
+
+  const setUpsert = useSetAtom(upsertProjectDraftAtom);
+
+  const handleUpload = async (file: File) => {
+    const text = await file.text();
+    const project: ProjectImport = JSON.parse(text);
+    console.log('Uploaded project:', project);
+    const draftId = createId();
+    setUpsert({ id: draftId, data: project });
+    router.push(`/wps/${params.workspaceId}/projects/import?d=${draftId}`);
+  };
 
   const { table } = props;
   const workspaceId = params?.workspaceId ?? '';
@@ -63,12 +79,20 @@ const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<Pro
         ],
         actions: [
           {
+            label: 'Generate Project',
+            renderLabel() {
+              return <AICreateProjectButton />;
+            },
+          },
+          {
             label: 'Create Project',
             onClick: () => router.push(`/wps/${workspaceId}/projects/create`),
           },
           {
             label: 'Import Project',
-            onClick: () => router.push(`/wps/${workspaceId}/projects/import`),
+            renderLabel() {
+              return <ImportProjectButton onImport={(v) => handleUpload(v)} />;
+            },
           },
         ],
       }}
