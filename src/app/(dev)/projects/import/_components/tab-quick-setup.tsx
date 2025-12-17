@@ -2,31 +2,31 @@
 'use client';
 
 import { Input } from '@/components/ui/input';
-import {
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormMessage,
-  FormDescription,
-} from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
-import Image from 'next/image';
 import { ProjectImport } from '@/contracts/projects';
+import { ProjectIconSelect } from '@/features/projects/ui/forms/project-icon-selecte';
 
 export default function QuickSetupTab() {
   const form = useFormContext<ProjectImport>();
 
   return (
     <div className='flex flex-col gap-4'>
-      <Image
-        src={'https://placehold.co/100x100'}
-        alt='Project Avatar'
-        width={100}
-        height={100}
-        className='rounded-md'
-        unoptimized
+      <FormField
+        control={form.control}
+        name='avatar'
+        render={({ field }) => (
+          <FormItem>
+            <FormControl>
+              <ProjectIconSelect
+                disabled={field.disabled}
+                value={field.value ?? undefined}
+                onValueChange={(val) => field.onChange(val, { shouldDirty: true })}
+              />
+            </FormControl>
+          </FormItem>
+        )}
       />
 
       <div className='grid grid-cols-1 gap-4 md:grid-cols-2 items-start'>
@@ -35,11 +35,10 @@ export default function QuickSetupTab() {
           name='name'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project Name</FormLabel>
+              <FormLabel>Name</FormLabel>
               <FormControl>
-                <Input placeholder='My Project' {...field} />
+                <Input placeholder='Enter project name' {...field} />
               </FormControl>
-              <FormDescription>This is your public display name.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -50,13 +49,10 @@ export default function QuickSetupTab() {
           name='key'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Project Key</FormLabel>
+              <FormLabel>Key</FormLabel>
               <FormControl>
-                <Input placeholder='KEY' {...field} />
+                <Input placeholder='Enter project key' {...field} />
               </FormControl>
-              <FormDescription>
-                A unique identifier for your project, used in issue tracking.
-              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -68,7 +64,7 @@ export default function QuickSetupTab() {
         name='description'
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Project Description</FormLabel>
+            <FormLabel>Description</FormLabel>
             <FormControl>
               <Textarea
                 {...field}
@@ -79,9 +75,6 @@ export default function QuickSetupTab() {
                 onChange={(e) => field.onChange(e.target.value)}
               />
             </FormControl>
-            <FormDescription>
-              This description will help others understand the purpose of your project.
-            </FormDescription>
             <FormMessage />
           </FormItem>
         )}

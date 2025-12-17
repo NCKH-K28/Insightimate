@@ -9,7 +9,7 @@ import {
 } from '@/contracts/projects';
 import { addSeconds } from 'date-fns';
 import { Prisma } from '@prisma/client';
-import { templateConfigs } from './configs/template';
+import { templateConfigs } from '../configs/template';
 import { prisma } from '@/lib/prisma';
 import { checkResourcesMapped } from '@/lib/authz/cerbos';
 import { openfgaClient } from '@/lib/authz/openfga';
@@ -19,7 +19,7 @@ import {
   genProjectActorId,
   genProjectId,
   genSprintId,
-} from './configs/id-generators';
+} from '../configs/id-generators';
 import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
 import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
 import { listStatuses } from './project-field.service';
@@ -31,7 +31,7 @@ import {
   genIssueStatusId,
   genIssueTypeId,
   genProjectRoleId,
-} from './configs/id-generators';
+} from '../configs/id-generators';
 
 class ProjectError extends Error {
   constructor(message: string) {
@@ -90,7 +90,7 @@ const buildResolutionCreateManyData = (
   return resolutions.map((r) => ({ ...r, id: genIssueResolutionId() }));
 };
 
-const assertProjectKeyAvailable = async (
+export const assertProjectKeyAvailable = async (
   tx: TxClient,
   workspaceId: string,
   key: string,

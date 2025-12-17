@@ -4,28 +4,39 @@ import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '../issues/issu
 import countBy from 'lodash/countBy';
 import { ZProjectCreateInput } from './projects.input';
 
+const ZActor = z.object({ actorId: z.string(), actorType: z.enum(['USER']), roleId: z.string() });
+const ZRole = ZProjectRole.omit({ projectId: true }).extend({
+  createdAt: z.string().optional(),
+  updatedAt: z.string().optional(),
+});
+const ZType = ZIssueType.omit({ projectId: true });
+const ZPriority = ZIssuePriority.omit({ projectId: true });
+const ZStatus = ZIssueStatus.omit({ projectId: true });
+const ZPIssue = ZIssue.omit({ projectId: true });
+
 export const ZProjectImport = z.object({
   id: z.string(),
-  key: ZProjectCreateInput.shape.key,
+  key: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   avatar: z.string().nullable(),
-  createdAt: z.string(),
-  updatedAt: z.string(),
   leadId: z.string(),
 
   // === Related Data ===
-  actors: z
-    .object({ actorId: z.string(), actorType: z.enum(['USER']), roleId: z.string() })
-    .array(),
-  roles: ZProjectRole.omit({ projectId: true })
-    .extend({ createdAt: z.string().optional(), updatedAt: z.string().optional() })
-    .array(),
-  types: ZIssueType.omit({ projectId: true }).array(),
-  priorities: ZIssuePriority.omit({ projectId: true }).array(),
-  statuses: ZIssueStatus.omit({ projectId: true }).array(),
-  issues: ZIssue.omit({ projectId: true }).array(),
+  actors: ZActor.array(),
+  roles: ZRole.array(),
+  types: ZType.array(),
+  priorities: ZPriority.array(),
+  statuses: ZStatus.array(),
+  issues: ZPIssue.array(),
 });
+
+export const ZProjectDraft = ZProjectImport.extend({
+  id: z.string().optional(),
+  key: z.string().optional(),
+  issues: ZPIssue.partial().array(),
+});
+
 export type ProjectImport = z.infer<typeof ZProjectImport>;
 
 const addDuplicateIdIssues = (

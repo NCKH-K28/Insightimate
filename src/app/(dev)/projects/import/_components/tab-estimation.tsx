@@ -7,8 +7,13 @@ import { PlusIcon, XIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import isEqual from 'lodash/isEqual';
 import { ProjectImport } from '@/contracts/projects';
+import { useAtom } from 'jotai';
+import { estimationTabsAtom } from '@/features/projects/state/project-import-atom';
+import { EstimationReport } from './estimation-report/estimation-report-v2';
+import { insightAI } from '@/lib/insight-ai';
+import { projectToTextReport } from '@/features/projects/utils/project-to-text-report';
 
-type EstimationReportType = any; // Thay đổi theo định nghĩa thực tế của EstimationReportType
+type EstimationReportType = any;
 type Estimation = {
   input?: Partial<ProjectImport>;
   output?: EstimationReportType;
@@ -46,7 +51,7 @@ const EstimationTabDetail = ({ estimation, onEstimationChange }: EstimationTabDe
 
       const report = projectToTextReport(clonedProject, []);
       const file = new File([report], 'estimation.txt', { type: 'text/plain' });
-      const estimationResult = await huyAI.fileEstimate(file);
+      const estimationResult = await insightAI.fileEstimate(file);
 
       onEstimationChange?.({ input: clonedProject, output: estimationResult });
     } catch (error) {
@@ -93,36 +98,12 @@ const EstimationTabDetail = ({ estimation, onEstimationChange }: EstimationTabDe
   );
 };
 
-export type EstimationsPreviewTabProps = {
-  estimationTabs?: EstimationTabDetailProps[];
-  onEstimationTabsChange?: (tabs: EstimationTabDetailProps[]) => void;
-};
-
-export default function EstimationsPreviewTab({
-  estimationTabs,
-  onEstimationTabsChange,
-}: EstimationsPreviewTabProps) {
+export default function EstimationsTab() {
   const [activeTab, setActiveTab] = React.useState('tab-0');
-
-  const tabs = React.useMemo(() => {
-    return estimationTabs ?? [];
-  }, [estimationTabs]);
-
-  const handleTabEstimationChange = React.useCallback(
-    (tabId: string, estimation: Estimation) => {
-      if (!estimationTabs) return;
-
-      const newTabs = estimationTabs.map((tab) =>
-        tab.tabId === tabId ? { ...tab, estimation } : tab,
-      );
-      onEstimationTabsChange?.(newTabs);
-    },
-    [estimationTabs, onEstimationTabsChange],
-  );
+  const [tabs, setTabs] = useAtom(estimationTabsAtom);
 
   const addNewTab = React.useCallback(() => {
-    const currentTabs = estimationTabs ?? [];
-    const index = currentTabs.length;
+    const index = tabs.length;
     const newTabId = `tab-${Date.now()}`;
 
     const newTab: EstimationTabDetailProps = {
@@ -130,21 +111,18 @@ export default function EstimationsPreviewTab({
       tabName: `Estimation ${index + 1}`,
       // Không set onEstimationChange ở đây - sẽ được inject từ parent
     };
-
-    onEstimationTabsChange?.([...currentTabs, newTab]);
+    setTabs([...tabs, newTab]);
     setActiveTab(newTabId);
-  }, [estimationTabs, onEstimationTabsChange]);
+  }, [tabs]);
 
   const closeTab = React.useCallback(
     (e: React.MouseEvent, tabId: string) => {
       e.stopPropagation();
 
-      if (!estimationTabs) return;
+      const tabIndex = tabs.findIndex((t) => t.tabId === tabId);
+      const newTabs = tabs.filter((t) => t.tabId !== tabId);
 
-      const tabIndex = estimationTabs.findIndex((t) => t.tabId === tabId);
-      const newTabs = estimationTabs.filter((t) => t.tabId !== tabId);
-
-      onEstimationTabsChange?.(newTabs);
+      setTabs(newTabs);
 
       // Nếu tab đang đóng là tab active, chuyển sang tab khác
       if (activeTab === tabId && newTabs.length > 0) {
@@ -152,7 +130,7 @@ export default function EstimationsPreviewTab({
         setActiveTab(newActiveTab);
       }
     },
-    [estimationTabs, activeTab, onEstimationTabsChange],
+    [tabs, activeTab],
   );
 
   if (tabs.length === 0) {
@@ -242,7 +220,10 @@ export default function EstimationsPreviewTab({
           >
             <EstimationTabDetail
               {...tab}
-              onEstimationChange={(estimation) => handleTabEstimationChange(tab.tabId, estimation)}
+              onEstimationChange={(estimation) => {
+                const newTabs = tabs.map((t) => (t.tabId === tab.tabId ? { ...t, estimation } : t));
+                setTabs(newTabs);
+              }}
             />
           </TabsContent>
         ))}

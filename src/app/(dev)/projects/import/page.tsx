@@ -6,7 +6,7 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import ProjectInfoPanel from './_components/panel-project-infor';
-import { ProjectImport, ZProjectImport } from '@/contracts/projects';
+import { ProjectImport, ZProjectDraft, ZProjectImport } from '@/contracts/projects';
 import ProjectPreviewPanel from './_components/panel-project-preview';
 import { useAtom, useAtomValue } from 'jotai';
 import React, { useEffect } from 'react';
@@ -69,12 +69,33 @@ export default function Page() {
       const patchs = ZGenerateOutput.parse(aiGenerated);
       const clonedSnapshot = structuredClone(snapshot);
       const { newDocument: newDoc } = applyPatch(clonedSnapshot, patchs);
-      const validDoc = ZProjectImport.parse(newDoc);
+      const validDoc = ZProjectDraft.parse(newDoc);
       form.reset(validDoc);
     } catch (error) {
       console.error('Error applying AI-generated updates:', error);
     }
   }, [aiGenerated, snapshot, form]);
+
+  //
+  useEffect(() => {
+    const callback = form.subscribe({
+      name: 'key',
+      formState: { values: true, isValid: true },
+      callback: ({ values, isValid }) => {
+        const keyIsValid = values.key && isValid;
+        if (!keyIsValid) return;
+        const issues = values.issues;
+        const next = issues.map((is, idx) => ({
+          ...is,
+          id: `${values.key}-${idx + 1}`,
+          key: `${values.key}-${idx + 1}`,
+        }));
+        form.setValue('issues', next);
+      },
+    });
+
+    return () => callback();
+  }, [form]);
 
   const handleSubmit = form.handleSubmit((data) => {
     console.log('Submitted data:', data);

@@ -36,9 +36,7 @@ const DEFAULT_PROJECT: ProjectImport = {
   priorities: DEFAULT_PRIORITIES,
   statuses: DEFAULT_STATUSES,
   types: DEFAULT_TYPES,
-  avatar: null,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
+  avatar: '/icons/project/1000.svg',
 } as const;
 
 export const getDefaultProject = () => structuredClone(DEFAULT_PROJECT);

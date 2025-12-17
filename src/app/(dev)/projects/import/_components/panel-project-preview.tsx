@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { IssuesTable } from '@/features/projects/ui/import/issues-table';
 import { Calculator, ClipboardList } from 'lucide-react';
+import EstimationsTab from './tab-estimation';
 
 export const ProjectPreviewPanel = () => {
   return (
@@ -25,7 +26,9 @@ export const ProjectPreviewPanel = () => {
           </div>
         </TabsContent>
         <TabsContent value='estimation' className='size-full'>
-          <div className='size-full absolute inset-0 z-0 overflow-hidden'></div>
+          <div className='size-full absolute inset-0 z-0 overflow-hidden'>
+            <EstimationsTab />
+          </div>
         </TabsContent>
       </div>
     </Tabs>

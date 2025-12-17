@@ -21,8 +21,7 @@ import {
   updateBoardSprint,
 } from './cqrs/board-sprint';
 import merge from 'lodash/merge';
-
-const genIssueId = () => `is_${createId()}`;
+import { genIssueId } from '@/features/projects/configs/id-generators';
 
 const getById = async (id: string) => {
   const board = await prisma.board.findUnique({

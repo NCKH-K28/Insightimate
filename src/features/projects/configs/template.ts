@@ -1,4 +1,4 @@
-import { TemplateConfig } from '../types';
+import { TemplateConfig } from '../server/types';
 
 export const templateConfigs: Record<'SCRUM' | 'KANBAN', TemplateConfig> = {
   SCRUM: {

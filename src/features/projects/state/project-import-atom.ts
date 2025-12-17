@@ -38,7 +38,7 @@ import { focusAtom } from 'jotai-optics';
 import { defaultProject } from '../contants';
 
 export const projectImportStateAtom = atom<ProjectImportState>({
-  estimationTabs: [],
+  estimationTabs: [{ tabId: 'tab-0', tabName: 'Estimation' }],
   instruction: '',
   project: defaultProject,
   contexts: [],

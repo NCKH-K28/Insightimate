@@ -12,7 +12,7 @@ import {
 import { openfgaClient } from '@/lib/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { TupleKey } from '@openfga/sdk';
-import { genProjectRoleId } from '../configs/id-generators';
+import { genProjectRoleId } from '../../configs/id-generators';
 
 export const writeProjectRoles = async (
   input: ProjectRoleWriteInput & { projectId: string },

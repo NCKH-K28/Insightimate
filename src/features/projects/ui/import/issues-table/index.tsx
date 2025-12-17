@@ -61,6 +61,7 @@ export const IssuesTable = () => {
     enableRowSelection: true,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
+    autoResetPageIndex: false,
   });
 
   const selectedIdx = table.getSelectedRowModel().flatRows.map((row) => row.index);
@@ -131,32 +132,6 @@ export const IssuesTable = () => {
           </TableHeader>
 
           <TableBody>
-            {isAddingRow && (
-              <TableRow>
-                <TableCell colSpan={columns.length}>
-                  <Input
-                    autoFocus
-                    placeholder='Type to add a new row...'
-                    onBlur={() => setIsAddingRow(false)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && e.currentTarget.value) {
-                        const summary = e.currentTarget.value.trim();
-                        if (summary !== '') {
-                          const newRow: RowItem = { summary };
-                          const currentRows = form.getValues('issues') || [];
-                          form.setValue('issues', [newRow, ...currentRows]);
-                          e.currentTarget.value = '';
-                        }
-                        setIsAddingRow(false);
-                      } else if (e.key === 'Escape') {
-                        setIsAddingRow(false);
-                      }
-                    }}
-                  />
-                </TableCell>
-              </TableRow>
-            )}
-
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow key={row.id} data-state={row.getIsSelected() ? 'selected' : undefined}>
@@ -171,6 +146,34 @@ export const IssuesTable = () => {
               <TableRow>
                 <TableCell colSpan={columns.length} className='h-24 text-center'>
                   No results.
+                </TableCell>
+              </TableRow>
+            )}
+
+            {isAddingRow && (
+              <TableRow>
+                <TableCell colSpan={columns.length}>
+                  <Input
+                    autoFocus
+                    placeholder='Type to add a new row...'
+                    onBlur={() => setIsAddingRow(false)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && e.currentTarget.value) {
+                        const summary = e.currentTarget.value.trim();
+                        if (summary !== '') {
+                          const pkey = form.getValues('key') || '';
+                          const currentRows = form.getValues('issues') || [];
+                          const iKey = `${pkey}-${currentRows.length + 1}`;
+                          const newRow: RowItem = { id: iKey, key: iKey, summary };
+                          form.setValue('issues', [...currentRows, newRow]);
+                          e.currentTarget.value = '';
+                        }
+                        setIsAddingRow(false);
+                      } else if (e.key === 'Escape') {
+                        setIsAddingRow(false);
+                      }
+                    }}
+                  />
                 </TableCell>
               </TableRow>
             )}

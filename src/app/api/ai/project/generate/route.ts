@@ -3,7 +3,7 @@ import { google } from '@ai-sdk/google';
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import aiStorage from '@/lib/minio/ai-storage';
-import { ZProjectImport } from '@/contracts/projects';
+import { ZProjectImport, ZProjectDraft } from '@/contracts/projects';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 
 export const getFilePart = async (key: string): Promise<FilePart> => {
@@ -18,8 +18,9 @@ const ZContext = z.object({
   value: z.string(),
   label: z.string(),
 });
+
 const ZGenerateInput = z.object({
-  values: ZProjectImport.partial().optional(),
+  values: ZProjectDraft.partial().optional(),
   instruction: z.string().optional(),
   contexts: z.array(ZContext).optional(),
 });
