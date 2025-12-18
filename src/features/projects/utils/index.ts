@@ -8,26 +8,29 @@ import {
 } from '@/features/projects/configs/id-generators';
 
 type IdMap = Record<string, string>;
-const mapIdStrict = (m: IdMap, id?: string | null, label = 'id') => {
+export const mapIdStrict = (m: IdMap, id?: string | null, label = 'id') => {
   if (!id) return id;
   const mapped = m[id];
   if (!mapped) throw new Error(`Missing ${label} mapping for: ${id}`);
   return mapped;
 };
 
-const buildIdMap = <T extends { id: string }>(rows: readonly T[], gen: () => string): IdMap => {
+export const buildIdMap = <T extends { id: string }>(
+  rows: readonly T[],
+  gen: () => string,
+): IdMap => {
   const m: IdMap = {};
   for (const r of rows) m[r.id] = gen();
   return m;
 };
 
-const mapRequired = (m: IdMap, id: string, label = 'id'): string => {
+export const mapRequired = (m: IdMap, id: string, label = 'id'): string => {
   const mapped = m[id];
   if (!mapped) throw new Error(`Missing ${label} mapping for: ${id}`);
   return mapped;
 };
 
-const mapOptional = (m: IdMap, id?: string | null) => (id ? (m[id] ?? id) : id);
+export const mapOptional = (m: IdMap, id?: string | null) => (id ? (m[id] ?? id) : id);
 
 export const remapProjectImportIds = (
   data: ProjectImport,

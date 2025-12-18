@@ -136,7 +136,9 @@ export default function ImportProjectButton({
       }}
     >
       <DialogTrigger asChild>
-        <Button variant='outline'>{label}</Button>
+        <Button variant='outline' size='sm'>
+          {label}
+        </Button>
       </DialogTrigger>
 
       <DialogContent>

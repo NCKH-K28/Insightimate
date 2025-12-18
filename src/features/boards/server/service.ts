@@ -76,6 +76,7 @@ const addIssue = async (
 
   return prisma.$transaction(async (tx) => {
     const projectId = board.projectId;
+    if (!projectId) throw new Error('Project not found');
     const {
       key: pKey,
       issueCounter,

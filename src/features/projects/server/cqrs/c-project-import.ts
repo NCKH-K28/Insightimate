@@ -62,7 +62,7 @@ export const importProject = async (
     const _statuses = data.statuses.map((s) => omit(s, 'projectId'));
     const _actors = actorRows.map((a) => omit(a, 'projectId'));
     const _issues = data.issues.map((i) => ({
-      ...omit(i, 'projectId', 'resolutionId'),
+      ...omit(i, 'projectId', 'resolutionId', 'parentId'),
       assigneeId: null,
       dueDate: i.dueDate ? new Date(i.dueDate) : null,
       startDate: i.startDate ? new Date(i.startDate) : null,
@@ -90,6 +90,7 @@ export const importProject = async (
         actors: { createMany: { data: _actors } },
         resolutions: { createMany: { data: _resolutions } },
         issues: { createMany: { data: _issues } },
+        issueCounter: _issues.length,
       },
     });
 

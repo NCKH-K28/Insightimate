@@ -16,6 +16,7 @@ import { useAtom } from 'jotai';
 import { ContextOption, ContextsBar } from './contexts-bar';
 import { uploadFilePipe } from '@/lib/insight-ai/upload-file-pipe';
 import { contextsAtom, instructionAtom } from '@/features/projects/state/project-import-atom';
+import { cn } from '@/lib/utils';
 
 // ================== Components ================== //
 type InstructionInputProps = {
@@ -129,7 +130,9 @@ const InstructionInput = ({ onSend, isLoading }: InstructionInputProps) => {
           value={instruction}
           onChange={(e) => setInstruction(e.target.value)}
           placeholder='Ask anything'
-          className='w-full bg-transparent! p-0 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder-muted-foreground resize-none border-none outline-none text-sm min-h-10 max-h-40'
+          className={cn(
+            'w-full bg-transparent! p-0 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 text-foreground placeholder-muted-foreground resize-none border-none outline-none text-sm min-h-10 max-h-40',
+          )}
           rows={1}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && !e.ctrlKey && !e.metaKey) {

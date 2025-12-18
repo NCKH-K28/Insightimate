@@ -25,6 +25,7 @@ import { projectDraftByIdAtomFamily } from '@/features/projects/state/project-dr
 import { useParams } from 'next/navigation';
 import axiosInstance from '@/lib/api/_client';
 import { useRouter } from 'next/navigation';
+import { useDebounce, useEffectOnce } from 'react-use';
 
 const ZGenerateOutput = ZJsonPatchOp.array();
 
@@ -50,8 +51,6 @@ export default function Page() {
     mode: 'onChange',
   });
 
-  const [snapshot, setSnapshot] = React.useState<ProjectImport>();
-
   const {
     submit,
     object: aiGenerated,
@@ -62,44 +61,45 @@ export default function Page() {
 
     onError: (error) => {
       console.error('AI generation error:', error);
-      setSnapshot(undefined);
     },
 
-    onFinish: () => {
-      setSnapshot(undefined);
-    },
+    onFinish: () => {},
   });
-
-  const onSend = async (instruction: string, contexts?: ContextOption[]) => {
+  const onSend = (instruction: string, contexts?: ContextOption[]) => {
     const values = form.getValues();
-    setSnapshot(structuredClone(values));
     submit({ values, instruction, contexts });
   };
 
-  useEffect(() => {
-    if (!aiGenerated) return;
-    if (!snapshot) return;
-    try {
-      const patchs = ZGenerateOutput.parse(aiGenerated);
-      const clonedSnapshot = structuredClone(snapshot);
-      const { newDocument: newDoc } = applyPatch(clonedSnapshot, patchs);
-      const validDoc = ZProjectDraft.parse(newDoc);
-      form.reset(validDoc);
-    } catch (error) {
-      console.error('Error applying AI-generated updates:', error);
-    }
-  }, [aiGenerated, snapshot, form]);
+  useDebounce(
+    () => {
+      if (!aiGenerated) return;
+      try {
+        const values = form.getValues();
+        const snapshot = JSON.parse(JSON.stringify(values));
+        const patchs = ZGenerateOutput.parse(aiGenerated);
+        const cloned = structuredClone(snapshot);
+        const { newDocument } = applyPatch(cloned, patchs);
+        const validDoc = ZProjectDraft.parse(newDocument);
+        form.reset(validDoc as ProjectImport);
+      } catch (e) {
+        console.error('Error applying AI-generated updates:', e);
+      }
+    },
+    200,
+    [aiGenerated],
+  );
 
-  useEffect(() => {
-    const qA = searchParams.get('a');
-    const qI = searchParams.get('i');
+  useEffectOnce(() => {
+    const qA = String(searchParams.get('a') ?? '');
+    const qI = String(searchParams.get('i') ?? '');
+    if (!qA || qA.length == 0) return;
     if (qA == 'send') onSend(qI ?? instruction, contexts);
     const newSearch = new URLSearchParams(searchParams);
     newSearch.delete('a');
+    newSearch.delete('i');
     router.replace(`${pathname}?${newSearch.toString()}`);
-  }, []);
+  });
 
-  //
   useEffect(() => {
     const callback = form.subscribe({
       name: 'key',

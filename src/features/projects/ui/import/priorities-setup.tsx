@@ -13,7 +13,7 @@ const PrioritiesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'priorities' });
+  const { remove } = useFieldArray({ control: form.control, name: 'priorities' });
   const priorities = useWatch({ control: form.control, name: 'priorities' });
 
   return (
@@ -71,7 +71,7 @@ const PrioritiesSetup = () => {
       </CollapsibleTrigger>
       <CollapsibleContent className='p-4'>
         <div className='space-y-3'>
-          {fields.length === 0 ? (
+          {priorities.length === 0 ? (
             <div className='flex flex-col items-center justify-center py-8 text-center'>
               <Flag className='mb-3 h-12 w-12 text-muted-foreground/50' />
               <p className='text-sm text-muted-foreground'>No priorities configured yet</p>
@@ -80,7 +80,7 @@ const PrioritiesSetup = () => {
               </p>
             </div>
           ) : (
-            fields.map((field, index) => {
+            priorities.map((field, index) => {
               return (
                 <div
                   key={field.id}
@@ -119,7 +119,7 @@ const PrioritiesSetup = () => {
             <Plus className='h-4 w-4' />
             Add Priority Level
           </Button>
-          {fields.length === 0 && (
+          {priorities.length === 0 && (
             <Button type='button' variant='secondary' size='sm' className='gap-2'>
               <Flag className='h-4 w-4' />
               Use Defaults

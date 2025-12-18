@@ -15,6 +15,6 @@ export const POST = compose<{ workspaceId: string }>(
     const input = getZodBody(req, ZProjectImportWithLogic);
     const result = await importProject({ data: input, workspaceId }, { actorId: auth.user.id });
 
-    return NextResponse.json({ data: result });
+    return NextResponse.json(result);
   },
 );

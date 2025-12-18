@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+ 
 
 import React from 'react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -15,8 +15,7 @@ const StatusesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'statuses' });
-  const statuses = useWatch({ control: form.control, name: 'statuses' });
+  const { fields, remove } = useFieldArray({ control: form.control, name: 'statuses' });
 
   return (
     <Collapsible
@@ -37,15 +36,15 @@ const StatusesSetup = () => {
           <div>
             <h3 className='font-semibold'>Task Statuses Configuration</h3>
             <p className='text-sm text-muted-foreground'>
-              {statuses?.length || 0} status
-              {(statuses?.length || 0) !== 1 ? 'es' : ''} configured
+              {fields?.length || 0} status
+              {(fields?.length || 0) !== 1 ? 'es' : ''} configured
             </p>
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {statuses && statuses.length > 0 && (
+          {fields && fields.length > 0 && (
             <div className='hidden gap-1 sm:flex'>
-              {statuses.slice(0, 3).map(({ name, color }, index) => {
+              {fields.slice(0, 3).map(({ name, color }, index) => {
                 const { color: bgColor, contrast: textColor } = getContrastHexColor(color);
                 return (
                   <Badge
@@ -57,9 +56,9 @@ const StatusesSetup = () => {
                   </Badge>
                 );
               })}
-              {statuses.length > 3 && (
+              {fields.length > 3 && (
                 <Badge variant='outline' className='text-xs'>
-                  +{statuses.length - 3}
+                  +{fields.length - 3}
                 </Badge>
               )}
             </div>

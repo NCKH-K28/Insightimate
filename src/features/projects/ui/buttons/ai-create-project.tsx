@@ -13,6 +13,7 @@ import { ContextOption, InstructionInput } from '../instruction-input';
 import { useAtom } from 'jotai';
 import { instructionAtom } from '../../state/project-import-atom';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 
 const defaultSuggestions = [
   'Create an eCommerce project including proposed stories, epics, and tasks',
@@ -32,9 +33,9 @@ export default function AICreateProjectButton({ label = 'Gen with AI' }: ImportP
   const pathname = usePathname();
   const router = useRouter();
 
-  const [, setInstruction] = useAtom(instructionAtom);
+  const [instruction, setInstruction] = useAtom(instructionAtom);
 
-  const handleSend = (i: string, c?: ContextOption[]) => {
+  const handleSend = (i: string) => {
     if (!searchParams || !pathname || !router) return;
     const query = new URLSearchParams(searchParams);
     query.set('a', 'send');
@@ -45,20 +46,25 @@ export default function AICreateProjectButton({ label = 'Gen with AI' }: ImportP
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant='outline'>{label}</Button>
+        <Button size='sm' variant='outline'>
+          <Sparkles />
+          {label}
+        </Button>
       </DialogTrigger>
 
-      {/* FIX: responsive width + giới hạn chiều cao + scroll + chống ép width */}
       <DialogContent className='min-w-0 w-[calc(100vw-2rem)] max-w-[900px] max-h-[80vh] overflow-y-auto'>
         <DialogHeader>
-          <DialogTitle>Import Project</DialogTitle>
-          <DialogDescription>Import a project from a CSV file</DialogDescription>
+          <DialogTitle>AI Generate Project</DialogTitle>
+          <DialogDescription>Generate a project from AI</DialogDescription>
         </DialogHeader>
 
         <div className='min-w-0 space-y-3'>
           <InstructionInput onSend={handleSend} />
 
-          <div className='max-h-[200px] overflow-y-auto flex flex-col gap-2'>
+          <div
+            hidden={instruction.trim().length > 0}
+            className='max-h-[200px] overflow-y-auto flex flex-col gap-2'
+          >
             {defaultSuggestions.map((s) => (
               <Button
                 key={s}

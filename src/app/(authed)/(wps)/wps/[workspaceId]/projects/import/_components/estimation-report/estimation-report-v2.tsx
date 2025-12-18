@@ -21,7 +21,6 @@ import {
   TrendingUp,
   Brain,
   CheckCircle,
-  XCircle,
   BarChart3,
   Settings,
   Target,

@@ -103,34 +103,32 @@ export default function EstimationsTab() {
   const [tabs, setTabs] = useAtom(estimationTabsAtom);
 
   const addNewTab = React.useCallback(() => {
-    const index = tabs.length;
     const newTabId = `tab-${Date.now()}`;
+    setTabs((prevTabs) => {
+      const index = prevTabs.length;
+      return [...prevTabs, { tabId: newTabId, tabName: `Estimation ${index + 1}` }];
+    });
 
-    const newTab: EstimationTabDetailProps = {
-      tabId: newTabId,
-      tabName: `Estimation ${index + 1}`,
-      // Không set onEstimationChange ở đây - sẽ được inject từ parent
-    };
-    setTabs([...tabs, newTab]);
     setActiveTab(newTabId);
-  }, [tabs]);
+  }, [setTabs]);
 
   const closeTab = React.useCallback(
-    (e: React.MouseEvent, tabId: string) => {
-      e.stopPropagation();
+    (tabId: string) => {
+      setTabs((prevTabs) => {
+        const tabIndex = prevTabs.findIndex((t) => t.tabId === tabId);
+        const newTabs = prevTabs.filter((t) => t.tabId !== tabId);
 
-      const tabIndex = tabs.findIndex((t) => t.tabId === tabId);
-      const newTabs = tabs.filter((t) => t.tabId !== tabId);
+        // Nếu tab đang đóng là tab active, chuyển sang tab khác
+        setActiveTab((prevActiveTab) => {
+          if (prevActiveTab !== tabId) return prevActiveTab;
+          if (newTabs.length === 0) return '';
+          return newTabs[Math.min(tabIndex, newTabs.length - 1)].tabId;
+        });
 
-      setTabs(newTabs);
-
-      // Nếu tab đang đóng là tab active, chuyển sang tab khác
-      if (activeTab === tabId && newTabs.length > 0) {
-        const newActiveTab = newTabs[Math.min(tabIndex, newTabs.length - 1)].tabId;
-        setActiveTab(newActiveTab);
-      }
+        return newTabs;
+      });
     },
-    [tabs, activeTab],
+    [setTabs],
   );
 
   if (tabs.length === 0) {
@@ -181,7 +179,10 @@ export default function EstimationsTab() {
                       'opacity-0 transition-opacity group-hover:opacity-100',
                       'hover:bg-destructive/10 hover:text-destructive',
                     )}
-                    onClick={(e) => closeTab(e, tab.tabId)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      closeTab(tab.tabId);
+                    }}
                   >
                     <XIcon className='h-3 w-3' />
                   </Button>

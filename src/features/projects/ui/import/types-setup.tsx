@@ -15,8 +15,7 @@ const TypesSetup = () => {
   const form = useFormContext<ProjectImport>();
   const [open, setOpen] = React.useState(false);
 
-  const { fields, append, remove } = useFieldArray({ control: form.control, name: 'types' });
-  const types = useWatch({ control: form.control, name: 'types' });
+  const { fields, remove } = useFieldArray({ control: form.control, name: 'types' });
 
   return (
     <Collapsible
@@ -37,14 +36,14 @@ const TypesSetup = () => {
           <div>
             <h3 className='font-semibold'>Task Types Configuration</h3>
             <p className='text-sm text-muted-foreground'>
-              {types?.length || 0} type{(types?.length || 0) !== 1 ? 's' : ''} configured
+              {fields?.length || 0} type{(fields?.length || 0) !== 1 ? 's' : ''} configured
             </p>
           </div>
         </div>
         <div className='flex items-center gap-2'>
-          {types && types.length > 0 && (
+          {fields && fields.length > 0 && (
             <div className='hidden gap-1 sm:flex'>
-              {types.slice(0, 3).map(({ name, color }, index) => {
+              {fields.slice(0, 3).map(({ name, color }, index) => {
                 const { color: rawColor, contrast } = getContrastHexColor(color);
                 return (
                   <Badge
@@ -57,9 +56,9 @@ const TypesSetup = () => {
                   </Badge>
                 );
               })}
-              {types.length > 3 && (
+              {fields.length > 3 && (
                 <Badge variant='outline' className='text-xs'>
-                  +{types.length - 3}
+                  +{fields.length - 3}
                 </Badge>
               )}
             </div>
