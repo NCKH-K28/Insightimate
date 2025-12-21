@@ -44,9 +44,12 @@ const ProjectHeader = () => {
         <div className='flex flex-col items-start min-w-0 flex-1'>
           <h1 className='text-2xl font-semibold truncate w-full'>{project.name}</h1>
           <p
-            className={cn('text-sm text-muted-foreground truncate w-full', {
-              italic: !project.description,
-            })}
+            className={cn(
+              'text-sm text-muted-foreground truncate w-full max-w-lg overflow-hidden',
+              {
+                italic: !project.description,
+              },
+            )}
           >
             {project.description || 'No description'}
           </p>
