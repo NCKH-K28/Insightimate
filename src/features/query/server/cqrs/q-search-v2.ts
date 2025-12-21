@@ -2,6 +2,7 @@ import { elasticClient, SearchQuery } from '@/lib/elastic';
 import { QueryOutput, QueryParams, ZQueryOutput } from '@/contracts/query/schema-v2';
 
 import { listAccessibleResources } from '@/features/authz/server/cqrs/q-allowed-objects';
+import { prisma } from '@/lib/prisma';
 
 const toCamelKey = (k: string) =>
   k.replace(/^_+/, '').replace(/[_-]([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
@@ -75,16 +76,24 @@ export const buildQuery = async (
     };
   }
 
-  const workspaceIds = await listAccessibleResources({
+  let workspaceIds = await listAccessibleResources({
     action: 'can_view',
     subject: { type: 'user', id: context.actorId },
     resource: { type: 'workspace' },
   });
-  const projectIds = await listAccessibleResources({
+  let projectIds = await listAccessibleResources({
     action: 'can_view',
     subject: { type: 'user', id: context.actorId },
     resource: { type: 'project' },
   });
+
+  if (input.workspaceId && workspaceIds.includes(input.workspaceId)) {
+    workspaceIds = [input.workspaceId];
+    const projects = await prisma.project.findMany({
+      where: { id: { in: projectIds }, workspaceId: input.workspaceId },
+    });
+    projectIds = projects.map((p) => p.id);
+  }
 
   // Build authorization filters
   const authShould: SearchQuery[] = [];
@@ -99,7 +108,9 @@ export const buildQuery = async (
   });
   authShould.push({ term: { owner_id: context.actorId } });
   authShould.push({ terms: { project_id: projectIds } });
-  authShould.push({ terms: { workspace_id: workspaceIds } });
+  authShould.push({
+    terms: { workspace_id: input.workspaceId ? [input.workspaceId] : workspaceIds },
+  });
 
   return {
     bool: {
@@ -131,22 +142,36 @@ export const search = async (
     index,
     query,
     sort: [{ _score: { order: 'desc' } }],
-    _source: {
-      excludes: [
-        'embedding',
-        'embedding_raw',
-        'full_text',
-        //
-      ],
-    },
+    _source: { excludes: ['embedding', 'embedding_raw', 'full_text'] },
     // size: input.pagination?.size || 25,
     // search_after: input.pagination?.cursor ? [input.pagination.cursor] : undefined,
   });
 
   const hits = searchResult.hits.hits.map(formatHit);
+
+  const projecIds = hits.filter((hit) => hit.type === 'issue').map((hit) => hit.source.projectId);
+  const types = await prisma.issueType.findMany({ where: { projectId: { in: projecIds } } });
+  const typeMap = new Map(types.map((t) => [t.id, t.iconURL]));
+
+  const hitWithHref = hits.map((hit) => {
+    switch (hit.index) {
+      case 'issues':
+        const iconURL = typeMap.get(hit.source.typeId);
+        return {
+          ...hit,
+          href: `/projects/${hit.source.projectId}/issues/${hit.source.id}`,
+          source: { ...hit.source, iconURL },
+        };
+      case 'projects':
+        return { ...hit, href: `/projects/${hit.source.id}` };
+      default:
+        return hit;
+    }
+  });
+
   const result: QueryOutput = {
-    hits,
-    meta: { total: hits.length, cursor: undefined },
+    hits: hitWithHref,
+    meta: { total: hitWithHref.length, cursor: undefined },
   };
 
   return ZQueryOutput.parse(result);

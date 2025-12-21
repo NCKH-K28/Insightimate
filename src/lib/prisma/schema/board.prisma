@@ -32,9 +32,8 @@ model BoardIssue {
 
   board  Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
   issue  Issue   @relation("IssueBoards", fields: [issueId], references: [id], onDelete: Cascade)
-  sprint Sprint? @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  sprint Sprint? @relation(fields: [boardId, sprintId], references: [boardId, id], onDelete: Cascade)
 
-  @@unique([issueId, boardId])
   @@map("board_issues")
 }
 
@@ -99,5 +98,6 @@ model Sprint {
   board       Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
   boardIssues BoardIssue[]
 
+  @@unique([boardId, id])
   @@map("sprints")
 }

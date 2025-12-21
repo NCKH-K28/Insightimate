@@ -8,11 +8,16 @@ type Params = { sprintId: string };
 export const GET = compose<Params>(async (req) => {
   const { sprintId } = req.params;
 
-  const sprint = await prisma.sprint.findUnique({ where: { id: sprintId } });
+  const sprint = await prisma.sprint.findUnique({
+    where: { id: sprintId },
+    include: { board: { include: { project: true } } },
+  });
 
   if (!sprint) throw new Response('Sprint not found', { status: 404 });
 
-  const result = ZSprintItem.parse(sprint);
+  const projectId = sprint.board.projectId;
+
+  const result = ZSprintItem.parse({ ...sprint, projectId });
 
   return NextResponse.json(result);
 });

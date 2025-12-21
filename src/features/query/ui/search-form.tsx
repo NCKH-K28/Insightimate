@@ -1,28 +1,29 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { queryApi } from '@/features/query/http';
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { Loader2, Search, FileText, Folder, Target, Bug, ExternalLink } from 'lucide-react';
-import debounce from 'lodash/debounce';
-import React from 'react';
-import get from 'lodash/get';
+import { Bug, ExternalLink, FileText, Folder, Loader2, Search, Target, X } from 'lucide-react';
 import Image from 'next/image';
+import { useParams } from 'next/navigation';
+import React, { useEffect, useRef } from 'react';
+import { useDebounceValue, useIntersectionObserver } from 'usehooks-ts';
 
 const getTypeIcon = (type: string) => {
   switch (type) {
     case 'project':
-      return <Folder className='w-4 h-4 text-blue-500' />;
+      return <Folder className='size-4 text-blue-500' />;
     case 'board':
-      return <Target className='w-4 h-4 text-green-500' />;
+      return <Target className='size-4 text-green-500' />;
     case 'sprint':
-      return <Target className='w-4 h-4 text-purple-500' />;
+      return <Target className='size-4 text-purple-500' />;
     case 'issue':
-      return <Bug className='w-4 h-4 text-red-500' />;
+      return <Bug className='size-4 text-red-500' />;
     default:
-      return <FileText className='w-4 h-4 text-gray-500' />;
+      return <FileText className='size-4 text-gray-500' />;
   }
 };
 
@@ -41,224 +42,213 @@ const getTypeBadgeColor = (type: string) => {
   }
 };
 
-// type SearchFormProps = { onSelect?: (item: any) => void };
+interface SearchResultItemProps {
+  item: any;
+  type: string;
+  href?: string;
+  workspaceId: string;
+}
+
+const SearchResultItem = ({ item, type, href, workspaceId }: SearchResultItemProps) => {
+  const label = item?.title || item?.name || item?.summary || 'Untitled';
+  const iconURL = item?.iconURL || item?.avatar || null;
+  const withWs = `/wps/${workspaceId}${href}`;
+
+  return (
+    <Card className='p-0 group hover:bg-muted/50 hover:shadow-md transition-all duration-200 border-transparent hover:border-gray-200'>
+      <CardContent className='p-2'>
+        <div className='flex items-center gap-3'>
+          <div className='shrink-0'>
+            {iconURL ? (
+              <Image
+                src={iconURL}
+                alt='icon'
+                width={24}
+                height={24}
+                className='size-6 rounded-md object-cover'
+              />
+            ) : (
+              <div className='flex size-6 items-center justify-center rounded-md bg-muted'>
+                {getTypeIcon(type)}
+              </div>
+            )}
+          </div>
+
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center justify-between gap-2'>
+              <h3 className='font-medium text-sm text-foreground truncate leading-none'>
+                {withWs ? (
+                  <a
+                    href={withWs}
+                    className='hover:text-primary transition-colors flex items-center gap-1.5'
+                    target='_blank'
+                    rel='noopener noreferrer'
+                  >
+                    <span className='truncate'>{label}</span>
+                    <ExternalLink className='size-3 opacity-0 group-hover:opacity-50 transition-opacity' />
+                  </a>
+                ) : (
+                  <span className='truncate'>{label}</span>
+                )}
+              </h3>
+              <Badge
+                variant='outline'
+                className={`${getTypeBadgeColor(type)} text-[10px] uppercase tracking-wider font-semibold px-1.5 py-0.5 shrink-0 border-0`}
+              >
+                {type}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const SearchSkeleton = () => (
+  <div className='space-y-2'>
+    {Array.from({ length: 3 }).map((_, i) => (
+      <Card key={i} className='p-0 border-transparent shadow-none bg-muted/20'>
+        <CardContent className='p-2 flex items-center gap-3'>
+          <Skeleton className='size-6 rounded-md' />
+          <div className='flex-1 space-y-1.5'>
+            <Skeleton className='h-4 w-3/4' />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+);
+
 export const SearchForm = () => {
-  const [q, setQ] = React.useState('');
-  const [inputValue, setInputValue] = React.useState('');
+  const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Workspace ID not found');
 
-  const loadingRef = React.useRef<HTMLDivElement | null>(null);
+  const [inputValue, setInputValue] = useDebounceValue('', 300);
+  const loadingRef = useRef<HTMLDivElement | null>(null);
+  const { isIntersecting, ref: observerRef } = useIntersectionObserver({
+    threshold: 0.1,
+    rootMargin: '50px',
+  });
 
-  const debouncedQ = React.useMemo(() => debounce((value: string) => setQ(value), 300), []);
+  // Sync ref
+  useEffect(() => {
+    observerRef(loadingRef.current);
+  }, [observerRef]);
 
-  React.useEffect(() => {
-    debouncedQ(inputValue);
-    return () => debouncedQ.cancel();
-  }, [inputValue, debouncedQ]);
-
-  const qTrimmed = q.trim();
+  const qTrimmed = inputValue.trim();
 
   const search = useInfiniteQuery({
     queryKey: ['search', qTrimmed],
     initialPageParam: { cursor: undefined, size: 20 } as { cursor?: string; size: number },
-    queryFn: async ({ pageParam }) => {
-      const { cursor, size } = pageParam;
-      const res = await queryApi.searchV2({ q: qTrimmed, pagination: { cursor, size } });
+    queryFn: async () => {
+      const res = await queryApi.searchV2({
+        q: qTrimmed,
+        workspaceId: params.workspaceId,
+      });
       return { results: res, total: res.meta.total };
     },
     getNextPageParam: (lastPage) => {
       const cursor = lastPage.results.meta.cursor;
       return cursor ? { cursor, size: 20 } : undefined;
     },
-    staleTime: 1 * 60 * 1000, // 1 minute
+    staleTime: 60 * 1000,
+    enabled: qTrimmed.length > 0,
   });
 
-  // Intersection Observer for infinite scroll
-  React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (
-          entry.isIntersecting &&
-          search.hasNextPage &&
-          !search.isFetchingNextPage &&
-          !search.isLoading
-        ) {
-          search.fetchNextPage();
-        }
-      },
-      { rootMargin: '50px' },
-    );
-
-    if (loadingRef.current) {
-      observer.observe(loadingRef.current);
+  useEffect(() => {
+    if (isIntersecting && search.hasNextPage && !search.isFetchingNextPage && !search.isLoading) {
+      search.fetchNextPage();
     }
-
-    return () => {
-      if (loadingRef.current) {
-        observer.unobserve(loadingRef.current);
-      }
-    };
-  }, [search.hasNextPage, search.isFetchingNextPage, search.isLoading, search.fetchNextPage]);
+  }, [isIntersecting, search.hasNextPage, search.isFetchingNextPage, search.isLoading, search]);
 
   const results = search.data?.pages.flatMap((page) => page.results.hits) || [];
   const totalResults = search.data?.pages[0]?.total || 0;
+  const isSearching = search.isLoading && qTrimmed.length > 0;
+  const showResults = results.length > 0;
+  const showEmpty = !isSearching && qTrimmed.length > 0 && results.length === 0;
 
   return (
-    <div className='size-full grid grid-rows-[auto_1fr] gap-4'>
-      {/* Search Input Section */}
-      <div className='space-y-4'>
+    <div className='flex flex-col h-full gap-4'>
+      <div className='space-y-4 shrink-0'>
         <div className='relative'>
-          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4' />
+          <Search className='absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground size-4' />
           <Input
             id='search-input'
-            placeholder='Search projects, boards, sprints, and issues...'
-            value={inputValue}
+            placeholder='Search...'
+            defaultValue={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className='pl-10 pr-4 h-10 text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent'
+            className='pl-10 pr-10 h-10 text-sm bg-background/50'
           />
-          {search.isLoading && (
-            <Loader2 className='absolute right-3 top-1/2 transform -translate-y-1/2 animate-spin w-4 h-4 text-gray-400' />
+          {inputValue && (
+            <Button
+              variant='ghost'
+              size='icon'
+              className='absolute right-1 top-1/2 transform -translate-y-1/2 size-8 hover:bg-transparent text-muted-foreground hover:text-foreground'
+              onClick={() => {
+                setInputValue('');
+                const input = document.getElementById('search-input') as HTMLInputElement;
+                if (input) input.value = '';
+              }}
+            >
+              <X className='size-4' />
+            </Button>
           )}
         </div>
-
-        {/* Facets Placeholder */}
-        <div className='text-sm text-gray-500 italic'>Facets go here</div>
       </div>
 
-      {/* Results Section */}
-      <div
-        className='max-h-96 overflow-y-auto'
-        hidden={qTrimmed.length === 0 && results.length === 0}
-      >
-        {/* Results Header */}
-        {qTrimmed.length > 0 && (
-          <div className='mb-3 pb-2 border-b border-gray-200'>
-            <p className='text-sm text-gray-600'>
-              {search.isLoading && results.length === 0 ? (
-                'Searching...'
-              ) : (
-                <>
-                  {totalResults > 0 ? (
-                    <>
-                      <span className='font-medium'>{totalResults.toLocaleString()}</span> results
-                      {qTrimmed && (
-                        <>
-                          {' '}
-                          for &ldquo;<span className='font-medium'>{qTrimmed}</span>&rdquo;
-                        </>
-                      )}
-                    </>
-                  ) : (
-                    'No results found'
-                  )}
-                </>
-              )}
+      <ScrollArea className='flex-1 -mx-4 px-4'>
+        {isSearching && results.length === 0 && <SearchSkeleton />}
+
+        {showEmpty && (
+          <div className='flex flex-col items-center justify-center py-12 text-center text-muted-foreground'>
+            <div className='bg-muted/50 p-3 rounded-full mb-3'>
+              <Search className='size-6' />
+            </div>
+            <p className='text-sm font-medium'>No results found</p>
+            <p className='text-xs text-muted-foreground/80'>
+              We couldn&apos;t find anything for &quot;{qTrimmed}&quot;
             </p>
           </div>
         )}
 
-        {/* Results List */}
-        <div className='space-y-2'>
-          {results.map(({ source: item, type }) => {
-            const value = get(item, 'id', 'unknown');
-            const label =
-              get(item, 'title') || get(item, 'name') || get(item, 'summary') || 'Untitled';
-            const iconURL = get(item, 'iconURL') || get(item, 'iconLink') || null;
-            const url = get(item, 'url') || get(item, 'link') || null;
+        {showResults && (
+          <div className='space-y-4 pb-4'>
+            <div className='flex items-center justify-between text-xs text-muted-foreground px-1'>
+              <span>
+                Found <strong>{totalResults.toLocaleString()}</strong> results
+              </span>
+            </div>
 
-            return (
-              <Card
-                key={value}
-                className='hover:shadow-md transition-shadow duration-200 px-1 py-2'
-              >
-                <CardContent className='px-2 py-1'>
-                  <div className='flex items-start gap-3'>
-                    {/* Icon */}
-                    <div className='mt-0.5 flex-shrink-0'>
-                      {iconURL ? (
-                        <Image src={iconURL} alt='icon' className='w-5 h-5 rounded object-cover' />
-                      ) : (
-                        getTypeIcon(type)
-                      )}
-                    </div>
+            <div className='space-y-2'>
+              {results.map(({ source: item, type, href }) => (
+                <SearchResultItem
+                  key={item?.id || 'unknown'}
+                  item={item}
+                  type={type}
+                  href={href}
+                  workspaceId={params.workspaceId}
+                />
+              ))}
+            </div>
 
-                    {/* Content */}
-                    <div className='flex-1 min-w-0'>
-                      {/* Title and Type */}
-                      <div className='flex items-start justify-between gap-2'>
-                        <h3 className='font-medium text-gray-900 leading-snug'>
-                          {url ? (
-                            <a
-                              href={url}
-                              className='hover:text-blue-600 transition-colors duration-150 flex items-center gap-1'
-                              target='_blank'
-                              rel='noopener noreferrer'
-                            >
-                              {label}
-                              <ExternalLink className='w-3 h-3 opacity-60' />
-                            </a>
-                          ) : (
-                            label
-                          )}
-                        </h3>
-                        <Badge
-                          variant='secondary'
-                          className={`${getTypeBadgeColor(type)} text-xs font-medium flex-shrink-0`}
-                        >
-                          {type}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* Loading and Footer */}
-        {search.hasNextPage && (
-          <div ref={loadingRef} className='flex justify-center items-center p-4'>
-            {search.isFetchingNextPage ? (
-              <div className='flex items-center gap-2 text-sm text-gray-500'>
-                <Loader2 className='animate-spin w-4 h-4' />
-                Loading more results...
+            {search.hasNextPage && (
+              <div ref={loadingRef} className='flex justify-center py-4'>
+                {search.isFetchingNextPage && (
+                  <Loader2 className='animate-spin size-4 text-muted-foreground' />
+                )}
               </div>
-            ) : null}
+            )}
           </div>
         )}
-      </div>
+
+        {!qTrimmed && (
+          <div className='flex flex-col items-center justify-center py-12 text-center text-muted-foreground opacity-50'>
+            <Search className='size-12 mb-2 stroke-1' />
+            <p className='text-sm'>Type to start searching</p>
+          </div>
+        )}
+      </ScrollArea>
     </div>
   );
 };
-
-// {
-//   /* Breadcrumbs */
-// }
-// {
-//   item.breadcrumbs && item.breadcrumbs.length > 0 && (
-//     <nav className='mb-2'>
-//       <ol className='flex items-center space-x-1 text-xs text-gray-500'>
-//         {item?.breadcrumbs.map((crumb, index) => (
-//           <li key={crumb.id} className='flex items-center'>
-//             {index > 0 && <span className='mx-1'>/</span>}
-//             {crumb.href ? (
-//               <a href={crumb.href} className='hover:text-gray-700 transition-colors duration-150'>
-//                 {crumb.label}
-//               </a>
-//             ) : (
-//               <span>{crumb.label}</span>
-//             )}
-//           </li>
-//         ))}
-//       </ol>
-//     </nav>
-//   );
-// }
-
-// {
-//   /* Snippet */
-// }
-// {
-//   item.snippet && <p className='text-xs text-gray-700'>{item.snippet}</p>;
-// }

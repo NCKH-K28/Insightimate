@@ -27,6 +27,7 @@ import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { IssueDateSelectors } from '../selectors/issue-date-selectors';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
 import { IssueType, IssueTypeSelectors } from '../selectors/issue-type-selectors';
+import { IssueStatus } from '@/contracts/issues/issue';
 
 const ZFormData = ZBoardIssueCreateInput;
 type FormData = z.infer<typeof ZFormData>;
@@ -40,6 +41,9 @@ export type CreateIssueFormProps = {
   typeRequired?: boolean;
   typeFilterFn?: (type: IssueType, types: IssueType[]) => boolean;
   typeFetched?: (types: IssueType[], setValue: (value: string | null) => void) => void;
+
+  statusRequired?: boolean;
+  statusFilterFn?: (status: IssueStatus, statuses: IssueStatus[]) => boolean;
 };
 
 export const CreateIssueForm = ({

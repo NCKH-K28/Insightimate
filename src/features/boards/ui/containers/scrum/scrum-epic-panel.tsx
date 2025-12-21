@@ -132,7 +132,9 @@ const EpicCard = ({
         {/* Summary */}
         <p className='text-sm font-medium leading-snug line-clamp-2'>{epic.summary}</p>
 
-        <Progress value={50} />
+        {epic._children && epic._children.total > 0 && (
+          <Progress value={Math.round((epic._children.done / epic._children.total) * 100)} />
+        )}
       </div>
     </div>
   );

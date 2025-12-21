@@ -7,7 +7,6 @@ import {
   ZBoardItem,
 } from '@/contracts/boards/boards.query';
 import { prisma } from '@/lib/prisma';
-import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
 import { format } from 'date-fns';
 import { updateIssueRank } from './cqrs/board-issue-rank';
@@ -232,7 +231,23 @@ const listIssues = async (
     orderBy: { rank: 'asc' },
   });
 
-  const data = issues.map(({ issue, ...rest }) => ({ ...issue, ...rest }));
+  // count children done
+  const childrenDones = await Promise.all(
+    issues.map(async (issue) => {
+      const subWhere = { boardId: b.id, issue: { parentId: issue.issueId } };
+      const total = await prisma.boardIssue.count({ where: subWhere });
+      const done = await prisma.boardIssue.count({
+        where: { boardId: b.id, issue: { parentId: issue.issueId, resolvedAt: { not: null } } },
+      });
+      return { id: issue.issueId, total, done };
+    }),
+  );
+
+  const childrenDoneMap = new Map(childrenDones.map((d) => [d.id, d]));
+  const data = issues.map(({ issue, ...rest }) => {
+    const childrenDone = childrenDoneMap.get(issue.id);
+    return { ...issue, ...rest, _children: childrenDone };
+  });
 
   return ZBoardIssueList.parse({ data });
 };
@@ -312,7 +327,7 @@ const deleteIssue = async (
 
   await prisma.$transaction(async (tx) => {
     await tx.boardIssue.delete({
-      where: { issueId_boardId: { issueId: params.issueId, boardId: params.boardId } },
+      where: { issueId: params.issueId },
     });
   });
 };

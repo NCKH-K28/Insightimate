@@ -21,6 +21,20 @@ const StatusCard: React.FC<{ statusData: any[]; totalIssues: number }> = ({
   statusData,
   totalIssues,
 }) => {
+  const validData = React.useMemo(() => {
+    if (!Array.isArray(statusData)) return [];
+    return statusData.map((s) => {
+      const labelStr = String(s.label || 'Unknown');
+      const safeColor = s.fill || `var(--status-${labelStr.toLowerCase().replace(/\s+/g, '-')})`;
+      return {
+        ...s,
+        label: labelStr,
+        value: Number(s.value) || 0,
+        fill: safeColor,
+      };
+    });
+  }, [statusData]);
+
   return (
     <Card className='flex flex-col'>
       <CardHeader className='items-center pb-0'>
@@ -35,7 +49,7 @@ const StatusCard: React.FC<{ statusData: any[]; totalIssues: number }> = ({
           <PieChart>
             <ChartTooltip content={<ChartTooltipContent hideLabel />} />
             <Pie
-              data={statusData}
+              data={validData}
               dataKey='value'
               nameKey='label'
               innerRadius={40}
@@ -46,15 +60,13 @@ const StatusCard: React.FC<{ statusData: any[]; totalIssues: number }> = ({
         </ChartContainer>
 
         <div className='mt-3 grid grid-cols-2 gap-2 text-sm'>
-          {statusData?.map((s: any) => {
+          {validData.map((s) => {
             const pieTotal = totalIssues || 1;
-            const color =
-              s.fill ?? `var(--status-${String(s.label).toLowerCase().replace(/\s+/g, '-')})`;
             return (
-              <div key={s.status} className='flex items-center gap-2'>
+              <div key={s.status || s.label} className='flex items-center gap-2'>
                 <span
                   className='inline-block w-3 h-3 rounded-sm'
-                  style={{ backgroundColor: color }}
+                  style={{ backgroundColor: s.fill }}
                 />
                 <span className='truncate'>{s.label}</span>
                 <span className='ml-auto text-muted-foreground'>

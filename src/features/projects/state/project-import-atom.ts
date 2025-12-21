@@ -22,7 +22,7 @@ const ZContext = z.object({
   isLoading: z.boolean().optional(),
 });
 
-const ZProjectImportState = z.object({
+export const ZProjectImportState = z.object({
   estimationTabs: z.array(ZEstimationTab),
   project: ZProjectImport,
   contexts: z.array(ZContext),

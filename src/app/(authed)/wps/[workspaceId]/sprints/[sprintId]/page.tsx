@@ -33,6 +33,7 @@ import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/api/_client';
 import { BoardIssueList, SprintItem } from '@/contracts/boards/boards.query';
 import ListTab from './tabs/list-tab';
+import KanbanTabV3 from './tabs/kanban-tab';
 
 function CreateIssueDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -227,7 +228,7 @@ export default function SprintPage() {
   const pathname = usePathname();
 
   const { data: sprint } = useSuspenseQuery({
-    queryKey: ['sprint', params.sprintId],
+    queryKey: ['sprints', params.sprintId],
     queryFn: async () => {
       const res = await axiosInstance.get(`/v2/sprints/${params.sprintId}`);
       const data = res.data;
@@ -294,8 +295,17 @@ export default function SprintPage() {
             <SprintSummaryTab {...behindScheduleSprintProps} sprint={sprint} />
           </TabsContent>
 
-          <TabsContent value='board' className='flex-1 flex flex-col'>
-            <BoardTab sprint={sprint} issues={issues ?? []} />
+          <TabsContent value='board' className='flex-1 flex flex-col overflow-hidden'>
+            <div className='flex-1 overflow-auto'>
+              <KanbanTabV3
+                params={{
+                  workspaceId: params.workspaceId,
+                  boardId: sprint.boardId,
+                  projectId: sprint.projectId,
+                }}
+                issues={issues ?? []}
+              />
+            </div>
           </TabsContent>
 
           <TabsContent value='reports' className='flex-1 '>

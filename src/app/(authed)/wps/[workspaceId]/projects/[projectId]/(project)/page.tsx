@@ -8,8 +8,7 @@ import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigat
 import { useQuery } from '@tanstack/react-query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
-import { BacklogTab, ListTab, GranttTab, CalendarTab, SummaryTab } from './_tabs';
-import KanbanPage from './_tabs/kanban-tab-v2';
+import { BacklogTab, ListTab, GranttTab, CalendarTab, SummaryTab, KanbanTabV3 } from './_tabs';
 
 type WrapperParams = { boardId: string; projectId: string; workspaceId: string };
 type WrapperProps = { Component: React.ComponentType<{ params: WrapperParams }> };
@@ -45,7 +44,7 @@ const tabs = {
   },
   board: {
     labelEl: 'Kanban',
-    contentEl: <Wrapper Component={KanbanPage} />,
+    contentEl: <Wrapper Component={KanbanTabV3} />,
   },
   list: {
     labelEl: 'List',

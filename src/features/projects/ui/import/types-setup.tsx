@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { ChevronDown, ChevronRight, GripVertical, Layers, Plus, Trash2 } from 'lucide-react';
-import { useFieldArray, useFormContext, useWatch } from 'react-hook-form';
+import { useFieldArray, useFormContext } from 'react-hook-form';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';

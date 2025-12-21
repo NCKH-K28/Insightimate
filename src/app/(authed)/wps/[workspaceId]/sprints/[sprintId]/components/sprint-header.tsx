@@ -22,10 +22,10 @@ import { Sprint } from '../mock-data';
 type SprintHeaderProps = { params: { workspaceId: string; sprintId: string } };
 function SprintHeader({ ...props }: SprintHeaderProps) {
   const { data: sprint } = useSuspenseQuery({
-    queryKey: ['sprint', props.params.sprintId],
+    queryKey: ['sprints', props.params.sprintId],
     queryFn: async () => {
       const res = await axiosInstance.get(`/v2/sprints/${props.params.sprintId}`);
-      const data = res.data.data;
+      const data = res.data;
       return data as Sprint;
     },
   });

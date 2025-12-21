@@ -32,7 +32,6 @@ export async function runConsumer() {
   await consumer.run({
     autoCommit: false,
     eachMessage: async ({ topic, partition, message }) => {
-      const key = toStr(message.key);
       const value = toStr(message.value);
       const offset = Number(message.offset);
 

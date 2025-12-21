@@ -26,6 +26,7 @@ import { useParams } from 'next/navigation';
 import axiosInstance from '@/lib/api/_client';
 import { useRouter } from 'next/navigation';
 import { useDebounce, useEffectOnce } from 'react-use';
+import { createId } from '@paralleldrive/cuid2';
 
 const ZGenerateOutput = ZJsonPatchOp.array();
 
@@ -80,7 +81,11 @@ export default function Page() {
         const cloned = structuredClone(snapshot);
         const { newDocument } = applyPatch(cloned, patchs);
         const validDoc = ZProjectDraft.parse(newDocument);
-        form.reset(validDoc as ProjectImport);
+        const normalized = {
+          ...validDoc,
+          issues: (validDoc.issues ?? []).map((is) => ({ ...is, id: is.id ?? createId() })),
+        };
+        form.reset(normalized as ProjectImport);
       } catch (e) {
         console.error('Error applying AI-generated updates:', e);
       }
@@ -103,16 +108,12 @@ export default function Page() {
   useEffect(() => {
     const callback = form.subscribe({
       name: 'key',
-      formState: { values: true, isValid: true },
-      callback: ({ values, isValid }) => {
-        const keyIsValid = values.key && isValid;
+      formState: { values: true, dirtyFields: true },
+      callback: ({ values }) => {
+        const keyIsValid = values.key;
         if (!keyIsValid) return;
         const issues = values.issues;
-        const next = issues.map((is, idx) => ({
-          ...is,
-          id: `${values.key}-${idx + 1}`,
-          key: `${values.key}-${idx + 1}`,
-        }));
+        const next = issues.map((is, idx) => ({ ...is, key: `${values.key}-${idx + 1}` }));
         form.setValue('issues', next);
       },
     });
@@ -121,8 +122,10 @@ export default function Page() {
   }, [form]);
 
   const handleSubmit = form.handleSubmit(async (data) => {
+    const issues = data.issues.map((is) => ({ ...is, id: is.id ? is.id : createId() }));
+    const input = { ...data, issues };
     const path = `/v2/workspaces/${params.workspaceId}/projects/import`;
-    const res = await axiosInstance.post(path, data);
+    const res = await axiosInstance.post(path, input);
     router.push(`/wps/${params.workspaceId}/projects/${res.data.id}`);
   });
 

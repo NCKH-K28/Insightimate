@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { ContextOption, InstructionInput } from '../instruction-input';
+import { InstructionInput } from '../instruction-input';
 import { useAtom } from 'jotai';
 import { instructionAtom } from '../../state/project-import-atom';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';

@@ -32,11 +32,7 @@ function DraggableIssueCard({ issue, isDragging = false }: DraggableIssueCardPro
     isDragging: isSortableDragging,
   } = useSortable({ id: issue.id });
 
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
+  const style = { transform: CSS.Transform.toString(transform), transition };
   return (
     <div ref={setNodeRef} style={style}>
       <IssueCard

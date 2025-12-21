@@ -75,7 +75,7 @@ export const IssueTypeSelectors = ({
   // Notify parent when types are fetched
   useEffect(() => {
     if (onFetched) onFetched(types, setValue);
-  }, [types, onFetched]);
+  }, [types, onFetched, setValue]);
 
   const handleSelect = (type: IssueType) => {
     const newValue = type.id === selectedType?.id && !required ? null : type.id;

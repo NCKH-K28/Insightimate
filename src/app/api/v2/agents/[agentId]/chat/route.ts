@@ -26,7 +26,6 @@ export const POST = middlewareHandler([authenticated], async (req) => {
   console.log('Insight Chat Request Body:', JSON.stringify(contexts, null, 2));
 
   const issuesGeneratorTool = tool({
-    name: 'issues_generator',
     description: 'Generates issues based on the project description and requirements.',
     inputSchema: z.object({
       text: z.string().describe('A description of the feature to create issues for'),
@@ -45,11 +44,10 @@ export const POST = middlewareHandler([authenticated], async (req) => {
 You are an AI assistant specialized in project management tasks. Use the provided tools to assist with project planning, issue generation, and information retrieval.
 Respond concisely and accurately based on the tool outputs.
 `.trim(),
-        messages: convertToModelMessages(messages.slice(-8)),
+        messages: await convertToModelMessages(messages.slice(-8)),
         tools: {
           ...searchTools,
           current_context: tool({
-            name: 'current_context',
             description: 'Get the current contexts provided to the agent.',
             inputSchema: z.object({}),
             outputSchema: z.any(),
@@ -58,7 +56,6 @@ Respond concisely and accurately based on the tool outputs.
             },
           }),
           current_time: tool({
-            name: 'current_time',
             description: 'Get the current date and time in ISO 8601 format.',
             inputSchema: z.object({}),
             outputSchema: z.object({

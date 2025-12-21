@@ -42,6 +42,8 @@ export const ZBoardIssueItem = ZBoardIssue.extend(ZIssueItem.shape).extend({
   assignee: ZUserPublic.nullable(),
   parent: ZIssueItem.shape.parent.nullish(),
   reporter: ZUserPublic.nullable(),
+
+  _children: z.object({ total: z.number(), done: z.number() }).nullish(),
 });
 
 /** Lists */
@@ -52,7 +54,12 @@ export const ZBoardIssueList = z.object({
 
 /** Column / Sprint re-exports */
 /** Small schemas */
-const ZStatusCol = z.object({ id: z.string(), name: z.string(), color: z.string().nullish() });
+const ZStatusCol = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string().nullish(),
+  category: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
+});
 
 export const ZBoardColumnItem = ZBoardColumn.extend({
   statuses: ZStatusCol.array(),
@@ -62,7 +69,7 @@ export const ZBoardColumnList = z.object({
   meta: z.unknown(),
 });
 
-export const ZSprintItem = ZSprint;
+export const ZSprintItem = ZSprint.extend({ projectId: z.string() });
 
 /** Types */
 export type BoardIssueQueryParams = z.infer<typeof ZBoardIssueQueryParams>;

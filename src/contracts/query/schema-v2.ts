@@ -6,6 +6,7 @@ const ZQueryFilter = z.object({
 
 export const ZQueryParams = z.object({
   q: z.string().max(1000).optional().describe('The search query string.'),
+  workspaceId: z.string().optional().describe('The workspace ID to search within.'),
   filter: ZQueryFilter.optional().describe('Optional filters to refine the search results.'),
   // pagination: z
   //   .object({
@@ -22,6 +23,7 @@ export const ZQueryHit = z.object({
   type: z.string().describe('The type/category of the hit.'),
   score: z.number().describe('The relevance score of the hit.'),
   source: z.any().describe('The original document source of the hit.'),
+  href: z.string().optional().describe('The URL of the hit.'),
 });
 
 export const ZQueryOutput = z.object({

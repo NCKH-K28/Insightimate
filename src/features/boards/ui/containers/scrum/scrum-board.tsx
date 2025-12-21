@@ -694,12 +694,7 @@ export const ScrumBoard = ({ className, ...props }: ScrumBoardProps) => {
       if (!row) return null;
 
       return (
-        <div
-          className={cn(
-            'shadow-xl bg-gray-100 rounded-lg p-3 cursor-grabbing opacity-95',
-            className,
-          )}
-        >
+        <div className={cn('shadow-xl bg-gray-100 rounded-lg p-3 cursor-grabbing opacity-95')}>
           <div className='font-semibold text-lg mb-2'>{row.label}</div>
           <div className='flex flex-col gap-2 max-h-40 overflow-hidden'>
             {row.items.slice(0, 3).map((item) => (
@@ -751,7 +746,7 @@ export const ScrumBoard = ({ className, ...props }: ScrumBoardProps) => {
     >
       <SortableContext items={rowIds} strategy={rectSortingStrategy}>
         <div
-          className='flex flex-col space-y-4 overflow-y-auto'
+          className={cn('flex flex-col space-y-4 overflow-y-auto h-full', className)}
           role='application'
           aria-label='Scrum board with draggable rows and items'
         >

@@ -5,7 +5,7 @@ import { Sidebar, SidebarContent, SidebarHeader, SidebarMenuButton } from '@/com
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { usePathname } from 'next/navigation';
 import { Separator } from '@/components/ui/separator';
-import { InsightChatForm } from '@/features/agents/ui/forms/insight-chat-form';
+import ChatBot from '@/features/agents/ui/insight-chat-v2';
 
 const searchParamKey = 'rightbar';
 
@@ -49,7 +49,7 @@ function AppRightbar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     >
       <SidebarHeader className='w-full flex flex-row items-center justify-between gap-2'>
         <span className='text-lg font-medium'>
-          {rightbar === 'issue' ? 'Issue Details' : 'Agent Details'}
+          {rightbar === 'issue' ? 'Issue Details' : 'Insight Chat'}
         </span>
 
         <SidebarMenuButton onClick={handleClose} className='w-auto'>
@@ -58,7 +58,7 @@ function AppRightbar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <Separator />
       <SidebarContent>
-        <InsightChatForm />
+        <ChatBot />
       </SidebarContent>
     </Sidebar>
   );

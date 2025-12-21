@@ -32,8 +32,8 @@ export function IssueStarButton({
   const [starCount, setStarCount] = useState(initialStarCount);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showStarredUsers, setShowStarredUsers] = useState(false);
-  const [starredUsers, setStarredUsers] = useState<any[]>([]);
+  // const [showStarredUsers, setShowStarredUsers] = useState(false);
+  // const [starredUsers, setStarredUsers] = useState<any[]>([]);
 
   // ⭐ Fetch userId bên trong client component
   useEffect(() => {
@@ -84,6 +84,7 @@ export function IssueStarButton({
     }
   };
 
+  /*
   const fetchStarredUsers = async () => {
     try {
       const res = await fetch(`/api/v2/star/${issueId}/users`, {
@@ -98,6 +99,7 @@ export function IssueStarButton({
       console.error('Error fetching starred users:', err);
     }
   };
+  */
 
   const iconSizeMap = { sm: 16, md: 18, lg: 20 };
   const iconSize = iconSizeMap[size];
@@ -139,28 +141,8 @@ export function IssueStarButton({
             {starButton}
 
             {/* Dropdown danh sách người đã star */}
-            {showStarredUsers && starredUsers.length > 0 && (
-              <div className='absolute top-full left-0 mt-2 bg-white border border-gray-200 rounded-lg shadow-lg z-50 min-w-60'>
-                <div className='p-3 border-b border-gray-100'>
-                  <p className='text-xs font-semibold text-gray-700'>
-                    Starred by {starCount} user{starCount !== 1 ? 's' : ''}
-                  </p>
-                </div>
-                <div className='max-h-[200px] overflow-y-auto'>
-                  {starredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className='px-3 py-2 hover:bg-gray-50 flex items-center gap-2 cursor-pointer transition-colors'
-                    >
-                      {user.avatar && (
-                        <img src={user.avatar} alt={user.name} className='w-6 h-6 rounded-full' />
-                      )}
-                      <span className='text-sm text-gray-700'>{user.name}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Dropdown danh sách người đã star - Disabled/Removed
+             */}
 
             {error && (
               <div className='absolute top-full left-0 mt-2 bg-red-50 border border-red-200 rounded-lg p-2 text-xs text-red-600 whitespace-nowrap'>

@@ -78,42 +78,46 @@ export const GET = middlewareHandler([authenticated], async (req) => {
     return h;
   }
 
-  const items = rowsToUse.map((r) => {
-    if (r.sourceType === 'ISSUE') {
-      const i = issuesMap.get(r.sourceId as string) as any;
+  const items = rowsToUse
+    .map((r) => {
+      if (r.sourceType === 'ISSUE') {
+        const i = issuesMap.get(r.sourceId as string) as any;
+        if (!i) return null;
+        return {
+          id: r.sourceId,
+          type: 'ISSUE',
+          title: i?.summary ?? 'Untitled',
+          projectId: i?.projectId ?? null,
+          meta: i?.key
+            ? `${i.key}${i.project ? ` · ${i.project.name}` : ''}`.trim()
+            : (i?.project?.name ?? ''),
+          status: i?.status
+            ? { id: i.status.id, name: i.status.name, category: i.status.category }
+            : null,
+          iconName: i?.type?.iconURL,
+          occurredAt: r.createdAt?.toISOString?.(),
+        };
+      }
+
+      // PROJECT
+      const p = projectsMap.get(r.sourceId as string) as any;
+      const counts = projectCounts.get(r.sourceId as string) ?? { total: 0, done: 0 };
+      if (!p) return null;
+
       return {
+        type: 'PROJECT',
         id: r.sourceId,
-        type: 'ISSUE',
-        title: i?.summary ?? 'Untitled',
-        projectId: i?.projectId ?? null,
-        meta: i?.key
-          ? `${i.key}${i.project ? ` · ${i.project.name}` : ''}`.trim()
-          : (i?.project?.name ?? ''),
-        status: i?.status
-          ? { id: i.status.id, name: i.status.name, category: i.status.category }
-          : null,
-        iconName: i?.type?.iconURL,
+        title: p?.name ?? 'Project',
+        projectType: p?.type ?? null,
+        totalIssues: counts.total,
+        doneIssues: counts.done,
+        meta: p?.description ?? null,
         occurredAt: r.createdAt?.toISOString?.(),
+        avatar: p?.avatar ?? null,
+        color: projectColors[Math.abs(hashCode(String(r.sourceId))) % projectColors.length],
       };
-    }
-
-    // PROJECT
-    const p = projectsMap.get(r.sourceId as string) as any;
-    const counts = projectCounts.get(r.sourceId as string) ?? { total: 0, done: 0 };
-
-    return {
-      type: 'PROJECT',
-      id: r.sourceId,
-      title: p?.name ?? 'Project',
-      projectType: p?.type ?? null,
-      totalIssues: counts.total,
-      doneIssues: counts.done,
-      meta: p?.description ?? null,
-      occurredAt: r.createdAt?.toISOString?.(),
-      avatar: p?.avatar ?? null,
-      color: projectColors[Math.abs(hashCode(String(r.sourceId))) % projectColors.length],
-    };
-  });
+    })
+    .filter(Boolean);
 
   return NextResponse.json({ items }, { status: 200 });
 });

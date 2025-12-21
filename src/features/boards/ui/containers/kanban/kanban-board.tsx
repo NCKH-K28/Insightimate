@@ -20,6 +20,7 @@ import { AddColumnButton } from './add-column-button';
 import { EditCardDialog } from './edit-card-dialog';
 import type { Card, Column, KanbanBoardProps, MoveRelative } from './types';
 import { cn } from '@/lib/utils';
+// import { useMutation } from '@tanstack/react-query';
 
 // Generate unique IDs for new items
 function generateId(): string {

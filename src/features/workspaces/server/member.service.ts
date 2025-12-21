@@ -52,6 +52,8 @@ const listMembers = async (params: MemberQueryParams, context: MemberServiceCont
 
   // === With permissions
   if (!params.include?.permissions) return { data: ZWsMemberList.parse(sortedMembers) };
+  if (sortedMembers.length === 0) return { data: ZWsMemberList.parse(sortedMembers) };
+
   const resources = sortedMembers.map(workspaceMemberResourceFactory);
   const principal = await loadPrincipal(context, {}, resources);
   const actions = Array.from(WORKSPACE_MEMBER_ACTIONS);

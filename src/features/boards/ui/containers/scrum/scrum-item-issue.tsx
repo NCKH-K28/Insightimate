@@ -87,7 +87,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
   return (
     <div
       className={cn(
-        'group relative flex items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
+        'group relative flex min-w-max items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
         'hover:border-border hover:bg-accent/50 hover:shadow-sm',
         updateIssue.isPending && 'opacity-60 pointer-events-none',
       )}
@@ -124,7 +124,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
       </Link>
 
       {/* Issue Summary - Flexible width */}
-      <div className='min-w-0 flex-1'>
+      <div className='min-w-50 flex-1'>
         <EditableText
           defaultValue={issue.summary}
           className='w-full text-sm'

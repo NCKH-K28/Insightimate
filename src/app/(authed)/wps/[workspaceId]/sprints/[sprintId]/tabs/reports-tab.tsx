@@ -20,11 +20,8 @@ import {
   TrendingDown,
   TrendingUp,
   Activity,
-  Bug,
   Download,
   Info,
-  CheckCircle,
-  XCircle,
   FileText,
   Target,
   Layers,
@@ -32,7 +29,6 @@ import {
   Zap,
   Lightbulb,
   ExternalLink,
-  MinusCircle,
 } from 'lucide-react';
 import {
   LineChart,
@@ -276,69 +272,6 @@ const BurndownStatusBadge: React.FC<{ status?: 'onTrack' | 'behind' | 'ahead' }>
   return (
     <Badge className={`flex items-center gap-1 ${className}`}>
       {icon}
-      {label}
-    </Badge>
-  );
-};
-
-const GoalOutcomeBadge: React.FC<{ outcome: SprintGoalOutcome }> = ({ outcome }) => {
-  const config: Record<
-    SprintGoalOutcome,
-    { label: string; className: string; icon: React.ReactNode }
-  > = {
-    achieved: {
-      label: 'Goal Achieved',
-      className: 'bg-green-100 text-green-700',
-      icon: <CheckCircle className='h-4 w-4' />,
-    },
-    partiallyAchieved: {
-      label: 'Partially Achieved',
-      className: 'bg-yellow-100 text-yellow-700',
-      icon: <MinusCircle className='h-4 w-4' />,
-    },
-    notAchieved: {
-      label: 'Not Achieved',
-      className: 'bg-red-100 text-red-700',
-      icon: <XCircle className='h-4 w-4' />,
-    },
-  };
-  const { label, className, icon } = config[outcome];
-  return (
-    <Badge className={`flex items-center gap-1.5 px-3 py-1.5 text-sm ${className}`}>
-      {icon}
-      {label}
-    </Badge>
-  );
-};
-
-const SeverityBadge: React.FC<{ severity: BugSeverity }> = ({ severity }) => {
-  const config: Record<BugSeverity, { label: string; className: string }> = {
-    low: { label: 'Low', className: 'bg-gray-100 text-gray-600' },
-    medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700' },
-    high: { label: 'High', className: 'bg-orange-100 text-orange-700' },
-    critical: { label: 'Critical', className: 'bg-red-100 text-red-700' },
-  };
-  const { label, className } = config[severity];
-  return (
-    <Badge variant='outline' className={`text-xs ${className}`}>
-      {label}
-    </Badge>
-  );
-};
-
-const ReasonBadge: React.FC<{
-  reason?: 'underestimated' | 'blocked' | 'deprioritized' | 'other';
-}> = ({ reason }) => {
-  if (!reason) return null;
-  const config: Record<string, { label: string; className: string }> = {
-    underestimated: { label: 'Underestimated', className: 'bg-purple-100 text-purple-700' },
-    blocked: { label: 'Blocked', className: 'bg-red-100 text-red-700' },
-    deprioritized: { label: 'Deprioritized', className: 'bg-gray-100 text-gray-600' },
-    other: { label: 'Other', className: 'bg-gray-100 text-gray-600' },
-  };
-  const { label, className } = config[reason];
-  return (
-    <Badge variant='outline' className={`text-xs ${className}`}>
       {label}
     </Badge>
   );
@@ -707,7 +640,7 @@ const SprintReportsTab: React.FC<SprintReportsTabProps> = ({
                   <ul className='space-y-2'>
                     {burndown.keyTakeaways.map((takeaway, idx) => (
                       <li key={idx} className='flex items-start gap-2 text-sm'>
-                        <Info className='h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0' />
+                        <Info className='h-4 w-4 text-blue-500 mt-0.5 shrink-0' />
                         <span>{takeaway}</span>
                       </li>
                     ))}

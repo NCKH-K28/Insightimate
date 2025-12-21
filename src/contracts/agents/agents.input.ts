@@ -82,3 +82,12 @@ export type AnalysisUpdateInput = z.infer<typeof ZAnalysisUpdateInput>;
 // });
 
 // export type SourceListInput = z.infer<typeof ZSourceListInput>;
+export const ZSource = z.object({ value: z.string(), label: z.string(), type: z.string() });
+export const ZChatInput = z.object({
+  workspaceId: z.string(),
+  model: z.string().optional(),
+  pathname: z.string().optional(),
+  sources: z.array(ZSource).optional(),
+});
+
+export type ChatInput = z.infer<typeof ZChatInput>;

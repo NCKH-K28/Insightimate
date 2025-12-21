@@ -23,7 +23,7 @@ int();
 
 // ================== Types ================== //
 type ObjectBody = Buffer | Uint8Array | Blob | string;
-type FilePart = { type: 'file'; mediaType: string; data: string };
+// type FilePart = { type: 'file'; mediaType: string; data: string };
 
 const getBucketName = () => BUCKET_NAME;
 const genObjectKey = (prefix = 'obj', suffix: string = '') => `${prefix}-${cuid()}${suffix}`;
@@ -133,69 +133,3 @@ const aiStorage = {
 };
 
 export default aiStorage;
-
-// // Download object (GetObject)
-// export const downloadObject = async (key: string) => {
-//   const bucket = getBucketName();
-//   const cmd = new GetObjectCommand({ Bucket: bucket, Key: key });
-//   return s3Client.send(cmd);
-// };
-// // ================== Helpers ================== //
-// const getAiStorageBucket = () => BUCKET_NAME;
-
-// const saveObject = (key: string, body: Buffer | Uint8Array | Blob | string) => {
-//   const bucket = getAiStorageBucket();
-//   const cmd = new PutObjectCommand({ Bucket: bucket, Key: key, Body: body });
-//   return s3Client.send(cmd);
-// };
-
-// const loadObject = (key: string) => {
-//   const bucket = getAiStorageBucket();
-//   const cmd = new GetObjectCommand({ Bucket: bucket, Key: key });
-//   return s3Client.send(cmd);
-// };
-
-// const deleteObject = (key: string) => {
-//   const bucket = getAiStorageBucket();
-//   const cmd = new DeleteObjectCommand({ Bucket: bucket, Key: key });
-//   return s3Client.send(cmd);
-// };
-
-// const genObjectParams = (prefix = "obj") => {
-//   return { Key: `${prefix}-${cuid()}`, Bucket: getAiStorageBucket() };
-// };
-
-// const getObjectURL = (key: string) => {
-//   const bucket = getAiStorageBucket();
-//   const encodedKey = encodeURIComponent(key);
-//   return `${s3Client.config.endpoint}/${bucket}/${encodedKey}`;
-// };
-
-// const getMetadata = (key: string) => {
-//   const bucket = getAiStorageBucket();
-//   const cmd = new HeadObjectCommand({ Bucket: bucket, Key: key });
-//   return s3Client.send(cmd);
-// };
-
-// const getFilePart = async (
-//   key: string
-// ): Promise<{ type: "file"; mediaType: string; data: string }> => {
-//   const url = await getObjectURL(key);
-//   const meta = await getMetadata(key);
-//   return {
-//     type: "file" as const,
-//     mediaType: meta.ContentType || "application/octet-stream",
-//     data: url,
-//   };
-// };
-
-// export const aiStorage = {
-//   getBucketName: getAiStorageBucket,
-//   saveObject,
-//   loadObject,
-//   deleteObject,
-//   genObjectParams,
-//   getObjectURL,
-//   getMetadata,
-//   getFilePart,
-// };

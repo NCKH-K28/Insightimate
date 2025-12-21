@@ -7,10 +7,10 @@ import { ProjectContext } from '../types';
 import { prisma } from '@/lib/prisma';
 import { remapProjectImportIds } from '../../utils';
 import { assertProjectKeyAvailable } from '../projects.service';
-import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
+import { buildProjectTuples } from '@/features/authz/api/tuple-factory';
 import { openfgaClient } from '@/lib/authz/openfga';
 import { createDefaultBoard } from '@/features/boards/server/cqrs';
-import { genIssueResolutionId, genProjectActorId } from '../../configs/id-generators';
+import { genIssueResolutionId } from '../../configs/id-generators';
 import omit from 'lodash/omit';
 
 export const importProject = async (
@@ -40,13 +40,13 @@ export const importProject = async (
     // --- basic conflicts
     await assertProjectKeyAvailable(tx, workspaceId, data.key);
 
-    const actorRows = data.actors.map((a) => ({
-      id: genProjectActorId(),
-      projectId: data.id,
-      actorId: a.actorId,
-      actorType: a.actorType,
-      roleId: a.roleId,
-    }));
+    // const actorRows = data.actors.map((a) => ({
+    //   id: genProjectActorId(),
+    //   projectId: data.id,
+    //   actorId: a.actorId,
+    //   actorType: a.actorType,
+    //   roleId: a.roleId,
+    // }));
 
     // default resousoltion
     const resolutions = [
@@ -60,12 +60,13 @@ export const importProject = async (
     const _types = data.types.map((t) => omit(t, 'projectId'));
     const _priorities = data.priorities.map((p) => omit(p, 'projectId'));
     const _statuses = data.statuses.map((s) => omit(s, 'projectId'));
-    const _actors = actorRows.map((a) => omit(a, 'projectId'));
+    // const _actors = actorRows.map((a) => omit(a, 'projectId'));
     const _issues = data.issues.map((i) => ({
       ...omit(i, 'projectId', 'resolutionId', 'parentId'),
       assigneeId: null,
       dueDate: i.dueDate ? new Date(i.dueDate) : null,
       startDate: i.startDate ? new Date(i.startDate) : null,
+      resolvedAt: i.resolvedAt ? new Date(i.resolvedAt) : null,
       reporterId: data.leadId,
       resolutionId: resolutions[0].id,
     }));
@@ -87,7 +88,7 @@ export const importProject = async (
         types: { createMany: { data: _types } },
         priorities: { createMany: { data: _priorities } },
         statuses: { createMany: { data: _statuses } },
-        actors: { createMany: { data: _actors } },
+        // actors: { createMany: { data: _actors } },
         resolutions: { createMany: { data: _resolutions } },
         issues: { createMany: { data: _issues } },
         issueCounter: _issues.length,
@@ -111,10 +112,10 @@ export const importProject = async (
 
     await openfgaClient.writeTuples(projectTuples);
 
-    if (actorRows.length) {
-      const actorTuples = actorRows.flatMap((a) => buildProjectActorTuples(a as any));
-      await openfgaClient.writeTuples(actorTuples);
-    }
+    // if (actorRows.length) {
+    //   const actorTuples = actorRows.flatMap((a) => buildProjectActorTuples(a as any));
+    //   await openfgaClient.writeTuples(actorTuples);
+    // }
 
     return data.id;
   });

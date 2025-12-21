@@ -1,70 +1,78 @@
-import { generateObject, tool } from "ai";
-import { google } from "@ai-sdk/google";
-import { NextRequest, NextResponse } from "next/server";
-import z from "zod";
+// import { NextResponse } from 'next/server';
+// import { ZGenTasksInput, DEFAULT_TYPES } from '@/lib/pm/schemas';
+// import { getPMGraph } from '@/lib/pm/graph';
+// import { getCache, setCache } from '@/lib/pm/cache';
+// import { isGemini429, retryAfterSecondsFromError } from '@/lib/pm/retry';
 
-// Define the schema for the structured output
-const ProjectSchema = z.object({
-  epics: z.array(
-    z.object({
-      name: z.string(),
-      description: z.string(),
-      stories: z.array(
-        z.object({
-          name: z.string(),
-          description: z.string(),
-          acceptanceCriteria: z.array(z.string()),
-        })
-      ),
-    })
-  ),
-  estimations: z.object({
-    developmentTime: z.string(),
-    cost: z.string(),
-    teamSize: z.string(),
-  }),
-});
+// export const runtime = 'nodejs';
 
-const ZGenProjectInput = z.object({
-  name: z.string().optional(),
-  description: z.string().optional(),
-});
+// function cacheKey(input: any) {
+//   // đủ tốt cho dev/prod basic; nếu muốn mạnh hơn: hash sha256
+//   return JSON.stringify(input);
+// }
 
-export const GET = async (req: NextRequest) => {
-  const searchParams = req.nextUrl.searchParams;
-  const query = Object.fromEntries(searchParams.entries());
-  const valid = ZGenProjectInput.safeParse(query);
-  if (!valid.success) {
-    return NextResponse.json({ error: valid.error }, { status: 400 });
-  }
-  const { name = "New Project", description = "" } = valid.data;
+// export async function POST(req: Request) {
+//   const runId = crypto.randomUUID();
 
-  const SYSTEM_PROMPT = `
-    You are an expert AI Project Architect. Your goal is to analyze a project idea and generate a comprehensive project structure.
-    
-    You will be given a Project Name and a Description.
-    
-    Your responsibilities:
-    1.  **Analyze**: Understand the core value proposition, target audience, and key features of the project.
-    2.  **Structure**: Break down the project into logical Epics.
-    3.  **Detail**: For each Epic, create specific User Stories with clear Acceptance Criteria.
-    4.  **Estimate**: Provide a rough estimation of development time, cost, and team size based on industry standards for a MVP.
-  `;
+//   try {
+//     const body = await req.json().catch(() => ({}));
+//     const input = ZGenTasksInput.parse(body);
+//     const types = input.types?.length ? input.types : DEFAULT_TYPES;
 
-  try {
-    const { object } = await generateObject({
-      model: google("gemini-1.5-flash"),
-      system: SYSTEM_PROMPT.trim(),
-      prompt: `Project Name: ${name}\nDescription: ${description}`,
-      schema: ProjectSchema,
-    });
+//     const key = cacheKey({ ...input, types });
+//     const cached = getCache<any>(key);
+//     if (cached) {
+//       return NextResponse.json({ ...cached, meta: { ...cached.meta, cached: true } });
+//     }
 
-    return NextResponse.json(object);
-  } catch (error) {
-    console.error("Error generating project:", error);
-    return NextResponse.json(
-      { error: "Failed to generate project structure." },
-      { status: 500 }
-    );
-  }
-};
+//     const graph = getPMGraph();
+
+//     const finalState = await graph.invoke({
+//       runId,
+//       lastNode: 'START',
+//       trace: [],
+
+//       prompt: input.prompt,
+//       types,
+//       maxTasks: input.maxTasks,
+//       maxSubTasks: input.maxSubTasks,
+//       maxDepth: input.maxDepth,
+//       maxFixAttempts: input.maxFixAttempts,
+
+//       issues: [],
+//       needsFix: false,
+//       reviewNotes: [],
+//       fixAttempts: 0,
+//     });
+
+//     const payload = {
+//       issues: finalState.issues,
+//       trace: finalState.trace,
+//       meta: {
+//         runId,
+//         needsFix: finalState.needsFix,
+//         fixAttempts: finalState.fixAttempts,
+//         reviewNotes: finalState.reviewNotes,
+//         cached: false,
+//         model: process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-lite',
+//       },
+//     };
+
+//     // cache 10 phút (test curl liên tục đỡ tốn quota)
+//     setCache(key, payload, 10 * 60 * 1000);
+
+//     return NextResponse.json(payload, { status: 200 });
+//   } catch (err: any) {
+//     if (isGemini429(err)) {
+//       const retryAfter = retryAfterSecondsFromError(err) ?? 30;
+//       return NextResponse.json(
+//         { error: String(err?.message ?? err), meta: { runId } },
+//         { status: 429, headers: { 'Retry-After': String(Math.ceil(retryAfter)) } },
+//       );
+//     }
+
+//     const msg = String(err?.message ?? err);
+//     console.error(`[${runId}] [generate-v2] error:`, msg);
+//     return NextResponse.json({ error: msg, meta: { runId } }, { status: 500 });
+//   }
+// }

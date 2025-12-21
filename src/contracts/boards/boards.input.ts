@@ -39,7 +39,7 @@ const DynamicRelative = z.object({ type: z.enum(['after', 'before']), refId: z.s
 const ZRelative = z.union([StaticRelative, DynamicRelative]);
 
 export const ZBoardIssueMoveInput = z.object({
-  parentType: z.enum(['sprint', 'status']),
+  parentType: z.enum(['sprint', 'status', 'column']),
   relative: ZRelative,
   from: z.object({ parentId: z.string().nullable() }),
   to: z.object({ parentId: z.string().nullable() }),
@@ -109,3 +109,38 @@ export const ZSprintUpdateInput = ZSprintCreateInput;
 /** Sprint types */
 export type SprintCreateInput = z.infer<typeof ZSprintCreateInput>;
 export type SprintUpdateInput = z.infer<typeof ZSprintUpdateInput>;
+
+// ========== Board Comlumn
+export const ZColumnCreateInput = z.object({
+  name: z.string().min(1, 'Column name is required').max(255, 'Column name is too long'),
+  statuses: z
+    .object({
+      name: z.string().min(1, 'Status name is required').max(255, 'Status name is too long'),
+      color: z.string().min(1, 'Status color is required').max(255, 'Status color is too long'),
+      iconURL: z.string().optional(),
+      category: z.enum(['TODO', 'IN_PROGRESS', 'DONE']),
+    })
+    .array()
+    .min(1, 'At least one status is required'),
+});
+
+export const ZColumnReorderInput = z.object({ ids: z.string().array() });
+export const ZColumnUpdateInput = ZColumnCreateInput.partial();
+export type ColumnCreateInput = z.infer<typeof ZColumnCreateInput>;
+export type ColumnUpdateInput = z.infer<typeof ZColumnUpdateInput>;
+export type ColumnReorderInput = z.infer<typeof ZColumnReorderInput>;
+
+// from: /columns/<columnId|null>/issues/<issueId>
+// to:   /columns/<columnId|null>/issues/<issueId>|top|bottom
+// (IDs are any non-slash string; issueId is not allowed to be "top" or "bottom")
+export const FROM_RE = /^\/cols\/(?:null|[^/]+)\/items\/(?!top$)(?!bottom$)[^/]+$/;
+export const TO_RE = /^\/cols\/(?:null|[^/]+)\/items\/(?:top|bottom|(?!top$)(?!bottom$)[^/]+)$/;
+export const ZMoveIssueInputV2 = z.object({
+  from: z.string().regex(FROM_RE, {
+    message: 'Invalid "from". Expected: /cols/<columnId|null>/items/<issueId>',
+  }),
+  to: z.string().regex(TO_RE, {
+    message: 'Invalid "to". Expected: /cols/<columnId|null>/items/<issueId|top|bottom>',
+  }),
+});
+export type MoveIssueInputV2 = z.infer<typeof ZMoveIssueInputV2>;

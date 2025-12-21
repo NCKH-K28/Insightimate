@@ -1,7 +1,7 @@
 // features/projects/state/project-draft.with-expiry.ts
 import { atom } from 'jotai';
-import { atomFamily } from 'jotai/utils';
 import { atomWithStorage, createJSONStorage, RESET } from 'jotai/utils';
+import { atomFamily } from 'jotai-family';
 
 import type { ProjectImport } from '@/contracts/projects';
 
