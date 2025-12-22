@@ -31,7 +31,7 @@ export const ZProjectImport = z.object({
   name: ZProjectCreateInput.shape.name,
   description: ZProjectCreateInput.shape.description,
   avatar: ZProjectCreateInput.shape.avatar,
-  leadId: ZProjectCreateInput.shape.leadId,
+  leadId: z.string().nullish(),
 
   // === Related Data ===
   actors: ZActor.array(),
