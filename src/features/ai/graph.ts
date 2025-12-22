@@ -32,7 +32,7 @@ function routeToolCall(
   endNodeName: string = '__end__',
 ) {
   const lastMsg = state.messages[state.messages.length - 1];
-  // @ts-ignore
+  // @ts-expect-error - tool_calls property may not exist on message type
   if (lastMsg.tool_calls?.length > 0) {
     return toolsNodeName;
   }

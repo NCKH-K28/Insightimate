@@ -69,21 +69,60 @@ import { useParams, usePathname } from 'next/navigation';
 import { ChatInput } from '@/contracts/agents/agents.input';
 import { useInsightSuggestions } from '../../hooks/use-insight-suggestions';
 import { Skeleton } from '@/components/ui/skeleton';
+import { AgentSelector, AgentMode, agentOptions } from './agent-selector';
+import { Badge } from '@/components/ui/badge';
+import { ToolApprovalRenderer } from './tool-approval-cards';
 
+// Mapping tool names to friendly display names
 const toolNameMap: Record<string, string> = {
-  get_issue: 'Retrieving Issue from Insightimate',
-  list_issues: 'Searching Issues in Insightimate',
-  create_issue: 'Creating Issue in Insightimate',
-  update_issue: 'Updating Issue in Insightimate',
-  patch_issues: 'Patching Issues in Insightimate',
-  issue_metrics: 'Getting Issue Metrics from Insightimate',
-  get_project: 'Retrieving Project from Insightimate',
-  list_projects: 'Searching Projects in Insightimate',
-  get_sprint: 'Retrieving Sprint from Insightimate',
-  list_sprints: 'Searching Sprints in Insightimate',
+  // Existing tools
+  get_issue: 'Retrieving Issue',
+  list_issues: 'Searching Issues',
+  create_issue: 'Creating Issue',
+  update_issue: 'Updating Issue',
+  patch_issues: 'Patching Issues',
+  issue_metrics: 'Getting Metrics',
+  get_project: 'Retrieving Project',
+  list_projects: 'Searching Projects',
+  get_sprint: 'Retrieving Sprint',
+  list_sprints: 'Searching Sprints',
+  // Spec Agent tools
+  analyze_requirement: 'Analyzing Requirements',
+  breakdown_task: 'Breaking Down Task',
+  suggest_dependencies: 'Analyzing Dependencies',
+  // Estimation Agent tools
+  estimate_story_points: 'Estimating Story Points',
+  estimate_duration: 'Estimating Duration',
+  analyze_historical: 'Analyzing Historical Data',
+  set_estimation: 'Setting Estimation',
+  // Prioritization Agent tools
+  analyze_urgency: 'Analyzing Urgency',
+  analyze_impact: 'Analyzing Impact',
+  suggest_priority: 'Calculating Priority',
+  reorder_backlog: 'Reordering Backlog',
+  // Review Agent tools
+  review_description: 'Reviewing Description',
+  suggest_improvements: 'Suggesting Improvements',
+  check_acceptance_criteria: 'Checking Acceptance Criteria',
+  validate_completeness: 'Validating Completeness',
+  // Router Agent tools
+  analyze_intent: 'Analyzing Intent',
+  delegate_to_agent: 'Delegating to Agent',
+  // Spec Agent - create subtasks
+  create_subtasks: 'Creating Subtasks in Database',
+};
+
+// Agent-specific color classes
+const agentColorMap: Record<AgentMode, string> = {
+  auto: 'text-purple-500',
+  spec: 'text-blue-500',
+  estimation: 'text-green-500',
+  prioritization: 'text-orange-500',
+  review: 'text-cyan-500',
 };
 
 const models = [{ name: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' }];
+
 const ChatBot = () => {
   const pathname = usePathname();
   if (!pathname) throw new Error('Pathname not found');
@@ -96,17 +135,35 @@ const ChatBot = () => {
   const [model, setModel] = useState<string>(models[0].value);
   const [sources, setSources] = useState<ContextOption[]>(defaultContexts);
   const [webSearch, setWebSearch] = useState(false);
+  const [agentMode, setAgentMode] = useState<AgentMode>('auto');
+
+  // Determine API endpoint based on agent mode
+  const apiEndpoint = agentMode === 'auto' ? '/api/demo/auto-chat' : '/api/demo/agent-chat';
+
   const { messages, sendMessage, status, regenerate, addToolApprovalResponse } = useChat({
     id: 'insight-chat',
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
-    transport: new DefaultChatTransport({ api: `/api/ai/chat` }),
+    transport: new DefaultChatTransport({ api: apiEndpoint }),
   });
 
   const handleSubmit = (message: PromptInputMessage) => {
     const hasText = Boolean(message.text);
     const hasAttachments = Boolean(message.files?.length);
     if (!(hasText || hasAttachments)) return;
-    const body: ChatInput = { model, sources, workspaceId, pathname };
+
+    // Build body based on agent mode
+    const body: ChatInput & { agents?: string[] } = {
+      model,
+      sources,
+      workspaceId,
+      pathname,
+    };
+
+    // Add agents array for non-auto modes
+    if (agentMode !== 'auto') {
+      body.agents = [agentMode];
+    }
+
     sendMessage({ text: message.text || 'Sent with attachments', files: message.files }, { body });
     setInput('');
   };
@@ -116,6 +173,9 @@ const ChatBot = () => {
   };
 
   const { data: suggestions, isPending: isLoadingSuggestions } = useInsightSuggestions(workspaceId);
+
+  // Get current agent info for display
+  const currentAgent = agentOptions.find((a) => a.value === agentMode);
 
   return (
     <div className='p-2 flex flex-col h-full relative'>
@@ -131,6 +191,12 @@ const ChatBot = () => {
                 <p className='text-sm'>
                   Trợ lý AI cao cấp sẵn sàng hỗ trợ bạn phân tích dự án và quản lý công việc.
                 </p>
+                {agentMode !== 'auto' && currentAgent && (
+                  <Badge variant='secondary' className={agentColorMap[agentMode]}>
+                    {currentAgent.icon}
+                    <span className='ml-1'>{currentAgent.label} Mode</span>
+                  </Badge>
+                )}
               </div>
               <div className='flex flex-wrap justify-center gap-2 max-w-lg'>
                 {isLoadingSuggestions ? (
@@ -173,18 +239,33 @@ const ChatBot = () => {
                 {message.parts.map((part, i) => {
                   if (isToolUIPart(part)) {
                     const toolName = getToolName(part);
+                    const friendlyName = toolNameMap[toolName] || toolName;
 
-                    // tool cần approval
+                    // Tool cần approval
                     if (part.approval) {
                       return (
                         <div key={`${message.id}-${i}`} className='my-2'>
                           <Confirmation approval={part.approval} state={part.state}>
                             <ConfirmationRequest>
-                              Tool <b>{toolName}</b> muốn chạy với input:
-                              <pre className='mt-2 text-xs whitespace-pre-wrap'>
-                                {JSON.stringify(part.input ?? {}, null, 2)}
-                              </pre>
-                              Bạn có đồng ý không?
+                              <div className='flex items-center gap-2 mb-3'>
+                                <Badge
+                                  variant='outline'
+                                  className='text-orange-500 border-orange-300'
+                                >
+                                  ⚡ Cần xác nhận
+                                </Badge>
+                                <span className='text-sm text-muted-foreground'>
+                                  {friendlyName}
+                                </span>
+                              </div>
+                              <ToolApprovalRenderer
+                                toolName={toolName}
+                                input={part.input}
+                                className='my-2'
+                              />
+                              <p className='text-sm text-muted-foreground mt-3'>
+                                Bạn có muốn thực hiện action này?
+                              </p>
                             </ConfirmationRequest>
 
                             <ConfirmationAccepted>
@@ -244,7 +325,7 @@ const ChatBot = () => {
                       );
                     }
 
-                    // tool không cần approval: bạn render nhẹ nhàng tuỳ ý
+                    // Tool không cần approval
                     return (
                       <div
                         key={`${message.id}-${i}`}
@@ -252,7 +333,7 @@ const ChatBot = () => {
                       >
                         <div className='size-2 rounded-full bg-blue-500 animate-pulse' />
                         <span>
-                          Using tool: <b>{toolNameMap[toolName] || toolName}</b>...
+                          <b>{friendlyName}</b>...
                         </span>
                       </div>
                     );
@@ -303,6 +384,7 @@ const ChatBot = () => {
         </ConversationContent>
         <ConversationScrollButton />
       </Conversation>
+
       <PromptInput onSubmit={handleSubmit} className='mt-4' globalDrop multiple>
         <PromptInputHeader>
           <PromptInputAttachments>
@@ -318,27 +400,37 @@ const ChatBot = () => {
               </PromptInputButton>
             )}
           />
-
           <ContextsBar selected={sources} onChange={setSources} />
         </PromptInputHeader>
+
         <PromptInputBody>
           <PromptInputTextarea onChange={(e) => setInput(e.target.value)} value={input} />
         </PromptInputBody>
+
         <PromptInputFooter>
           <PromptInputTools>
+            {/* Agent Mode Selector */}
+            <AgentSelector
+              value={agentMode}
+              onChange={setAgentMode}
+              disabled={status === 'streaming' || status === 'submitted'}
+            />
+
             <PromptInputActionMenu>
               <PromptInputActionMenuTrigger />
               <PromptInputActionMenuContent>
                 <PromptInputActionAddAttachments />
               </PromptInputActionMenuContent>
             </PromptInputActionMenu>
+
             <PromptInputButton
               variant={webSearch ? 'default' : 'ghost'}
               onClick={() => setWebSearch(!webSearch)}
             >
               <GlobeIcon size={16} />
-              <span>Search</span>
+              <span className='hidden sm:inline'>Search</span>
             </PromptInputButton>
+
             <PromptInputSelect
               onValueChange={(value) => {
                 setModel(value);
@@ -363,4 +455,5 @@ const ChatBot = () => {
     </div>
   );
 };
+
 export default ChatBot;

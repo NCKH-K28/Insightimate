@@ -1,5 +1,5 @@
+import { generateIssues, GenerateRequestSchema } from '@/features/ai/breackdown-agent';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateIssues, GenerateRequestSchema } from '@/features/agents/old';
 
 export async function GET(_req: NextRequest) {
   try {

@@ -213,7 +213,6 @@ const workflow = new StateGraph(MessagesAnnotation)
     // Safety: ensure tech stack exists (in case someone changes entry edges later)
     if (!hasTechStack(state.messages)) return 'loadTechStack';
 
-    // @ts-ignore
     if (last?.tool_calls?.length > 0) return 'tools';
     return 'drafter';
   })

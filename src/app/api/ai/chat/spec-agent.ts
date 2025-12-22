@@ -175,7 +175,7 @@ export async function runSpecAgent(input: {
   const textContexts = (input.contexts ?? []).filter((c) => c.type === 'text');
   const fileParts = input.fileParts ?? [];
 
-  let draft: any = v;
+  const draft: any = v;
   let lastError: string | undefined;
 
   for (let attempt = 1; attempt <= maxIterations; attempt++) {
