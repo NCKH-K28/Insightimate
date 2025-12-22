@@ -9,9 +9,12 @@ import { AgentToolDefinition, AgentContext } from '../base-streaming-agent';
 import {
   getIssue,
   listIssues,
+  patchIssues,
   ZGetIssueInput,
   ZListIssuesInput,
+  ZPatchIssueInput,
 } from '../../insightmate/services/issues';
+import { getProject, ZGetProjectInput } from '../../insightmate/services/project';
 import { llmAnalyze, buildIssueContext } from '../utils/llm-analyze';
 
 // ===== Schemas =====
@@ -354,6 +357,33 @@ export const listIssuesTool: AgentToolDefinition<typeof ZListIssuesInput> = {
   },
 };
 
+// Cross-agent compatibility tools
+export const getProjectTool: AgentToolDefinition<typeof ZGetProjectInput> = {
+  name: 'get_project',
+  description: 'Get project details including available statuses, types, and priorities.',
+  inputSchema: ZGetProjectInput,
+  execute: async (input, context) => {
+    return getProject(input, { actorId: context.actorId });
+  },
+};
+
+export const patchIssuesTool: AgentToolDefinition<typeof ZPatchIssueInput> = {
+  name: 'patch_issues',
+  description:
+    'Create, update, or delete issues. Use for status changes, field updates. Requires approval.',
+  inputSchema: ZPatchIssueInput,
+  needsApproval: true,
+  execute: async (input, context) => {
+    await patchIssues(input, { actorId: context.actorId });
+    return {
+      success: true,
+      creates: input.creates?.length || 0,
+      updates: input.updates?.length || 0,
+      deletes: input.deletes?.length || 0,
+    };
+  },
+};
+
 // ===== All Review Agent Tools =====
 
 export const reviewAgentTools = [
@@ -363,4 +393,6 @@ export const reviewAgentTools = [
   validateCompletenessTool,
   getIssueTool,
   listIssuesTool,
+  getProjectTool,
+  patchIssuesTool,
 ];

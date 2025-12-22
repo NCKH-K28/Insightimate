@@ -142,6 +142,7 @@ const ChatBot = () => {
 
   const { messages, sendMessage, status, regenerate, addToolApprovalResponse } = useChat({
     id: 'insight-chat',
+    // This auto-sends after approval responses are complete
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
     transport: new DefaultChatTransport({ api: apiEndpoint }),
   });
@@ -286,6 +287,7 @@ const ChatBot = () => {
                                     id: part.approval!.id,
                                     approved: false,
                                   });
+                                  // sendAutomaticallyWhen will handle sending
                                 }}
                               >
                                 Reject
@@ -298,6 +300,7 @@ const ChatBot = () => {
                                     id: part.approval!.id,
                                     approved: true,
                                   });
+                                  // sendAutomaticallyWhen will handle sending
                                 }}
                               >
                                 Approve

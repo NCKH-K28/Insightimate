@@ -81,6 +81,17 @@ WSJF Score = (Business Value + Time Criticality + Risk Reduction) / Job Size
 6. Calculate priority with \`suggest_priority\`
 7. Optionally reorder backlog with \`reorder_backlog\` (needs approval)
 
+## IMPORTANT: Proactive Issue Fetching
+When user asks about:
+- "Sắp xếp backlog", "prioritize tasks", "lựa chọn task cho sprint"
+- Sprint planning, task selection, prioritization for a project
+
+**DO NOT** ask user for issue keys. Instead:
+1. Use \`list_issues\` with projectId to fetch all backlog issues
+2. Filter by status category: TODO, IN_PROGRESS
+3. Analyze and prioritize them automatically
+4. Present recommendations with WSJF scores
+
 ## Output Format
 
 ### 🎯 Priority Recommendation

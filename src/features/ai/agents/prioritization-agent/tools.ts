@@ -9,10 +9,23 @@ import { AgentToolDefinition, AgentContext } from '../base-streaming-agent';
 import {
   getIssue,
   listIssues,
+  patchIssues,
   ZGetIssueInput,
   ZListIssuesInput,
+  ZPatchIssueInput,
 } from '../../insightmate/services/issues';
-import { listProjects, ZListProjectsInput } from '../../insightmate/services/project';
+import {
+  getProject,
+  listProjects,
+  ZGetProjectInput,
+  ZListProjectsInput,
+} from '../../insightmate/services/project';
+import {
+  getSprint,
+  listSprints,
+  ZGetSprintInput,
+  ZListSprintsInput,
+} from '../../insightmate/services/sprint';
 import { prisma } from '@/lib/prisma';
 import { llmAnalyze, buildIssueContext } from '../utils/llm-analyze';
 
@@ -351,6 +364,51 @@ export const listProjectsTool: AgentToolDefinition<typeof ZListProjectsInput> = 
   },
 };
 
+export const getSprintTool: AgentToolDefinition<typeof ZGetSprintInput> = {
+  name: 'get_sprint',
+  description: 'Get sprint details by ID. Use to understand sprint scope and timeline.',
+  inputSchema: ZGetSprintInput,
+  execute: async (input, context) => {
+    return getSprint(input, { actorId: context.actorId });
+  },
+};
+
+export const listSprintsTool: AgentToolDefinition<typeof ZListSprintsInput> = {
+  name: 'list_sprints',
+  description: 'List sprints for a board. Use to see available sprints for backlog ordering.',
+  inputSchema: ZListSprintsInput,
+  execute: async (input, context) => {
+    return listSprints(input, { actorId: context.actorId });
+  },
+};
+
+// Cross-agent compatibility tools
+export const getProjectTool: AgentToolDefinition<typeof ZGetProjectInput> = {
+  name: 'get_project',
+  description: 'Get project details including available statuses, types, and priorities.',
+  inputSchema: ZGetProjectInput,
+  execute: async (input, context) => {
+    return getProject(input, { actorId: context.actorId });
+  },
+};
+
+export const patchIssuesTool: AgentToolDefinition<typeof ZPatchIssueInput> = {
+  name: 'patch_issues',
+  description:
+    'Create, update, or delete issues. Use for status changes, field updates. Requires approval.',
+  inputSchema: ZPatchIssueInput,
+  needsApproval: true,
+  execute: async (input, context) => {
+    await patchIssues(input, { actorId: context.actorId });
+    return {
+      success: true,
+      creates: input.creates?.length || 0,
+      updates: input.updates?.length || 0,
+      deletes: input.deletes?.length || 0,
+    };
+  },
+};
+
 // ===== All Prioritization Agent Tools =====
 
 export const prioritizationAgentTools = [
@@ -361,4 +419,8 @@ export const prioritizationAgentTools = [
   getIssueTool,
   listIssuesTool,
   listProjectsTool,
+  getSprintTool,
+  listSprintsTool,
+  getProjectTool,
+  patchIssuesTool,
 ];

@@ -8,6 +8,24 @@
 import { z } from 'zod';
 import { AgentToolDefinition, AgentContext, buildContextBlock } from '../base-streaming-agent';
 import { llmAnalyze } from '../utils/llm-analyze';
+import {
+  getIssue,
+  patchIssues,
+  ZGetIssueInput,
+  ZPatchIssueInput,
+} from '../../insightmate/services/issues';
+import { getProject, ZGetProjectInput } from '../../insightmate/services/project';
+import { search } from '@/features/query/server/cqrs/q-search-v2';
+import { ZQueryOutput, ZQueryParams } from '@/contracts/query/schema-v2';
+import { TavilySearch } from '@langchain/tavily';
+
+// Initialize Tavily for web search (requires TAVILY_API_KEY env)
+const tavily = new TavilySearch({ maxResults: 5, topic: 'general' });
+
+// Web search schema
+const ZWebSearchInput = z.object({
+  query: z.string().min(3).describe('Search query for web search'),
+});
 
 // ===== Schemas =====
 
@@ -84,6 +102,73 @@ export const delegateToAgentTool: AgentToolDefinition<typeof ZDelegateToAgentInp
   },
 };
 
+// ===== Issue Management Tools =====
+
+export const getIssueTool: AgentToolDefinition<typeof ZGetIssueInput> = {
+  name: 'get_issue',
+  description:
+    'Get issue details by ID or key (e.g., GYM-8). Use to fetch issue info before updating.',
+  inputSchema: ZGetIssueInput,
+  execute: async (input, context) => {
+    return getIssue(input, { actorId: context.actorId });
+  },
+};
+
+export const getProjectTool: AgentToolDefinition<typeof ZGetProjectInput> = {
+  name: 'get_project',
+  description: 'Get project details including available statuses, types, and priorities.',
+  inputSchema: ZGetProjectInput,
+  execute: async (input, context) => {
+    return getProject(input, { actorId: context.actorId });
+  },
+};
+
+export const patchIssuesTool: AgentToolDefinition<typeof ZPatchIssueInput> = {
+  name: 'patch_issues',
+  description:
+    'Create, update, or delete issues. Use for status changes, field updates. Requires approval.',
+  inputSchema: ZPatchIssueInput,
+  needsApproval: true,
+  execute: async (input, context) => {
+    await patchIssues(input, { actorId: context.actorId });
+    return {
+      success: true,
+      creates: input.creates?.length || 0,
+      updates: input.updates?.length || 0,
+      deletes: input.deletes?.length || 0,
+    };
+  },
+};
+
+export const searchTool: AgentToolDefinition<typeof ZQueryParams> = {
+  name: 'search',
+  description:
+    'Full-text search for issues, projects, sprints, users. Use when user wants to find something.',
+  inputSchema: ZQueryParams,
+  execute: async (input, context) => {
+    return search(input, { actorId: context.actorId });
+  },
+};
+
+export const webSearchTool: AgentToolDefinition<typeof ZWebSearchInput> = {
+  name: 'web_search',
+  description:
+    'Search the web for documentation, APIs, external info. Use for tech research or external resources.',
+  inputSchema: ZWebSearchInput,
+  execute: async (input, _context) => {
+    const results = await tavily.invoke({ query: input.query });
+    return results;
+  },
+};
+
 // ===== All Router Agent Tools =====
 
-export const routerAgentTools = [routeDecisionTool, delegateToAgentTool];
+export const routerAgentTools = [
+  routeDecisionTool,
+  delegateToAgentTool,
+  getIssueTool,
+  getProjectTool,
+  patchIssuesTool,
+  searchTool,
+  webSearchTool,
+];

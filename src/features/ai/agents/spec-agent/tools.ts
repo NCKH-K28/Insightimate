@@ -281,6 +281,7 @@ export const createSubtasksTool: AgentToolDefinition<typeof ZCreateSubtasksInput
   inputSchema: ZCreateSubtasksInput,
   needsApproval: true,
   execute: async (input, context) => {
+    console.log('[create_subtasks] Tool executed with', input.subtasks.length, 'subtasks');
     try {
       // Build creates array for patchIssues
       const creates = input.subtasks.map((subtask) => ({
@@ -296,6 +297,8 @@ export const createSubtasksTool: AgentToolDefinition<typeof ZCreateSubtasksInput
 
       // patchIssues returns void, so we assume success if no error is thrown
       await patchIssues({ creates }, { actorId: context.actorId });
+
+      console.log('[create_subtasks] Successfully created', input.subtasks.length, 'subtasks');
 
       return {
         success: true,

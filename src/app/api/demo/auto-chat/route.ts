@@ -1,15 +1,9 @@
-/**
- * Demo Auto-Router Agent Chat
- *
- * POST /api/demo/auto-chat
- *
- * Automatically routes user requests to the appropriate agent based on intent.
- */
-
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAgentUIStreamResponse, generateObject, UIMessage } from 'ai';
 import { google } from '@ai-sdk/google';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/auth/session';
 import {
   createSpecAgent,
   createEstimationAgent,
@@ -19,11 +13,14 @@ import {
   AgentContext,
 } from '@/features/ai/agents';
 
-// Support both content (simple) and parts (AI SDK v6) formats
-const ZMessagePart = z.object({
-  type: z.string(),
-  text: z.string().optional(),
-});
+// Support all message part types from AI SDK v6
+// Using passthrough to allow tool-invocation, tool-result, approval parts
+const ZMessagePart = z
+  .object({
+    type: z.string(),
+    text: z.string().optional(),
+  })
+  .passthrough(); // Allow additional properties like toolName, args, result, approval
 
 const ZMessage = z.object({
   id: z.string().optional(),
@@ -34,6 +31,7 @@ const ZMessage = z.object({
 
 const ZInput = z.object({
   messages: z.array(ZMessage),
+  workspaceId: z.string().describe('Workspace ID for context'),
   autoRoute: z.boolean().default(true).describe('Auto-select agent based on intent'),
   agents: z.array(z.string()).optional(),
 });
@@ -94,13 +92,25 @@ Choose the most appropriate agent.`,
 
 export async function POST(req: NextRequest) {
   try {
+    // Get auth from cookies directly (for streaming compatibility)
+    const cookieStore = await cookies();
+    const token = cookieStore.get('access_token')?.value;
+    if (!token) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload?.sub) {
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body = await req.json();
     const input = ZInput.parse(body);
 
-    // Demo context - using real user ID for database access
+    // Real context from authenticated user
     const context: AgentContext = {
-      workspaceId: 'demo-workspace',
-      actorId: 'user_yhoogji042ko1rtc7ddpk9mw',
+      workspaceId: input.workspaceId,
+      actorId: payload.sub,
       locale: 'vi-VN',
     };
 
@@ -130,14 +140,17 @@ export async function POST(req: NextRequest) {
     const createAgent = agentFactories[agentType];
     const agent = createAgent(context);
 
-    // Convert messages to UIMessage format - filter out tool/step parts that cause validation errors
+    // Convert messages to UIMessage format
+    // NOTE: When switching agents, tool parts from previous agents may cause
+    // "No tool schema found" errors. We filter out tool parts and only keep text
+    // to allow clean agent switching. The trade-off is losing tool history.
     const uiMessages: UIMessage[] = input.messages.map((m, i) => {
-      // Filter parts to only keep text type (AI SDK v6 requires standard types or data-* prefix)
+      // Extract only text parts to avoid cross-agent tool schema errors
       const textParts = (m.parts || [])
         .filter((p) => p.type === 'text' && p.text)
         .map((p) => ({ type: 'text' as const, text: p.text! }));
 
-      // If no text parts, use content field
+      // If we have text parts, use them; otherwise use content field
       const parts =
         textParts.length > 0 ? textParts : [{ type: 'text' as const, text: m.content || '' }];
 

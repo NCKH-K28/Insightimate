@@ -87,7 +87,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
   return (
     <div
       className={cn(
-        'group relative flex min-w-max items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
+        'group relative flex w-full items-center gap-3 rounded-lg border border-transparent bg-background px-3 py-1 transition-all',
         'hover:border-border hover:bg-accent/50 hover:shadow-sm',
         updateIssue.isPending && 'opacity-60 pointer-events-none',
       )}
@@ -123,11 +123,11 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
         {issue.key}
       </Link>
 
-      {/* Issue Summary - Flexible width */}
-      <div className='min-w-50 flex-1'>
+      {/* Issue Summary - Flexible width with overflow handling */}
+      <div className='min-w-0 flex-1 overflow-hidden'>
         <EditableText
           defaultValue={issue.summary}
-          className='w-full text-sm'
+          className='w-full truncate text-sm'
           onBlur={(summary) => {
             const trimmed = summary?.trim();
             if (trimmed === issue.summary) return;

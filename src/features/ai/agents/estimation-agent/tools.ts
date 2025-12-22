@@ -9,9 +9,15 @@ import { AgentToolDefinition, AgentContext } from '../base-streaming-agent';
 import {
   getIssue,
   listIssues,
+  issueMetrics,
+  patchIssues,
   ZGetIssueInput,
   ZListIssuesInput,
+  ZIssueMetricsInput,
+  ZIssueMetricsOutput,
+  ZPatchIssueInput,
 } from '../../insightmate/services/issues';
+import { getProject, ZGetProjectInput } from '../../insightmate/services/project';
 import { prisma } from '@/lib/prisma';
 import { llmAnalyze, buildIssueContext } from '../utils/llm-analyze';
 
@@ -328,6 +334,43 @@ export const listIssuesTool: AgentToolDefinition<typeof ZListIssuesInput> = {
   },
 };
 
+export const issueMetricsTool: AgentToolDefinition<typeof ZIssueMetricsInput> = {
+  name: 'issue_metrics',
+  description:
+    'Get metrics for issues in a project (velocity, cycle time, throughput). Use for historical analysis.',
+  inputSchema: ZIssueMetricsInput,
+  execute: async (input, context) => {
+    return issueMetrics(input, { actorId: context.actorId });
+  },
+};
+
+// Cross-agent compatibility tools
+export const getProjectTool: AgentToolDefinition<typeof ZGetProjectInput> = {
+  name: 'get_project',
+  description: 'Get project details including available statuses, types, and priorities.',
+  inputSchema: ZGetProjectInput,
+  execute: async (input, context) => {
+    return getProject(input, { actorId: context.actorId });
+  },
+};
+
+export const patchIssuesTool: AgentToolDefinition<typeof ZPatchIssueInput> = {
+  name: 'patch_issues',
+  description:
+    'Create, update, or delete issues. Use for status changes, field updates. Requires approval.',
+  inputSchema: ZPatchIssueInput,
+  needsApproval: true,
+  execute: async (input, context) => {
+    await patchIssues(input, { actorId: context.actorId });
+    return {
+      success: true,
+      creates: input.creates?.length || 0,
+      updates: input.updates?.length || 0,
+      deletes: input.deletes?.length || 0,
+    };
+  },
+};
+
 // ===== All Estimation Agent Tools =====
 
 export const estimationAgentTools = [
@@ -337,4 +380,7 @@ export const estimationAgentTools = [
   setEstimationTool,
   getIssueTool,
   listIssuesTool,
+  issueMetricsTool,
+  getProjectTool,
+  patchIssuesTool,
 ];
