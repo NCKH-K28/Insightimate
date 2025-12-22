@@ -1,5 +1,5 @@
 /**
- * Demo Agent Chat - No Auth Required (Development only)
+ * Demo Agent Chat - Cookie Auth Required
  *
  * POST /api/demo/agent-chat
  */
@@ -7,6 +7,8 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAgentUIStreamResponse } from 'ai';
+import { cookies } from 'next/headers';
+import { verifyToken } from '@/lib/auth/session';
 import {
   createSpecAgent,
   createEstimationAgent,
@@ -19,6 +21,7 @@ const ZAgentType = z.enum(['spec', 'estimation', 'prioritization', 'review']);
 
 const ZInput = z.object({
   agents: z.array(ZAgentType).min(1).max(4),
+  workspaceId: z.string().describe('Workspace ID for context'),
   messages: z.array(
     z.object({
       role: z.enum(['user', 'assistant']),
@@ -36,13 +39,25 @@ const agentFactories = {
 
 export async function POST(req: NextRequest) {
   try {
+    // Get auth from cookies
+    const cookieStore = await cookies();
+    const token = cookieStore.get('access_token')?.value;
+    if (!token) {
+      return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const payload = await verifyToken(token);
+    if (!payload?.sub) {
+      return Response.json({ error: 'Invalid token' }, { status: 401 });
+    }
+
     const body = await req.json();
     const input = ZInput.parse(body);
 
-    // Demo context - using real user ID for database access
+    // Real context from authenticated user
     const context: AgentContext = {
-      workspaceId: 'demo-workspace',
-      actorId: 'user_yhoogji042ko1rtc7ddpk9mw',
+      workspaceId: input.workspaceId,
+      actorId: payload.sub,
       locale: 'vi-VN',
     };
 
