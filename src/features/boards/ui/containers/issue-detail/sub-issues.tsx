@@ -62,7 +62,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 
 // ============ Types ============
 

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isoString } from '../common';
+import { isoString } from '../_shared';
 import { ZUserPublic } from '../users';
 
 export const ZIdString = z.string().min(1, 'ID is required');

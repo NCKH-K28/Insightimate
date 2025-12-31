@@ -1,4 +1,4 @@
-import { BreakdownItem, SprintSummary, ZSprintSummary } from '@/contracts/boards/boards.query';
+import { BreakdownItem, SprintSummary, ZSprintSummary } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import { snakeToCamelDeep } from '@/lib/utils/db-util';
 import { Issue, Prisma } from '@prisma/client';

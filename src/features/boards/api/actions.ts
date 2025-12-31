@@ -1,8 +1,8 @@
-import { BoardIssueMoveInput, BoardIssueUpdateInput } from '@/contracts/boards/boards.input';
+import { BoardIssueMoveInput, BoardIssueUpdateInput } from '@/contracts/boards/board.input';
 import { createApiMutationFc } from '@/lib/utils/api';
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { boardApi } from './http';
-import { BoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import { BoardIssueQueryParams } from '@/contracts/boards/board.query';
 
 export const getBoardQueryOptions = (boardId: string) =>
   queryOptions({

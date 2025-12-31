@@ -1,4 +1,4 @@
-import { IssueStatus } from '@/contracts/issues/issue';
+import { IssueStatus } from '@/contracts/issues';
 import { IssuePriority, IssueResolution, IssueType, Prisma } from '@prisma/client';
 
 export type TxClient = Prisma.TransactionClient;

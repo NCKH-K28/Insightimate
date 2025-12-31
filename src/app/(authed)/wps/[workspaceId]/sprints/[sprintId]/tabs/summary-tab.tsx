@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Target, Layers, TrendingUp, TrendingDown, Clock, AlertTriangle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { SprintItem, SprintSummary } from '@/contracts/boards/boards.query';
+import { SprintItem, SprintSummary } from '@/contracts/boards/board.query';
 import { BreakdownCard } from '../components/summary/breakdown-card';
 import { cn } from '@/lib/utils';
 

@@ -23,7 +23,7 @@ import {
 import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
 import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
 import { listStatuses } from './project-field.service';
-import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues/issues.status';
+import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';
 import z from 'zod';
 import {
   genIssuePriorityId,

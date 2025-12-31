@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { useControlledState } from '@/hooks/use-controlled-state';
 import { listBoardIssuesQueryOptions } from '../../api/actions';
-import { BoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import { BoardIssueQueryParams } from '@/contracts/boards/board.query';
 
 type IssueOption = {
   id: string;

@@ -5,7 +5,7 @@ import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { useMutation } from '@tanstack/react-query';
 import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 
-import { BoardIssueList } from '@/contracts/boards/boards.query';
+import { BoardIssueList } from '@/contracts/boards/board.query';
 import { ColumnDef } from '@tanstack/react-table';
 
 type IssueItem = BoardIssueList['data'][number];

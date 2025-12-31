@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
 import { compose } from '@/lib/http/api-compose';
-import { ZAIAgentCreateInput } from '@/contracts/agents/agents.input';
+import { ZAIAgentCreateInput } from '@/contracts/agents/agent.input';
 import { aiAgentService } from '@/features/agents/server/services/agent.service';
 import { getZodBody, getZodParams, zodBodyPipe, zodParamsPipe } from '@/lib/http/zod-pipes';
 

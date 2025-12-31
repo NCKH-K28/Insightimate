@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { ZIssueStatusCreateInput } from '@/contracts/issues/issues.input';
+import { ZIssueStatusCreateInput } from '@/contracts/issues';
 import z from 'zod';
 import React from 'react';
 import { Loader2 } from 'lucide-react';

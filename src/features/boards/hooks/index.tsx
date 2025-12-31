@@ -3,7 +3,7 @@ import { useMutation } from '@tanstack/react-query';
 import groupBy from 'lodash/groupBy';
 import { toast } from 'sonner';
 
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 import { moveBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import { ItemIssue } from '../ui/containers/scrum/scrum-item-issue';
 import { MoveEvent, MoveRelative, ScrumRowProps } from '../ui/containers/scrum/scrum-board';

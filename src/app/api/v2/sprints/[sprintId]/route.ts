@@ -1,4 +1,4 @@
-import { ZSprintItem } from '@/contracts/boards/boards.query';
+import { ZSprintItem } from '@/contracts/boards/board.query';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';

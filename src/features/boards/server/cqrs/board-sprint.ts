@@ -4,7 +4,7 @@ import {
   BoardSprintCompleteInput,
   BoardSprintCreateInput,
   BoardSprintUpdateInput,
-} from '@/contracts/boards/boards.input';
+} from '@/contracts/boards/board.input';
 import { validateBoardSprint } from '@/lib/validators';
 import { ZBoardSprint } from '@/contracts/boards/board';
 import { Prisma } from '@prisma/client';

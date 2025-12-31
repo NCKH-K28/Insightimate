@@ -2,7 +2,7 @@
 import { queryOptions, mutationOptions } from '@tanstack/react-query';
 import { agentKeys } from './keys';
 import { agentApi } from './http';
-import { AnalysisCreateInput, DataSourceCreateInput } from '@/contracts/agents/agents.input';
+import { AnalysisCreateInput, DataSourceCreateInput } from '@/contracts/agents/agent.input';
 
 // ---- Queries
 export const listAgentsQueryOptions = (params?: { workspaceId?: string }) => {

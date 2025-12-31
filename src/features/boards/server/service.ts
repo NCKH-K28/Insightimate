@@ -1,11 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { BoardIssueCreateInput, BoardIssueUpdateInput } from '@/contracts/boards/boards.input';
-import {
-  BoardIssueQueryParams,
-  ZBoardIssueList,
-  ZBoardItem,
-} from '@/contracts/boards/boards.query';
+import { BoardIssueCreateInput, BoardIssueUpdateInput } from '@/contracts/boards/board.input';
+import { BoardIssueQueryParams, ZBoardIssueList, ZBoardItem } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { format } from 'date-fns';

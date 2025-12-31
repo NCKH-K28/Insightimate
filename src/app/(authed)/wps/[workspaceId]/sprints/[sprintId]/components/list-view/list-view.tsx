@@ -42,7 +42,7 @@ import {
   PriorityIcon,
   StoryPointsBadge,
 } from '../board-view/helper-components';
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 
 function EmptyState({
   icon: Icon,

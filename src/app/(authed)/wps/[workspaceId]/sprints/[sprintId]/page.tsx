@@ -30,7 +30,7 @@ import SprintReportsTab from './tabs/reports-tab';
 import { behindScheduleSprintReportsProps, sampleSprintReportsProps } from './mock-data-3';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/api/_client';
-import { BoardIssueList, SprintItem } from '@/contracts/boards/boards.query';
+import { BoardIssueList, SprintItem } from '@/contracts/boards/board.query';
 import ListTab from './tabs/list-tab';
 import KanbanTabV3 from './tabs/kanban-tab';
 

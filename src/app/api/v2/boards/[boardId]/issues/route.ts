@@ -1,5 +1,5 @@
-import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
-import { ZBoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import { ZBoardIssueCreateInput } from '@/contracts/boards/board.input';
+import { ZBoardIssueQueryParams } from '@/contracts/boards/board.query';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/auth/authn';
 import { authenticated } from '@/lib/auth/authn/guards';

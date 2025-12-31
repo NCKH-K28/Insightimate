@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { GripVertical } from 'lucide-react';
 
-import type { BoardIssueItem } from '@/contracts/boards/boards.query';
+import type { BoardIssueItem } from '@/contracts/boards/board.query';
 import { fieldToOption, IssueFieldSelectors } from '../../selectors/issue-field-selectors';
 import { unassignedUser, UserSelectors, userToOption } from '../../../../users/ui/user-selector';
 import { cn } from '@/lib/utils';

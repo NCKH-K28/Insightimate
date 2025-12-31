@@ -17,7 +17,7 @@ import { IssuePriorityCell } from './cells/issue-priority-cell';
 import { IssueAssigneeCell } from './cells/issue-assignee-cell';
 import { IssueTypeCell } from './cells/issue-type-cell';
 import { IssueDueDateCell, IssueStartDateCell } from './cells/issue-date-cell';
-import { BoardIssueList } from '@/contracts/boards/boards.query';
+import { BoardIssueList } from '@/contracts/boards/board.query';
 import { usePathname } from 'next/navigation';
 import { useMemo } from 'react';
 import Link from 'next/link';

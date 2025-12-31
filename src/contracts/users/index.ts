@@ -1,2 +1,2 @@
 export * from './user';
-export * from './users.input';
+export * from './user.input';

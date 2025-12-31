@@ -12,7 +12,7 @@ import {
   patchIssuesTool,
 } from '@/features/ai/tools';
 import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
-import { ChatInput, ZChatInput } from '@/contracts/agents/agents.input';
+import { ChatInput, ZChatInput } from '@/contracts/agents/agent.input';
 
 type Lang = 'vi' | 'en' | 'auto';
 

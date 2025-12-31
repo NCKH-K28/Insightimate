@@ -7,7 +7,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
+import { ZBoardIssueCreateInput } from '@/contracts/boards/board.input';
 import { mutationOptions, useMutation, useQueryClient } from '@tanstack/react-query';
 import z from 'zod';
 import React, { useMemo } from 'react';

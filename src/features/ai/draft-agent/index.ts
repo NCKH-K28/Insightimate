@@ -3,7 +3,7 @@ import { StateGraph, MessagesAnnotation } from '@langchain/langgraph';
 import { ToolNode } from '@langchain/langgraph/prebuilt';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { TavilySearch } from '@langchain/tavily';
-import { ZIssueItem } from '@/contracts/issues/issues.query';
+import { ZIssueItem } from '@/contracts/issues';
 import z from 'zod';
 import { tool } from '@langchain/core/tools';
 

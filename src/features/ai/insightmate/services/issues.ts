@@ -1,4 +1,4 @@
-import { ZBoardIssueItem } from '@/contracts/boards/boards.query';
+import { ZBoardIssueItem } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';

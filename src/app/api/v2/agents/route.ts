@@ -1,10 +1,10 @@
 import { NextResponse } from 'next/server';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
 import { compose } from '@/lib/http/api-compose';
-import { ZAIAgentCreateInput } from '@/contracts/agents/agents.input';
+import { ZAIAgentCreateInput } from '@/contracts/agents/agent.input';
 import { aiAgentService } from '@/features/agents/server/services/agent.service';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
-import { ZAgentListInput } from '@/contracts/agents/agents.query';
+import { ZAgentListInput } from '@/contracts/agents/agent.query';
 
 export const GET = compose(authenticatedV2, zodBodyPipe(ZAgentListInput), async (req) => {
   const auth = await getAuthFromRequest(req);

@@ -1,4 +1,4 @@
-import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '@/contracts/issues/issue';
+import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '@/contracts/issues';
 import { ZProjectRole } from '@/contracts/projects';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';

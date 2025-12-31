@@ -1,4 +1,4 @@
-import { ZBoardSprintUpdateInput } from '@/contracts/boards/boards.input';
+import { ZBoardSprintUpdateInput } from '@/contracts/boards/board.input';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { boardsService } from '@/features/boards/server/service';
 import { NextResponse } from 'next/server';

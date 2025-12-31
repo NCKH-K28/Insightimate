@@ -1,4 +1,4 @@
-import { ZBoardIssueUpdateInput } from '@/contracts/boards/boards.input';
+import { ZBoardIssueUpdateInput } from '@/contracts/boards/board.input';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/auth/authn';
 import { authenticated } from '@/lib/auth/authn/guards';

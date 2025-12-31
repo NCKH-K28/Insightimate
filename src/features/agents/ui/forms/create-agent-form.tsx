@@ -44,7 +44,7 @@ import {
   ArrowRight,
   Check,
 } from 'lucide-react';
-import { ZAIAgentCreateInput } from '@/contracts/agents/agents.input';
+import { ZAIAgentCreateInput } from '@/contracts/agents/agent.input';
 import { createAgentMutationOptions } from '../../api/actions';
 import { cn } from '@/lib/utils';
 

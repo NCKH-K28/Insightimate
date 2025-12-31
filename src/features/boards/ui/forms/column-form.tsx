@@ -1,5 +1,5 @@
 import z from 'zod';
-import { ZColumnCreateInput } from '@/contracts/boards/boards.input';
+import { ZColumnCreateInput } from '@/contracts/boards/board.input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Plus, Trash } from 'lucide-react';

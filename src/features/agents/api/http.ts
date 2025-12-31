@@ -3,7 +3,7 @@ import {
   AIAgentCreateInput,
   AnalysisCreateInput,
   DataSourceCreateInput,
-} from '@/contracts/agents/agents.input';
+} from '@/contracts/agents/agent.input';
 import {
   AIAgentItemOutput,
   AIAgentListOutput,
@@ -11,7 +11,7 @@ import {
   AnalysisListOutput,
   DataSourceItemOutput,
   DataSourceListOutput,
-} from '@/contracts/agents/agents.query';
+} from '@/contracts/agents/agent.query';
 
 const AgentBaseURL = 'v2/agents' as const;
 const AgentItemURL = `${AgentBaseURL}/{agentId}` as const;

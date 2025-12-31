@@ -19,7 +19,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 
 import { cn } from '@/lib/utils';
 import { IssueCard } from './issue-card';
-import { BoardColumnItem, BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardColumnItem, BoardIssueItem } from '@/contracts/boards/board.query';
 
 type DraggableIssueCardProps = { issue: BoardIssueItem; isDragging?: boolean };
 function DraggableIssueCard({ issue, isDragging = false }: DraggableIssueCardProps) {

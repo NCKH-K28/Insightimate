@@ -25,7 +25,7 @@ import { toast } from 'sonner';
 import { BoardColumnSkeleton } from '../BoardColumnSkeleton';
 import { IssueCard } from './issue-card';
 import { BoardColumn } from './board-column';
-import { BoardColumnItem, BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardColumnItem, BoardIssueItem } from '@/contracts/boards/board.query';
 import { useAsyncFn } from 'react-use';
 
 type EmptyStateProps = {

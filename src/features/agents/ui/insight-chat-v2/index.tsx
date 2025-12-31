@@ -66,7 +66,7 @@ import { AddSourceButton } from './add-source';
 import { ContextOption, ContextsBar } from './contexts-bar';
 import { useDefaultContexts } from '../../hooks/use-default-context';
 import { useParams, usePathname } from 'next/navigation';
-import { ChatInput } from '@/contracts/agents/agents.input';
+import { ChatInput } from '@/contracts/agents/agent.input';
 import { useInsightSuggestions } from '../../hooks/use-insight-suggestions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AgentSelector, AgentMode, agentOptions } from './agent-selector';

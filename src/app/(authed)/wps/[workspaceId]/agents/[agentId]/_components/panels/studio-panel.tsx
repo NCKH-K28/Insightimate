@@ -39,7 +39,7 @@ import {
   listAgentAnalysesQueryOptions,
   deleteAgentAnalysisMutationOptions,
 } from '@/features/agents/api/actions';
-import { AnalysisItemOutput } from '@/contracts/agents/agents.query';
+import { AnalysisItemOutput } from '@/contracts/agents/agent.query';
 
 // Updated type alias to use AnalysisItemOutput
 type AnalyticsData = AnalysisItemOutput['data'];

@@ -3,16 +3,16 @@ import {
   ZBoardIssueList,
   ZBoardIssueQueryParams,
   ZBoardItem,
-} from '@/contracts/boards/boards.query';
+} from '@/contracts/boards/board.query';
 import {
   ZBoardIssueCreateInput,
   ZBoardIssueMoveInput,
   ZBoardIssueRankUpdate,
   ZBoardIssueUpdateInput,
-} from '@/contracts/boards/boards.input';
+} from '@/contracts/boards/board.input';
 import z from 'zod';
 import { ConfigTree, buildApi } from '@/lib/api/_buildapi';
-import { ZIssueFacets } from '@/contracts/issues/issues.query';
+import { ZIssueFacets } from '@/contracts/issues';
 
 // ========== URL FACTORY ==========
 const BoardListURL = 'v2/boards' as const;

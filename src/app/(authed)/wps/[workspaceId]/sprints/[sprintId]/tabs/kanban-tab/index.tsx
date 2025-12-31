@@ -18,10 +18,10 @@ import {
   ZBoardColumnItem,
   ZBoardColumnList,
   ZBoardIssueItem,
-} from '@/contracts/boards/boards.query';
+} from '@/contracts/boards/board.query';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { toast } from 'sonner';
-import { MoveIssueInputV2 } from '@/contracts/boards/boards.input';
+import { MoveIssueInputV2 } from '@/contracts/boards/board.input';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const sanitizeIssue = (issue: BoardIssueItem): ItemData => ({

@@ -73,7 +73,7 @@ import {
   ChevronUp,
   Sparkles,
 } from 'lucide-react';
-import { ZAIAgentUpdateInput } from '@/contracts/agents/agents.input';
+import { ZAIAgentUpdateInput } from '@/contracts/agents/agent.input';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {

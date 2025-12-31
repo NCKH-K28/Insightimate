@@ -29,7 +29,7 @@ import {
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { IssueTypeIcon, PriorityIcon, UserAvatar, StoryPointsBadge } from './helper-components';
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 
 type IssueQuickActionsProps = {
   issue: BoardIssueItem;

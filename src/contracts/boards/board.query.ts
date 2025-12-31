@@ -1,6 +1,6 @@
 import z from 'zod';
 import { ZBoard, ZBoardColumn, ZBoardIssue, ZColumn, ZSprint } from './board';
-import { ZIssueItem } from '../issues/issues.query';
+import { ZIssueItem } from '../issues/issue.query';
 
 const ZUserPublic = z.object({
   id: z.string(),

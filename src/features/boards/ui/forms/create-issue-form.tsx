@@ -22,12 +22,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
-import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
+import { ZBoardIssueCreateInput } from '@/contracts/boards/board.input';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import { IssueDateSelectors } from '../selectors/issue-date-selectors';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
 import { IssueType, IssueTypeSelectors } from '../selectors/issue-type-selectors';
-import { IssueStatus } from '@/contracts/issues/issue';
+import { IssueStatus } from '@/contracts/issues';
 
 const ZFormData = ZBoardIssueCreateInput;
 type FormData = z.infer<typeof ZFormData>;

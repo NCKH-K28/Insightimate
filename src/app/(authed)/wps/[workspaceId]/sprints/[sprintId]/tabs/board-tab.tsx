@@ -5,7 +5,7 @@ import React from 'react';
 import { BoardView } from '../components/board-view/board-view';
 import { useQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/api/_client';
-import { BoardIssueItem, SprintItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem, SprintItem } from '@/contracts/boards/board.query';
 import { Toolbar } from '../components/tool-bar';
 
 // ============================================================================

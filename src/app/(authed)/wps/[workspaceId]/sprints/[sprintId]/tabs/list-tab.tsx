@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-import { BoardIssueItem, SprintItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem, SprintItem } from '@/contracts/boards/board.query';
 import { Toolbar } from '../components/tool-bar';
 import { ListView } from '../components/list-view/list-view';
 

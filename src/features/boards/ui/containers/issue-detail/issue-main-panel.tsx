@@ -8,7 +8,7 @@ import IssueActivity from '../../components/issue-activity';
 import EditableText from '../../components/editable-text';
 import EditableRichText from '../../components/editable-rich-text';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { IssueItem } from '@/contracts/issues/issues.query';
+import { IssueItem } from '@/contracts/issues';
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import {
   getBoardIssueQueryOptions,

@@ -13,8 +13,8 @@ import {
   zodParamsPipe,
   zodQueryPipe,
 } from '@/lib/http/zod-pipes';
-import { ZDataSourceCreateInput } from '@/contracts/agents/agents.input';
-import { ZDataSourceListInput } from '@/contracts/agents/agents.query';
+import { ZDataSourceCreateInput } from '@/contracts/agents/agent.input';
+import { ZDataSourceListInput } from '@/contracts/agents/agent.query';
 
 const ZSourceParams = z.object({ agentId: z.string() });
 const ZSourceCreateBody = ZDataSourceCreateInput.omit({ agentId: true });

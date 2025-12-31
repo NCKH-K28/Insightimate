@@ -1,5 +1,5 @@
-import { ZColumnCreateInput } from '@/contracts/boards/boards.input';
-import { ZBoardColumnItem, ZBoardColumnList } from '@/contracts/boards/boards.query';
+import { ZColumnCreateInput } from '@/contracts/boards/board.input';
+import { ZBoardColumnItem, ZBoardColumnList } from '@/contracts/boards/board.query';
 import {
   genColumnId,
   genColumnStatusId,

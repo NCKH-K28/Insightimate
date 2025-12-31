@@ -20,7 +20,7 @@ import {
   deleteBoardIssueMutationOptions,
   listBoardIssuesQueryOptions,
 } from '@/features/boards/api/actions';
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 import { toast } from 'sonner';
 import { CreateIssueButton } from '../../buttons/create-issue-btn';
 

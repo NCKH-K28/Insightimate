@@ -1,5 +1,5 @@
 import z from 'zod';
-import { isoString } from './common';
+import { isoString } from '../_shared';
 
 export const ZTeamCreateInput = z.object({
   name: z.string().min(1, 'Name is required').max(100, 'Name is too long'),

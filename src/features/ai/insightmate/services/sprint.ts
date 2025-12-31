@@ -1,4 +1,4 @@
-import { ZSprintItem } from '@/contracts/boards/boards.query';
+import { ZSprintItem } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import merge from 'lodash/merge';

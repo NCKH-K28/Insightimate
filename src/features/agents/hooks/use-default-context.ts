@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
 import { getProjectQueryOptions } from '@/features/projects/api/actions';
 import axiosInstance from '@/lib/api/_client';
-import { SprintItem } from '@/contracts/boards/boards.query';
+import { SprintItem } from '@/contracts/boards/board.query';
 
 export const useDefaultContexts = () => {
   const params = useParams<{

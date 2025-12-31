@@ -1,8 +1,8 @@
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { genAgentId } from '@/features/agents/utils/id-generator';
-import { AIAgentCreateInput, AIAgentUpdateInput } from '@/contracts/agents/agents.input';
-import { AIAgentListInput } from '@/contracts/agents/agents.query';
+import { AIAgentCreateInput, AIAgentUpdateInput } from '@/contracts/agents/agent.input';
+import { AIAgentListInput } from '@/contracts/agents/agent.query';
 import { Prisma } from '@prisma/client';
 
 export const ZAgentContext = z.object({ actorId: z.string() });

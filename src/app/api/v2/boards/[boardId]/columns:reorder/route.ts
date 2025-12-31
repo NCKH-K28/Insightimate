@@ -1,6 +1,6 @@
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
-import { ZColumnReorderInput } from '@/contracts/boards/boards.input';
+import { ZColumnReorderInput } from '@/contracts/boards/board.input';
 import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';

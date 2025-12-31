@@ -8,7 +8,7 @@ import {
   ZIssueResolution,
 } from '../issues/issue';
 import countBy from 'lodash/countBy';
-import { ZProjectCreateInput } from './projects.input';
+import { ZProjectCreateInput } from './project.input';
 
 const ZActor = z.object({
   actorId: z.string(),

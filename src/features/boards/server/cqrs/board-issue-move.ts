@@ -1,5 +1,5 @@
-import { BoardIssueMoveInput } from '@/contracts/boards/boards.input';
-import { ZBoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueMoveInput } from '@/contracts/boards/board.input';
+import { ZBoardIssueItem } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import LexRank from '@/lib/utils/lexorank-num';
 import Decimal from 'decimal.js';
