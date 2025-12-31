@@ -20,8 +20,10 @@ import {
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { getMeQueryOptions, signoutMutationOptions } from '@/features/authn/api/actions';
+import { usePathnameRequired } from '@/hooks/next-navigation';
 
 export function NavUser() {
+  const pathname = usePathnameRequired();
   const params = useParams<{ workspaceId: string }>();
   const router = useRouter();
   if (!params) throw new Error('Params is undefined');
@@ -36,7 +38,7 @@ export function NavUser() {
   };
 
   const toProfile = () => {
-    const path = `/wps/${params.workspaceId}/profile/${user?.email}`;
+    const path = `/user/profile?from=${pathname}`;
     router.push(path);
   };
 

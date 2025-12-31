@@ -98,11 +98,21 @@ export const ZSprintWithBusiness = ZSprint.superRefine((data, ctx) => {
   }
 });
 
-export const ZSprintCreateInput = ZSprintWithBusiness.omit({
+export const ZSprintCreateInput = ZSprint.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).partial({ name: true });
+})
+  .partial({ name: true })
+  .superRefine((data, ctx) => {
+    if (data.startAt && data.endAt && new Date(data.startAt) >= new Date(data.endAt)) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['startAt', 'endAt'],
+        message: 'Sprint start date must be before end date',
+      });
+    }
+  });
 
 export const ZSprintUpdateInput = ZSprintCreateInput;
 

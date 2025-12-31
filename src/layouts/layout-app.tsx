@@ -1,10 +1,10 @@
 'use client';
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { Toaster } from '@/components/ui/sonner';
 import ReactQueryProvider from '@/providers/react-query-client';
-import JotaiProvider from '@/providers/jotai-provider';
-import dynamic from 'next/dynamic';
+import { Provider as JotaiProvider } from 'jotai';
 
 import { ErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { QueryErrorResetBoundary } from '@tanstack/react-query';
