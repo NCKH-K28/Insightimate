@@ -1,4 +1,4 @@
-import { authenticated } from '@/lib/auth';
+import { authenticated } from '@/lib/auth/authn';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
 import { compose } from '@/lib/http/api-compose';
 import { ZAIAgentCreateInput } from '@/contracts/agents/agents.input';
 import { aiAgentService } from '@/features/agents/server/services/agent.service';

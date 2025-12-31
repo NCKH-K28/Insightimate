@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createAgentUIStreamResponse, generateObject, UIMessage } from 'ai';
 import { google } from '@ai-sdk/google';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth/session';
+import { verifyToken } from '@/lib/auth/authn/session';
 import {
   createSpecAgent,
   createEstimationAgent,
@@ -12,6 +12,7 @@ import {
   createRouterAgent,
   AgentContext,
 } from '@/features/ai/agents';
+import { logger } from '@/lib/logger';
 
 // Support all message part types from AI SDK v6
 // Using passthrough to allow tool-invocation, tool-result, approval parts
@@ -125,13 +126,13 @@ export async function POST(req: NextRequest) {
       const requestedAgent = input.agents[0] as keyof typeof agentFactories;
       if (requestedAgent in agentFactories) {
         agentType = requestedAgent;
-        console.log(`[Agent-Chat] Using requested agent: ${agentType}`);
+        logger.info(`[Agent-Chat] Using requested agent: ${agentType}`);
       }
     } else if (input.autoRoute && lastMessageText) {
       // Classify intent and select agent
       const decision = await classifyIntent(lastMessageText);
       agentType = decision.agent;
-      console.log(
+      logger.info(
         `[Auto-Router] Selected: ${agentType} (${decision.confidence}) - ${decision.reasoning}`,
       );
     }

@@ -1,4 +1,4 @@
-import { cerbosEdge } from '@/lib/authz/cerbos';
+import { cerbosEdge } from '@/lib/auth/authz/cerbos';
 import { prisma } from '@/lib/prisma';
 
 // const ZStringArrayOptional = z.array(z.string()).optional();

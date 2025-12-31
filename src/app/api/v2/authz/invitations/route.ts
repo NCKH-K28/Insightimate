@@ -1,5 +1,5 @@
 import { inviteService, ZInviteUsersInput } from '@/features/authz/server';
-import { authenticated, getAuthFromRequest } from '@/lib/auth';
+import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { NextRequest, NextResponse } from 'next/server';
 

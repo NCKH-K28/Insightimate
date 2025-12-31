@@ -8,7 +8,7 @@ import {
   ZCommentListQuery,
   ZCommentSendInput,
 } from '@/contracts/collab/collab';
-import { getAuthFromRequest } from '@/lib/auth/authenticated-for-page-route';
+import { getAuthFromRequest } from '@/lib/auth/authn/authenticated-for-page-route';
 
 const GET = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
   await getAuthFromRequest(req as any);

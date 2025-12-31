@@ -1,5 +1,5 @@
 import { TupleKey } from '@openfga/sdk';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { set } from 'lodash';
 import * as path from 'path';

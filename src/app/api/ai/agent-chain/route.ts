@@ -13,7 +13,7 @@
 
 import { z } from 'zod';
 import { middlewareHandler } from '@/lib/http/api-handler.v2';
-import { authenticated, getAuthFromRequest } from '@/lib/auth';
+import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
 import { createAgentUIStreamResponse } from 'ai';
 import {
   createSpecAgent,

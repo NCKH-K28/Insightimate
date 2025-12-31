@@ -3,7 +3,7 @@
 import { kafka } from '@/lib/kafka';
 import { AnalysisMsg } from './schema';
 import { analyzeDocumentHandler } from './handler';
-import { logger } from '@/lib/winston';
+import { logger } from '@/lib/logger';
 
 export default async function startAnalyzeDocumentConsumer() {
   const consumer = kafka.consumer({ groupId: 'analyze-document-group' });

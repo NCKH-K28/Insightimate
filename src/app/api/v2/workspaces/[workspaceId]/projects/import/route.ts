@@ -1,6 +1,6 @@
 import { ZProjectImportWithLogic } from '@/contracts/projects';
 import { importProject } from '@/features/projects/server/cqrs/c-project-import';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
 import { NextResponse } from 'next/server';

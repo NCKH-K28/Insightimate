@@ -3,8 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors';
 import { GuardHandler } from '@/lib/http/api-handler';
 import { AuthContext } from '@/contracts/auth';
-import { verifyToken } from '@/lib/auth/session';
-import { HandleRequest, Middleware } from '../http/api-compose';
+import { verifyToken } from '@/lib/auth/authn/session';
+import { HandleRequest, Middleware } from '../../http/api-compose';
 
 export const authenticated: GuardHandler = async (request) => {
   const cookieStore = await cookies();

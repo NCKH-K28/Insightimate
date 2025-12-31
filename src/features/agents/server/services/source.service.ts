@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { s3 } from '@/lib/s3';
 import { DeleteObjectCommand } from '@aws-sdk/client-s3';

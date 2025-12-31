@@ -1,5 +1,5 @@
 import { searchProjects, ZProjectListInput } from '@/features/projects/server/cqrs/search-projects';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
 import { compose } from '@/lib/http/api-compose';
 
 const ZProjectListInputStrict = ZProjectListInput.strict();

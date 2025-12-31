@@ -1,7 +1,7 @@
 import { ZProjectActorAddInput } from '@/contracts/projects';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { projectsService } from '@/features/projects/server/projects.service';
 import { NextResponse } from 'next/server';
 

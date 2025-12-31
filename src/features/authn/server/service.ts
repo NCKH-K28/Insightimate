@@ -3,10 +3,10 @@ import { EmailAlreadyExistsError, InvalidCredentialsError } from '@/lib/http/err
 import { createId as generateCuid2 } from '@paralleldrive/cuid2';
 
 import { verifyPassword, hashPassword } from './password';
-import { generateToken } from '@/lib/auth/session';
+import { generateToken } from '@/lib/auth/authn/session';
 import serverConfig from '@/configs/server';
 import { buildWorkspaceTuples } from '@/features/authz/api/tuple-factory';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 
 const signIn = async (input: { email: string; password: string }) => {
   const acc = await prisma.account.findUnique({ where: { email: input.email } });

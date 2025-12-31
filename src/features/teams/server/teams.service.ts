@@ -1,6 +1,6 @@
 // @/lib/services/teams.service.ts
 import { prisma } from '@/lib/prisma';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { createId } from '@paralleldrive/cuid2';
 import { TeamCreateInput, TeamUpdateInput, ZTeamItem } from '@/contracts/teams';
 import { workspaceService } from '@/features/workspaces/server/service';

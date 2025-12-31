@@ -2,7 +2,7 @@ import { google } from '@ai-sdk/google';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 import { middlewareHandler } from '@/lib/http/api-handler.v2';
-import { authenticated } from '@/lib/auth';
+import { authenticated } from '@/lib/auth/authn';
 
 export const GET = middlewareHandler([authenticated], async (req) => {
   const { searchParams } = new URL(req.url);

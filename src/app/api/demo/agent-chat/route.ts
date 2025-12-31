@@ -8,7 +8,7 @@ import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createAgentUIStreamResponse } from 'ai';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth/session';
+import { verifyToken } from '@/lib/auth/authn/session';
 import {
   createSpecAgent,
   createEstimationAgent,

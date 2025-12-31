@@ -11,8 +11,8 @@ import { addSeconds } from 'date-fns';
 import { Prisma } from '@prisma/client';
 import { templateConfigs } from '../configs/template';
 import { prisma } from '@/lib/prisma';
-import { checkResourcesMapped } from '@/lib/authz/cerbos';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { checkResourcesMapped } from '@/lib/auth/authz/cerbos';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import {
   genBoardId,
   genColumnId,

@@ -1,6 +1,6 @@
 // src/lib/services/authz.service.ts
 import { TupleKey } from '@openfga/sdk';
-import { loadAuthorizationModelFile, openfgaClient } from '@/lib/authz/openfga';
+import { loadAuthorizationModelFile, openfgaClient } from '@/lib/auth/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { set } from 'lodash';
 import { buildProjectTuples, buildTeamTuples, buildWorkspaceTuples } from './tuple-factory';

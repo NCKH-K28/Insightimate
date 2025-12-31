@@ -1,4 +1,4 @@
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 
 export const listAccessibleResources = async (input: {
   action: 'can_view';

@@ -1,7 +1,7 @@
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
@@ -23,7 +23,9 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   let projectIds = objects.map((o) => o.replace('project:', ''));
   if (workspaceId) {
-    const projRows = await prisma.project.findMany({ where: { id: { in: projectIds }, workspaceId } });
+    const projRows = await prisma.project.findMany({
+      where: { id: { in: projectIds }, workspaceId },
+    });
     projectIds = projRows.map((p) => p.id);
   }
 
@@ -31,7 +33,14 @@ export const GET = middlewareHandler([authenticated], async (req) => {
 
   const issueRows = await prisma.issue.findMany({
     where: { projectId: { in: projectIds } },
-    select: { id: true, projectId: true, summary: true, key: true, type: true, project: { select: { name: true } } },
+    select: {
+      id: true,
+      projectId: true,
+      summary: true,
+      key: true,
+      type: true,
+      project: { select: { name: true } },
+    },
   });
 
   if (issueRows.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
@@ -67,7 +76,10 @@ export const GET = middlewareHandler([authenticated], async (req) => {
   if (activities.length === 0) return NextResponse.json({ items: [] }, { status: 200 });
 
   const userIds = Array.from(new Set(activities.map((a) => a.userId)));
-  const users = await prisma.user.findMany({ where: { id: { in: userIds } }, select: { id: true, name: true, email: true, avatar: true } });
+  const users = await prisma.user.findMany({
+    where: { id: { in: userIds } },
+    select: { id: true, name: true, email: true, avatar: true },
+  });
   const userMap = new Map(users.map((u) => [u.id, u]));
 
   const itemsMap = new Map<string, any>();
@@ -80,9 +92,12 @@ export const GET = middlewareHandler([authenticated], async (req) => {
       itemsMap.set(key, {
         id: issue.id,
         projectId: issue.projectId,
-        title: issue.summary ?? ((act.context as any)?.title ?? ''),
-        meta: issue?.key ? `${issue.key}${issue.project ? ` · ${issue.project.name}` : ''}`.trim() : (issue?.project?.name ?? ''),
-        action: act.type === 'CREATED' ? 'Created' : act.type === 'COMMENTED' ? 'Commented' : 'Updated',
+        title: issue.summary ?? (act.context as any)?.title ?? '',
+        meta: issue?.key
+          ? `${issue.key}${issue.project ? ` · ${issue.project.name}` : ''}`.trim()
+          : (issue?.project?.name ?? ''),
+        action:
+          act.type === 'CREATED' ? 'Created' : act.type === 'COMMENTED' ? 'Commented' : 'Updated',
         icon: issue.type.iconURL ?? null,
         actors: [],
         occurredAt: act.createdAt?.toISOString?.(),
@@ -92,8 +107,16 @@ export const GET = middlewareHandler([authenticated], async (req) => {
     const entry = itemsMap.get(key)!;
     const actorId = act.userId;
     if (!entry.actors.find((x: any) => x.id === actorId)) {
-      const u = userMap.get(actorId) ?? { id: actorId, name: act.createdBy ?? actorId, avatar: null };
-      entry.actors.push({ id: u.id, name: (u as any).name ?? (u as any).email ?? u.id, avatar: (u as any).avatar ?? null });
+      const u = userMap.get(actorId) ?? {
+        id: actorId,
+        name: act.createdBy ?? actorId,
+        avatar: null,
+      };
+      entry.actors.push({
+        id: u.id,
+        name: (u as any).name ?? (u as any).email ?? u.id,
+        avatar: (u as any).avatar ?? null,
+      });
     }
   }
 

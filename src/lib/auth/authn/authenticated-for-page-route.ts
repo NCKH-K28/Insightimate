@@ -2,7 +2,7 @@
 import type { NextApiRequest } from 'next';
 import cookie from 'cookie';
 import { prisma } from '@/lib/prisma';
-import { verifyToken } from '@/lib/auth/session';
+import { verifyToken } from '@/lib/auth/authn/session';
 import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors';
 
 export async function getAuthFromRequest(req: NextApiRequest) {

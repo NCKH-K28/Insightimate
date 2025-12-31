@@ -1,6 +1,6 @@
 // xử lý khi workspace thêm và xóa
 
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { buildWorkspaceMemberTuples, buildWorkspaceTuples } from '../authz/tuple-factory';
 
 export const workspaceCreatedHandler = async (ws: { id: string; ownerId: string }) => {

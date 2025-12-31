@@ -4,11 +4,11 @@ import { Prisma } from '@prisma/client';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
 import { buildWorkspaceMemberTuples } from '@/features/authz/api/tuple-factory';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { inviteService } from '@/features/authz/server';
 import sortBy from 'lodash/sortBy';
 import { WORKSPACE_MEMBER_ACTIONS, ZWsMemberList } from '@/contracts/workspaces';
-import { checkResourcesMapped } from '@/lib/authz/cerbos';
+import { checkResourcesMapped } from '@/lib/auth/authz/cerbos';
 import { loadPrincipal, workspaceMemberResourceFactory } from '@/features/authz/server/pip';
 
 const memberCuid = init({ length: 10 });

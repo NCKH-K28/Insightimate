@@ -11,8 +11,8 @@ import {
 } from '@/contracts/workspaces';
 import { prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
-import { openfgaClient } from '@/lib/authz/openfga';
-import { cerbosEdge, mapCerbosActionsToBooleans } from '@/lib/authz/cerbos';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { cerbosEdge, mapCerbosActionsToBooleans } from '@/lib/auth/authz/cerbos';
 import get from 'lodash/get';
 import { WorkspacePermissionError, WorkspaceNotFoundError } from '@/lib/http/errors';
 import { loadPrincipal, workspaceResourceFactory } from '@/features/authz/server/pip';

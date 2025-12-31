@@ -5,7 +5,7 @@ import { EmailService } from '@/lib/mail-sender';
 import { createId } from '@paralleldrive/cuid2';
 import { inviteToken, InviteTokenPayload } from './invite-token';
 import { InviteNotFoundError } from '@/lib/http/errors';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { buildWorkspaceMemberTuples } from '../api/tuple-factory';
 import serverConfig from '@/configs/server';
 

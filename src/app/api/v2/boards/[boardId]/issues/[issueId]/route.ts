@@ -1,7 +1,7 @@
 import { ZBoardIssueUpdateInput } from '@/contracts/boards/boards.input';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { boardsService } from '@/features/boards/server/service';
 import { NextResponse } from 'next/server';
 import z from 'zod';
