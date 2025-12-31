@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
-import avatarStorage from '@/lib/minio/avatar-storage';
+import avatarStorage from '@/lib/s3/avatar-storage';
 import { compose } from '@/lib/http/api-compose';
 import { Readable } from 'node:stream';
 

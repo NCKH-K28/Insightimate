@@ -2,7 +2,7 @@ import { ModelMessage, streamObject, FilePart } from 'ai';
 import { google } from '@ai-sdk/google';
 import { NextRequest } from 'next/server';
 import { toJSONSchema, z } from 'zod';
-import aiStorage from '@/lib/minio/ai-storage';
+import aiStorage from '@/lib/s3/ai-storage';
 import { ZProjectImport, ZProjectDraft } from '@/contracts/projects';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 

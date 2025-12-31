@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import aiStorage from '@/lib/minio/ai-storage';
+import aiStorage from '@/lib/s3/ai-storage';
 import { lookup as lookupMimeType } from 'mime-types';
 import z from 'zod';
 

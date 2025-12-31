@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import avatarStorage from '@/lib/minio/avatar-storage';
+import avatarStorage from '@/lib/s3/avatar-storage';
 import { lookup as lookupMimeType } from 'mime-types';
 import z from 'zod';
 
