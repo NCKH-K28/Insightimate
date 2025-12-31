@@ -17,7 +17,7 @@ export default defineConfig([
     rules: {
       'react/react-in-jsx-scope': 'off',
       'tailwindcss/no-custom-classname': 'off',
-      '@typescript-eslint/no-explicit-any': 'off', // FIXME: enable later
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@next/next/no-img-element': 'off',
       'react-hooks/purity': 'off',
       '@typescript-eslint/no-unused-vars': [

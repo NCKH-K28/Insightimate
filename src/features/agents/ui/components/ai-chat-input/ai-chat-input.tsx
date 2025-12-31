@@ -11,7 +11,6 @@ import { Document } from '@tiptap/extension-document';
 import { Paragraph } from '@tiptap/extension-paragraph';
 import { Text } from '@tiptap/extension-text';
 import { SelectionBar } from './selection-bar';
-import { mentionSuggestions } from '../tiptap-nodes/metion-suggestion';
 
 type AIChatInputProps = {
   onSubmit?: (p: { editor: Editor }) => void;
@@ -44,10 +43,6 @@ export const AIChatInput = (props: AIChatInputProps) => {
       Paragraph,
       Text,
       Mention.configure({
-        suggestions: mentionSuggestions,
-        // renderHTML: (props) => {
-        //   return ['span', {}, `[[${props.node.attrs.label}]]`];
-        // },
         HTMLAttributes: { class: 'tiptap-mention bg-blue-100 text-blue-800 rounded px-1' },
       }),
     ],

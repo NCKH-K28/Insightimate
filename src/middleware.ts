@@ -21,13 +21,6 @@ const pingSocket = async (request: NextRequest) => {
   await fetch(`${request.nextUrl.origin}${pingPath}`);
 };
 
-const pingHealthCheck = async (request: NextRequest) => {
-  const pingPath = '/api/health/ping';
-  const { pathname } = request.nextUrl;
-  if (pathname === pingPath) return NextResponse.next();
-  await fetch(`${request.nextUrl.origin}${pingPath}`);
-};
-
 const authRoutes = ['/signin', '/signup'];
 const authenticated = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
@@ -46,7 +39,7 @@ const authenticated = async (request: NextRequest) => {
 };
 
 export async function middleware(request: NextRequest) {
-  await Promise.all([pingSocket(request), pingHealthCheck(request), pingDebezium(request)]);
+  await Promise.all([pingSocket(request), pingDebezium(request)]);
 
   return authenticated(request);
 }

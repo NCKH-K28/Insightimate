@@ -86,7 +86,7 @@ const PrjEndpoints = {
 
 export const projectApi = {
   search: (input?: ProjectListInput) => {
-    const url = `v3/projects`;
+    const url = `v2/projects/search`;
     return baseApi.get<ProjectListOutput>(url, undefined, { params: input });
   },
   list: (params?: ProjectQueryParams) =>
