@@ -62,27 +62,11 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { BoardIssueItem } from '@/contracts/boards/boards.query';
 
 // ============ Types ============
 
-interface SubIssue {
-  id: string;
-  key: string;
-  summary: string;
-  status: {
-    id: string;
-    name: string;
-    color?: string;
-    iconURL?: string;
-    category?: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  };
-  priority?: { id: string; name: string; color?: string; iconURL?: string };
-  assignee?: { id: string; name: string; email: string; avatar?: string };
-  storyPoints?: number | null;
-  dueDate?: Date | string | null;
-  createdAt: Date | string;
-  order?: number;
-}
+type SubIssue = BoardIssueItem;
 
 interface SubIssuesProps {
   params: { workspaceId: string; boardId: string; projectId: string; issueId: string };
@@ -395,7 +379,7 @@ const SubIssueItem = ({
           <Tooltip>
             <TooltipTrigger>
               <Avatar className='h-6 w-6 shrink-0'>
-                <AvatarImage src={issue.assignee.avatar} alt={issue.assignee.name} />
+                <AvatarImage src={issue.assignee.avatar ?? undefined} alt={issue.assignee.name} />
                 <AvatarFallback className='text-xs'>
                   {getInitials(issue.assignee.name)}
                 </AvatarFallback>

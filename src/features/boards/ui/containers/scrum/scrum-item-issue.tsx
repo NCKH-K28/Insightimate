@@ -109,7 +109,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
           className='w-auto border-0 bg-transparent hover:bg-accent'
           fetchQueryOptions={() => ({
             ...getProjectQueryOptions(params),
-            select: ({ types }) => types?.filter((t) => t.hierarchy === 1),
+            select: ({ types }: any) => types?.filter((t: any) => t.hierarchy === 1),
           })}
           disabled={updateIssue.isPending}
           onChange={(option) => option.value && handleUpdate({ typeId: option.value })}

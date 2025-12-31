@@ -7,8 +7,29 @@ import { DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { Prisma } from '@prisma/client';
 import z from 'zod';
 import { genDataSourceId } from '../../utils/id-generator';
-import { SourceCreateInput, ZSourceListInput } from '@/contracts/agents/agents.input';
 
+type DataSource = {
+  id: string;
+  agentId: string;
+  sourceType: 'PROJECT' | 'FILE';
+  sourceId: string;
+  status: 'PENDING' | 'PROCESSING' | 'READY' | 'FAILED';
+  snapshot?: {
+    label: string;
+    value: string;
+    iconURL?: string;
+    url?: string;
+  };
+};
+type SourceCreateInput = {
+  agentId: string;
+  sourceType: 'PROJECT' | 'FILE';
+  sourceId: string;
+};
+type SourceListInput = {
+  filter?: { q?: string; agentId?: string };
+};
+type SourceListOutput = { data: DataSource[] };
 // ========================== Service Methods ==========================
 export const projectToSource = (project: { id: string; name: string; avatar?: string | null }) => ({
   label: project.name,
@@ -78,8 +99,8 @@ export const ZSourceItem = z.object({
 
 export const ZSourceListOutput = z.object({ data: z.array(ZSourceItem) });
 
-export type SourceListInput = z.infer<typeof ZSourceListInput>;
-export type SourceListOutput = z.infer<typeof ZSourceListOutput>;
+// export type SourceListInput = z.infer<typeof ZSourceListInput>;
+// export type SourceListOutput = z.infer<typeof ZSourceListOutput>;
 
 const listSources = async (
   input: SourceListInput,

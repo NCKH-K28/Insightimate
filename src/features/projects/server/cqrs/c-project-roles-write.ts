@@ -172,7 +172,12 @@ export const writeProjectRoles = async (
         });
 
         // (5.1) DELETE tuples của ROLE (permission, membership template, v.v.)
-        deleteTuples.push(...rolesToDelete.flatMap((role) => buildProjectRoleTuples(role)));
+        deleteTuples.push(
+          ...rolesToDelete.flatMap(
+            (role) =>
+              buildProjectRoleTuples({ ...role, permissions: role.permissions as string[] }), //FIXME
+          ),
+        );
 
         // (5.2) Xóa DB
         await tx.projectRole.deleteMany({ where: { id: { in: ids }, projectId: input.projectId } });

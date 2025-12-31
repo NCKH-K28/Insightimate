@@ -72,6 +72,7 @@ export const importProject = async (
     }));
 
     // --- create project (ID MỚI)
+    const leadId = data.leadId ?? context.actorId;
     await tx.project.create({
       data: {
         id: data.id,
@@ -81,7 +82,7 @@ export const importProject = async (
         name: data.name,
         description: data.description,
         avatar: data.avatar,
-        leadId: data.leadId,
+        leadId,
         createdAt: now,
         updatedAt: now,
         roles: { createMany: { data: _roles } },
@@ -97,7 +98,7 @@ export const importProject = async (
 
     await createDefaultBoard(tx, {
       projectId: data.id,
-      projectLeadId: data.leadId,
+      projectLeadId: leadId,
       inputKey: data.key,
       statuses: data.statuses,
       issues: data.issues,
@@ -106,6 +107,7 @@ export const importProject = async (
     const projectTuples = buildProjectTuples({
       ...data,
       workspaceId,
+      leadId,
       roles: data.roles.map((r) => ({ ...r, projectId: data.id, actors: [] })),
       permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
     });

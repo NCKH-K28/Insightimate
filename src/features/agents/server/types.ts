@@ -16,7 +16,7 @@ export interface AgentTool<TInput = any, TOutput = any> {
 export const ZPlanStep = z.object({
   thought: z.string().describe('Reasoning for this step'),
   toolName: z.string().describe('The tool to call'),
-  toolInput: z.record(z.any()).describe('The arguments for the tool'),
+  toolInput: z.record(z.string(), z.any()).describe('The arguments for the tool'),
 });
 
 export type PlanStep = z.infer<typeof ZPlanStep>;

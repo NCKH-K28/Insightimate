@@ -112,7 +112,7 @@ export const estimateStoryPointsTool: AgentToolDefinition<typeof ZEstimateStoryP
 
     if (input.issueId) {
       try {
-        const issue = await getIssue({ id: input.issueId }, { actorId: context.actorId });
+        const issue: any = await getIssue({ id: input.issueId }, { actorId: context.actorId });
         issueContext = buildIssueContext(issue);
         description = `${issue.summary}\n\n${issue.description || ''}`;
       } catch {

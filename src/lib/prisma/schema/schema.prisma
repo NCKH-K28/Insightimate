@@ -1,7 +1,3 @@
-// pnpm prisma db push --schema=src/lib/prisma/schema --force-reset
-// pnpm prisma migrate dev --name add-pgvector --create-only --schema=src/lib/prisma/schema 
-
-// rest: pnpm prisma migrate dev --schema=src/lib/prisma/schema
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["postgresqlExtensions"]

@@ -18,31 +18,32 @@ interface Trace {
 }
 
 export default function TraceViewerPage() {
-  const params = useParams();
+  const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Params is undefined');
+
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [traces, setTraces] = useState<Trace[]>([]);
 
   async function fetchTraces() {
-    const res = await fetch(`/api/v2/workspaces/${params.workspaceId}/agent/traces`);
-    if (res.ok) {
-      const data = await res.json();
-      setTraces(data);
-    }
+    // const res = await fetch(`/api/v2/workspaces/${params.workspaceId}/agent/traces`);
+    // if (res.ok) {
+    //   const data = await res.json();
+    //   setTraces(data);
+    // }
   }
 
   async function handleRun() {
     if (!input) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/v2/workspaces/${params.workspaceId}/agent/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input }),
-      });
-      if (!res.ok) throw new Error('Failed to run');
+      // const res = await fetch(`/api/v2/workspaces/${params.workspaceId}/agent/run`, {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({ input }),
+      // });
+      // if (!res.ok) throw new Error('Failed to run');
       setInput('');
-      // Give DB a split second to commit
       setTimeout(fetchTraces, 1000);
     } catch (err) {
       console.error(err);

@@ -23,7 +23,10 @@ type User = { id: string; name: string; email: string; avatarURL?: string | null
 // ============================================================================
 
 function IssueTypeIcon({ type, className }: { type: IssueType; className?: string }) {
-  const iconProps = { className: cn('h-4 w-4', className), style: { color: type.color } };
+  const iconProps: React.SVGProps<SVGSVGElement> = {
+    className: cn('h-4 w-4', className),
+    style: { color: type.color ?? undefined },
+  };
 
   switch (type.name.toLowerCase()) {
     case 'story':
@@ -157,10 +160,10 @@ function UserAvatar({
 
   const avatar = (
     <Avatar className={cn(sizeClasses[size], 'border-2 border-white shadow-sm')}>
-      <AvatarImage src={user.avatarURL} alt={user.name} />
+      <AvatarImage src={user.avatarURL ?? undefined} alt={user.name} />
       <AvatarFallback
         className={cn(
-          'bg-gradient-to-br from-blue-500 to-purple-600 text-white',
+          'bg-linear-to-br from-blue-500 to-purple-600 text-white',
           textSizeClasses[size],
         )}
       >
@@ -182,7 +185,7 @@ function UserAvatar({
         <TooltipContent>
           <div className='flex items-center gap-2'>
             <Avatar className='h-6 w-6'>
-              <AvatarImage src={user.avatarURL} alt={user.name} />
+              <AvatarImage src={user.avatarURL ?? undefined} alt={user.name} />
               <AvatarFallback className='text-xs'>
                 {user.name
                   .split(' ')

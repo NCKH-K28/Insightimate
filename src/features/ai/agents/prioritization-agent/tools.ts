@@ -152,7 +152,7 @@ export const analyzeUrgencyTool: AgentToolDefinition<typeof ZAnalyzeUrgencyInput
     'Analyze the urgency of an issue based on deadlines, dependencies, and time criticality.',
   inputSchema: ZAnalyzeUrgencyInput,
   execute: async (input, context) => {
-    const issue = await getIssue({ id: input.issueId }, { actorId: context.actorId });
+    const issue: any = await getIssue({ id: input.issueId }, { actorId: context.actorId });
     const issueContext = buildIssueContext(issue);
 
     const result = await llmAnalyze({
@@ -184,7 +184,7 @@ export const analyzeImpactTool: AgentToolDefinition<typeof ZAnalyzeImpactInput> 
     'Analyze the business impact of an issue including revenue, users, and risk reduction.',
   inputSchema: ZAnalyzeImpactInput,
   execute: async (input, context) => {
-    const issue = await getIssue({ id: input.issueId }, { actorId: context.actorId });
+    const issue: any = await getIssue({ id: input.issueId }, { actorId: context.actorId });
     const issueContext = buildIssueContext(issue);
 
     const result = await llmAnalyze({

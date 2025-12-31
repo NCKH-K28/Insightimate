@@ -26,9 +26,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import SprintSummaryTab from './tabs/summary-tab';
-import { behindScheduleSprintProps } from './mock-data-2';
 import SprintReportsTab from './tabs/reports-tab';
-import { sampleSprintReportsProps } from './mock-data-3';
+import { behindScheduleSprintReportsProps, sampleSprintReportsProps } from './mock-data-3';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import axiosInstance from '@/lib/api/_client';
 import { BoardIssueList, SprintItem } from '@/contracts/boards/boards.query';
@@ -292,7 +291,7 @@ export default function SprintPage() {
             </TabsTrigger>
           </TabsList>
           <TabsContent value='summary' className='flex-1'>
-            <SprintSummaryTab {...behindScheduleSprintProps} sprint={sprint} />
+            <SprintSummaryTab {...behindScheduleSprintReportsProps} sprint={sprint} />
           </TabsContent>
 
           <TabsContent value='board' className='flex-1 flex flex-col overflow-hidden'>

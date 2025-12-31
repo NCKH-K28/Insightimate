@@ -163,7 +163,22 @@ export const IssuesTable = () => {
                           const pkey = form.getValues('key') || '';
                           const currentRows = form.getValues('issues') || [];
                           const iKey = `${pkey}-${currentRows.length + 1}`;
-                          const newRow: RowItem = { id: iKey, key: iKey, summary };
+                          const newRow: RowItem = {
+                            id: iKey,
+                            key: iKey,
+                            summary,
+                            assigneeId: null,
+                            createdAt: new Date().toISOString(),
+                            updatedAt: new Date().toISOString(),
+                            description: null,
+                            dueDate: null,
+                            priorityId: '',
+                            statusId: '',
+                            typeId: '',
+                            reporterId: '',
+                            resolvedAt: null,
+                            startDate: null,
+                          };
                           form.setValue('issues', [...currentRows, newRow]);
                           e.currentTarget.value = '';
                         }

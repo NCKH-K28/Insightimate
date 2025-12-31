@@ -106,16 +106,6 @@ export const issueGenerator = async (
     model: google('gemini-2.5-flash'),
     system: systemPrompt,
     messages: [{ role: 'user', content: input.text }],
-    tools: {
-      getRelatedIssues: tool({
-        name: 'get_related_issues',
-        description: 'Retrieve related issues based on user input',
-        inputSchema: z.object({
-          text: z.string().describe('The user input text for issue generation'),
-        }),
-        execute: (toolInput) => retrieveRelatedIssues(toolInput, context),
-      }),
-    },
     temperature: 0.2,
     stopWhen: stepCountIs(3),
   });

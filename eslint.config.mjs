@@ -37,7 +37,7 @@ export default defineConfig([
     'build/**',
     'next-env.d.ts',
     '.temp',
-    'src/components/tiptap-**/*',
     'src/components/ui/**',
+    'src/components/ai-elements/**',
   ]),
 ]);

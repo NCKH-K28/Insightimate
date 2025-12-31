@@ -1,4 +1,4 @@
-import { ProjectImport } from "@/features/project/model";
+import { ProjectImport } from '@/contracts/projects';
 
 export type FormValues = ProjectImport;
 export type Option = {
@@ -8,4 +8,4 @@ export type Option = {
   color?: string | null;
 };
 
-export type RowItem = ProjectImport["issues"][number];
+export type RowItem = ProjectImport['issues'][number];

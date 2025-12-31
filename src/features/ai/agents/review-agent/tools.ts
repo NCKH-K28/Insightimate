@@ -110,7 +110,7 @@ export const reviewDescriptionTool: AgentToolDefinition<typeof ZReviewDescriptio
     'Review the quality of an issue description for clarity, completeness, and actionability.',
   inputSchema: ZReviewDescriptionInput,
   execute: async (input, context) => {
-    const issue = await getIssue({ id: input.issueId }, { actorId: context.actorId });
+    const issue: any = await getIssue({ id: input.issueId }, { actorId: context.actorId });
     const issueContext = buildIssueContext(issue);
 
     const result = await llmAnalyze({
@@ -141,7 +141,7 @@ export const suggestImprovementsTool: AgentToolDefinition<typeof ZSuggestImprove
   description: 'Suggest improvements for issue summary, description, or acceptance criteria.',
   inputSchema: ZSuggestImprovementsInput,
   execute: async (input, context) => {
-    const issue = await getIssue({ id: input.issueId }, { actorId: context.actorId });
+    const issue: any = await getIssue({ id: input.issueId }, { actorId: context.actorId });
     const issueContext = buildIssueContext(issue);
 
     const focusText = input.focusAreas?.length
