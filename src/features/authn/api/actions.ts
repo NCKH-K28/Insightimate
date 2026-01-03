@@ -6,7 +6,8 @@ export const getMeQueryOptions = () => {
   const authed = isAuthed();
   return queryOptions({
     queryKey: ['me'],
-    queryFn: async () => authApi.getMe({}, {}),
+    queryFn: async () =>
+      authApi.getMe<{ id: string; email: string; name: string; avatar?: string }>({}, {}),
     staleTime: 1000 * 60 * 5,
     enabled: authed,
   });
