@@ -26,7 +26,7 @@ import { BoardColumnSkeleton } from '../BoardColumnSkeleton';
 import { IssueCard } from './issue-card';
 import { BoardColumn } from './board-column';
 import { BoardColumnItem, BoardIssueItem } from '@/contracts/boards/board.query';
-import { useAsyncFn } from 'react-use';
+import { useUpdateEffect } from 'react-use';
 
 type EmptyStateProps = {
   icon: React.ElementType;
@@ -68,7 +68,7 @@ export function BoardView({ columns, items, isLoading }: BoardViewProps) {
   const boardId = items[0]?.boardId || '';
   const moveIssue = useMutation(moveBoardIssueMutationOptions({ boardId }));
 
-  useAsyncFn(async () => {
+  useUpdateEffect(() => {
     if (!activeId) return;
     setTasks(items);
   }, [items, activeId]);

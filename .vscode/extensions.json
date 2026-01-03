@@ -1,3 +1,9 @@
 {
-  "recommendations": ["esbenp.prettier-vscode", "prisma.prisma", "gruntfuggly.todo-tree"]
+  "recommendations": [
+    "esbenp.prettier-vscode",
+    "prisma.prisma",
+    "gruntfuggly.todo-tree",
+    "formulahendry.auto-close-tag",
+    "formulahendry.auto-rename-tag"
+  ]
 }

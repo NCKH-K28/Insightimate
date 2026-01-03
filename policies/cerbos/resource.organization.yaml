@@ -1,0 +1,47 @@
+# yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  importDerivedRoles:
+    - common_derived_roles
+  resource: "organization"
+  rules:
+    # for organization
+    - actions: [read, view]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+        - org_member
+
+    - actions: [update]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+
+    - actions: [delete]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+
+    # for organization.member
+    - actions:
+        - members:manage#member
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+
+    - actions:
+        - members:manage#admin
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+
+    # for organization.project
+    - actions: [projects:create]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin

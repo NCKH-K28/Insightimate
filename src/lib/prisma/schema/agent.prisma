@@ -3,7 +3,7 @@ model AIAgent {
   name          String
   description   String?
   ownerId       String   @map("owner_id")
-  workspaceId   String   @map("workspace_id")
+  orgId         String   @map("org_id")
   tags          String[] @default([])
   model         String?
   instructions  String?

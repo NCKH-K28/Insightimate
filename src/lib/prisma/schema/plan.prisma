@@ -1,17 +1,17 @@
 // schema/plan.prisma
 
 model Plan {
-  id          String   @id
-  workspaceId String
-  name        String
-  startDate   DateTime
-  endDate     DateTime
+  id             String   @id
+  organizationId String
+  name           String
+  startDate      DateTime
+  endDate        DateTime
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  workspace Workspace  @relation("WorkspacePlans", fields: [workspaceId], references: [id], onDelete: Cascade)
-  scenarios Scenario[] @relation("PlanScenarios")
+  organization Organization @relation("OrganizationPlans", fields: [organizationId], references: [id], onDelete: Cascade)
+  scenarios    Scenario[]   @relation("PlanScenarios")
 
   @@map("plans")
 }

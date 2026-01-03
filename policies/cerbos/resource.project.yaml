@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
+apiVersion: api.cerbos.dev/v1
+resourcePolicy:
+  version: "default"
+  importDerivedRoles:
+    - common_derived_roles
+  resource: "project"
+  rules:
+    - actions: ["read", "list"]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+        - org_member
+        - proj_lead
+        - proj_member
+
+    - actions: ["update", "delete"]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+        - proj_lead
+
+    - actions: ["manage"]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+
+    # - actions:
+    #     - board:view
+    #   effect: EFFECT_ALLOW
+    #   derivedRoles:
+    #     - proj_member
+    #   condition:
+    #     match:
+    #       expr: R.attr.permissions != null && R.attr.permissions.contains('board:view')
+
+  # 'kanban:view',
+  # 'kanban:manage',
+  # 'kanban.column:manage',
+  # 'kanban.issue:manage',
+
+  # 'backlog:view',
+  # 'backlog:manage',
+  # 'backlog.issue:manage',
+  # 'backlog.sprint:manage',
