@@ -14,7 +14,7 @@ export const ZOrgItem = ZOrganization.extend({
 
   // == System Extended Fields ==
   _count: z.object({ members: z.number(), projects: z.number(), teams: z.number() }).optional(),
-  _me: z.object({ role: ZOrgRole, perms: z.string().array() }).optional(),
+  _me: z.object({ role: ZOrgRole, perms: z.string().array().optional() }).optional(),
 });
 export const ZOrgMemberItem = ZOrgMember;
 

@@ -60,34 +60,27 @@ const createOrg = async (input: OrgCreateInput, context: { actorId: string }) =>
 };
 
 const listOrgs = async (input: null, context: { actorId: string }) => {
-  const all = await prisma.organization.findMany({
-    include: { owner: true, members: true },
-  });
-  const orgItems = all.map((org) =>
-    ZOrgItem.parse({ ...org, logo: org.logo ? `/api/avatar/${org.logo}` : null }),
-  );
-  return {
-    data: orgItems,
-    meta: { total: orgItems.length },
-  };
-  //
-  return;
   const accessibleOrgIds = await accessibleOrgs(
     { action: 'can_view' },
     { actorId: context.actorId },
   );
-  const where = { id: { in: accessibleOrgIds } };
 
-  const orgs = await prisma.organization.findMany({
+  if (accessibleOrgIds.length === 0) return { data: [], meta: { total: 0 } };
+
+  const where = { id: { in: accessibleOrgIds } };
+  const all = await prisma.organization.findMany({
     where,
-    include: { owner: true, members: true },
+    include: { owner: true, members: { where: { userId: context.actorId } } },
   });
+
   const total = await prisma.organization.count({ where });
 
-  return {
-    data: orgs.map((org) => ZOrgItem.parse(org)),
-    meta: { total },
-  };
+  const orgItems = all.map((org) => {
+    const role = org.members.length > 0 ? org.members[0].role : null;
+    const logo = org.logo ? `/api/avatar/${org.logo}` : null;
+    return ZOrgItem.parse({ ...org, logo, _me: { role } });
+  });
+  return { data: orgItems, meta: { total } };
 };
 
 export const GET = compose(authenticatedV2, async (req) => {
@@ -98,6 +91,7 @@ export const GET = compose(authenticatedV2, async (req) => {
     const result = await listOrgs(null, { actorId: auth.user.id });
     return NextResponse.json(result);
   } catch (err) {
+    console.error('Error in listing orgs:', err);
     return NextResponse.json({
       error: { message: err instanceof Error ? err.message : 'Unknown error' },
     });

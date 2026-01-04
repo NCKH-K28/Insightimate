@@ -60,13 +60,11 @@ export default function Page() {
 
   return (
     <div className='w-screen h-screen flex flex-col'>
-      <div className='w-full py-4'>
-        <AppHeader />
-      </div>
+      <AppHeader className='container mx-auto px-8 h-14' />
 
       <Separator />
 
-      <div className='p-8 size-full max-w-7xl mx-auto h-full overflow-y-auto flex flex-col gap-6'>
+      <div className='container mx-auto p-8 size-full h-full overflow-y-auto flex flex-col gap-6'>
         <Dialog open={createOrgDialogOpen} onOpenChange={setCreateOrgDialogOpen}>
           <DialogContent>
             <DialogHeader>

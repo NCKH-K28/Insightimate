@@ -2,12 +2,12 @@ import { isAuthed } from '@/lib/utils/api';
 import { queryOptions } from '@tanstack/react-query';
 import { authApi } from './http';
 
+type Me = { id: string; email: string; name: string; avatar?: string };
 export const getMeQueryOptions = () => {
   const authed = isAuthed();
   return queryOptions({
     queryKey: ['me'],
-    queryFn: async () =>
-      authApi.getMe<{ id: string; email: string; name: string; avatar?: string }>({}, {}),
+    queryFn: async () => authApi.getMe<Me>({}, {}),
     staleTime: 1000 * 60 * 5,
     enabled: authed,
   });
