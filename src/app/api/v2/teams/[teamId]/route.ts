@@ -1,7 +1,7 @@
 import { ZTeamUpdateInput } from '@/contracts/teams';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { NextResponse } from 'next/server';
 import { teamsService } from '@/features/teams/server/teams.service';
 

@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils'; // assuming you have a cn utility function
+import { cn } from '@/lib/utils';
 
 export interface EditableStorypointsProps {
   defaultValue?: number | null;
@@ -20,7 +20,6 @@ export interface EditableStorypointsProps {
 
 export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
   defaultValue = null,
-  value,
   onChange,
   onBlur,
   className,
@@ -29,16 +28,26 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
   max,
   step = 0.1,
   placeholder = '-',
+  ...props
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [inputValue, setInputValue] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Determine if component is controlled or uncontrolled
-  const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState<number | null>(defaultValue);
+  const uncontrolled = useMemo(() => props.value === undefined, [props.value]);
+  const [internalV, setInternalV] = useState<number | null>(defaultValue);
 
-  const currentValue = isControlled ? value : internalValue;
+  const value = useMemo(() => {
+    return uncontrolled ? internalV : props.value;
+  }, [uncontrolled, internalV, props.value]);
+
+  const setValue = useCallback(
+    (val: number | null) => {
+      if (uncontrolled) setInternalV(val);
+      else onChange?.(val);
+    },
+    [uncontrolled, onChange],
+  );
 
   const validateAndParseValue = useCallback(
     (input: string): number | null => {
@@ -61,18 +70,8 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
     if (disabled) return;
 
     setIsEditing(true);
-    setInputValue(currentValue?.toString() ?? '');
-  }, [disabled, currentValue]);
-
-  const commitValue = useCallback(
-    (newValue: number | null) => {
-      if (!isControlled) {
-        setInternalValue(newValue);
-      }
-      onChange?.(newValue);
-    },
-    [isControlled, onChange],
-  );
+    setInputValue(value?.toString() ?? '');
+  }, [disabled, value]);
 
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,9 +80,9 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
 
       // Real-time validation and onChange
       const validatedValue = validateAndParseValue(rawValue);
-      commitValue(validatedValue);
+      setValue(validatedValue);
     },
-    [validateAndParseValue, commitValue],
+    [validateAndParseValue, setValue],
   );
 
   const handleFinishEditing = useCallback(
@@ -92,14 +91,13 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
 
       if (shouldCommit) {
         const finalValue = validateAndParseValue(inputValue);
-        commitValue(finalValue);
+        setValue(finalValue);
         onBlur?.(finalValue);
       } else {
-        // Reset to current value on escape
-        setInputValue(currentValue?.toString() ?? '');
+        setInputValue(value?.toString() ?? '');
       }
     },
-    [inputValue, validateAndParseValue, commitValue, onBlur, currentValue],
+    [inputValue, validateAndParseValue, setValue, onBlur, value],
   );
 
   const handleInputBlur = useCallback(() => {
@@ -124,7 +122,7 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
             const newValue = currentNum + step;
             const validatedValue = validateAndParseValue(newValue.toString());
             setInputValue(validatedValue?.toString() ?? '');
-            commitValue(validatedValue);
+            setValue(validatedValue);
           }
           break;
         case 'ArrowDown':
@@ -134,12 +132,12 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
             const newValue = Math.max(min, currentNum - step);
             const validatedValue = validateAndParseValue(newValue.toString());
             setInputValue(validatedValue?.toString() ?? '');
-            commitValue(validatedValue);
+            setValue(validatedValue);
           }
           break;
       }
     },
-    [handleFinishEditing, step, min, validateAndParseValue, commitValue],
+    [handleFinishEditing, step, min, validateAndParseValue, setValue],
   );
 
   // Auto-focus input when editing starts
@@ -150,14 +148,7 @@ export const EditableStorypoints: React.FC<EditableStorypointsProps> = ({
     }
   }, [isEditing]);
 
-  // Sync with external value changes
-  useEffect(() => {
-    if (isControlled && !isEditing) {
-      setInternalValue(value);
-    }
-  }, [value, isControlled, isEditing]);
-
-  const displayValue = currentValue ?? placeholder;
+  const displayValue = value?.toString() ?? placeholder;
   const badgeClasses = cn(
     'min-h-6 min-w-8 cursor-pointer transition-colors',
     'hover:bg-accent hover:text-accent-foreground',

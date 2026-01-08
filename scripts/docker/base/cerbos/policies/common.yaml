@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
+apiVersion: api.cerbos.dev/v1
+description: Common derived roles for workspace and project management
+derivedRoles:
+  name: common_derived_roles
+  definitions:
+    - name: ws_owner
+      parentRoles: ['*']
+      condition:
+        match:
+          expr: P.id == R.attr.workspace.ownerId || P.id == R.attr.ownerId #FIXME: legacy attr
+
+    - name: ws_admin
+      parentRoles: ['*']
+      condition:
+        match:
+          expr: ('workspace:%s#WS_ADMIN'.format([R.attr.workspaceId])) in P.roles
+
+    - name: ws_member
+      parentRoles: ['*']
+      condition:
+        match:
+          expr: >
+            ("workspace:" + R.attr.workspaceId + "#WS_MEMBER") in P.roles
+
+    - name: proj_lead
+      parentRoles: ['*']
+      condition:
+        match:
+          expr: P.id == R.attr.project.leadId
+
+    - name: proj_member
+      parentRoles: ['*']
+      condition:
+        match:
+          expr: >
+            ("project:" + R.attr.projectId + "#PROJ_MEMBER") in P.roles

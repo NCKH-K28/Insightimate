@@ -1,7 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
-import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
@@ -32,14 +31,16 @@ export const IssueDateSelectors = ({
   popoverClassName,
 }: IssueDateSelectorsProps) => {
   const [open, setOpen] = React.useState(false);
-  const uncontrolled = React.useRef(!value && !!defaultValue);
+
+  const uncontrolled = React.useMemo(() => !value && !!defaultValue, [value, defaultValue]);
+
   const [internal, setInternal] = React.useState<DateOption | null>(() =>
-    uncontrolled.current ? defaultValue || null : null,
+    uncontrolled ? defaultValue || null : null,
   );
-  const selected = uncontrolled.current ? internal : value || null;
+  const selected = uncontrolled ? internal : value || null;
 
   const commit = (next: DateOption | null) => {
-    if (uncontrolled.current) setInternal(next);
+    if (uncontrolled) setInternal(next);
     onChange?.(next);
   };
 

@@ -9,16 +9,14 @@ import {
   buildProjectRoleTuples,
   buildProjectActorTuples,
 } from '@/features/authz/api/tuple-factory';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { prisma } from '@/lib/prisma';
 import { TupleKey } from '@openfga/sdk';
-import { createId } from '@paralleldrive/cuid2';
-
-const genProjectRoleId = () => `role_${createId()}`;
+import { genProjectRoleId } from '../../configs/id-generators';
 
 export const writeProjectRoles = async (
   input: ProjectRoleWriteInput & { projectId: string },
-  ctx: { actorId: string },
+  _ctx: { actorId: string },
 ) => {
   // build trươc khi tạo transaction, đảm bao unique
   const createInputs = structuredClone(input.create || []);
@@ -69,8 +67,8 @@ export const writeProjectRoles = async (
       ZProjectRole.parse({
         ...c,
         projectId: input.projectId,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }),
     )
     .forEach((c) => willCreates.push(c));
@@ -88,7 +86,7 @@ export const writeProjectRoles = async (
 
   updateInputs
     .filter((u) => !deleteIds.has(u.id))
-    .map((u) => ZProjectRoleUpdateInput.parse({ ...u, updatedAt: new Date().toISOString() }))
+    .map((u) => ZProjectRoleUpdateInput.parse({ ...u, updatedAt: new Date() }))
     .forEach((u) => willUpdates.push(u));
 
   const existingRoleIds = new Set<string>([
@@ -117,9 +115,12 @@ export const writeProjectRoles = async (
 
       // 2. CREATE
       if (willCreates.length > 0) {
-        await tx.projectRole.createMany({ data: willCreates });
+        await tx.projectRole.createMany({ data: willCreates }).then(({ count }) => {
+          if (count !== willCreates.length) throw new Error('Failed to create all project roles.');
+        });
+
         const tuples = willCreates
-          .map((r) => ({ ...r, projectId: input.projectId, actors: [] }))
+          .map((r) => ({ ...r, actors: [] }))
           .flatMap(buildProjectRoleTuples);
 
         writeTuples.push(...tuples);
@@ -171,12 +172,15 @@ export const writeProjectRoles = async (
         });
 
         // (5.1) DELETE tuples của ROLE (permission, membership template, v.v.)
-        deleteTuples.push(...rolesToDelete.flatMap((role) => buildProjectRoleTuples(role)));
+        deleteTuples.push(
+          ...rolesToDelete.flatMap(
+            (role) =>
+              buildProjectRoleTuples({ ...role, permissions: role.permissions as string[] }), //FIXME
+          ),
+        );
 
         // (5.2) Xóa DB
-        await tx.projectRole.deleteMany({
-          where: { id: { in: ids }, projectId: input.projectId },
-        });
+        await tx.projectRole.deleteMany({ where: { id: { in: ids }, projectId: input.projectId } });
       }
 
       const dels = uniq(deleteTuples);

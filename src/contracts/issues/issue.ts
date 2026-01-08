@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { ZProject } from '../projects';
-import { isoDateString, isoString } from '../common';
+import { isoDateString, isoString } from '../_shared';
 
 export const ZIssueField = z.object({
   id: z.string(),
@@ -9,16 +8,14 @@ export const ZIssueField = z.object({
   description: z.string().nullish(),
   iconURL: z.string().nullish(),
   color: z.string().nullish(),
-  projectId: ZProject.shape.id,
+  projectId: z.string(),
 });
 
 export const statusCategoryEnum = ['TODO', 'IN_PROGRESS', 'DONE'] as const;
-export const typeCategoryEnum = ['EPIC', 'STORY', 'TASK', 'BUG', 'SUB_TASK'] as const;
 export const statusCategorySchema = z.enum(statusCategoryEnum);
-export const typeCategorySchema = z.enum(typeCategoryEnum);
 
 export const ZIssueStatus = ZIssueField.extend({ category: statusCategorySchema });
-export const ZIssueType = ZIssueField.extend({ category: typeCategorySchema });
+export const ZIssueType = ZIssueField.extend({ hierarchy: z.number() });
 export const ZIssuePriority = ZIssueField;
 export const ZIssueResolution = ZIssueField;
 
@@ -28,7 +25,7 @@ export const ZIssue = z.object({
   key: z.string(),
   summary: z.string(),
   description: z.string().nullable(),
-  projectId: ZProject.shape.id,
+  projectId: z.string(),
   parentId: z.string().nullish(),
   typeId: ZIssueType.shape.id,
   statusId: ZIssueStatus.shape.id,

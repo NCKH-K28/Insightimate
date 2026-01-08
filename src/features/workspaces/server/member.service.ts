@@ -1,12 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { Prisma } from '@prisma/client';
 import { executeTransaction, prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
 import { buildWorkspaceMemberTuples } from '@/features/authz/api/tuple-factory';
-import { openfgaClient } from '@/lib/authz/openfga';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { inviteService } from '@/features/authz/server';
 import sortBy from 'lodash/sortBy';
 import { WORKSPACE_MEMBER_ACTIONS, ZWsMemberList } from '@/contracts/workspaces';
-import { checkResourcesMapped } from '@/lib/authz/cerbos';
+import { checkResourcesMapped } from '@/lib/auth/authz/cerbos';
 import { loadPrincipal, workspaceMemberResourceFactory } from '@/features/authz/server/pip';
 
 const memberCuid = init({ length: 10 });
@@ -50,6 +52,8 @@ const listMembers = async (params: MemberQueryParams, context: MemberServiceCont
 
   // === With permissions
   if (!params.include?.permissions) return { data: ZWsMemberList.parse(sortedMembers) };
+  if (sortedMembers.length === 0) return { data: ZWsMemberList.parse(sortedMembers) };
+
   const resources = sortedMembers.map(workspaceMemberResourceFactory);
   const principal = await loadPrincipal(context, {}, resources);
   const actions = Array.from(WORKSPACE_MEMBER_ACTIONS);
@@ -62,7 +66,7 @@ const listMembers = async (params: MemberQueryParams, context: MemberServiceCont
   const parsed = ZWsMemberList.parse(data);
   return { data: parsed };
 };
-const createMember = async (input: MemberCreateInput, context: MemberServiceContext) => {
+const createMember = async (input: MemberCreateInput) => {
   return executeTransaction(prisma, async (tx) => {
     const member = await tx.workspaceMember.create({
       data: { ...input, id: genMemberId() },
@@ -94,7 +98,7 @@ const createMembers = async (
     return members;
   });
 };
-const updateMember = async (input: MemberUpdateInput, context: MemberServiceContext) => {
+const updateMember = async (input: MemberUpdateInput) => {
   return executeTransaction(prisma, async (tx) => {
     const member = await tx.workspaceMember.findUnique({ where: { id: input.memberId } });
     if (!member) throw new Error('Member not found');
@@ -171,7 +175,7 @@ const inviteMembers = async (
       // Gửi invite
       await inviteService.inviteUsers(
         {
-          emails: toInviteUsers.map((u) => u.email),
+          invitees: toInviteUsers.map((u) => u.email),
           resourceType: 'WORKSPACE',
           resourceId: workspaceId,
           roleId: role,

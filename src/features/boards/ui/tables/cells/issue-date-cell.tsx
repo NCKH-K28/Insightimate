@@ -1,4 +1,4 @@
-import { BoardIssueList } from '@/contracts/boards/boards.query';
+import { BoardIssueList } from '@/contracts/boards/board.query';
 import { ColumnDef } from '@tanstack/react-table';
 import { format } from 'date-fns';
 import { IssueDateSelectors } from '../../selectors/issue-date-selectors';

@@ -1,0 +1,35 @@
+# yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
+apiVersion: api.cerbos.dev/v1
+description: Common derived roles for organization and project management
+derivedRoles:
+  name: common_derived_roles
+  definitions:
+    - name: org_owner
+      parentRoles: ["*"]
+      condition:
+        match:
+          expr: P.id == R.attr.organization.ownerId || P.id == R.attr.ownerId #FIXME: legacy attr
+    - name: org_admin
+      parentRoles: ["*"]
+      condition:
+        match:
+          expr: ('organization:%s#ORG_ADMIN'.format([R.attr.orgId])) in P.roles
+    - name: org_member
+      parentRoles: ["*"]
+      condition:
+        match:
+          expr: >
+            ("organization:" + R.attr.orgId + "#ORG_MEMBER") in P.roles
+
+    - name: proj_lead
+      parentRoles: ["*"]
+      condition:
+        match:
+          expr: P.id == R.attr.project.leadId
+
+    - name: proj_member
+      parentRoles: ["*"]
+      condition:
+        match:
+          expr: >
+            ("project:" + R.attr.projectId + "#PROJ_MEMBER") in P.roles

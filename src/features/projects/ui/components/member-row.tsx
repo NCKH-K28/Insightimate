@@ -1,4 +1,3 @@
-// app/components/member-row.tsx
 'use client';
 
 import * as React from 'react';
@@ -135,7 +134,9 @@ export default function MemberRow({
                 </Select>
               </div>
             </TooltipTrigger>
-            <TooltipContent sideOffset={8}>Change {actor.name.split(' ')[0]}'s role</TooltipContent>
+            <TooltipContent sideOffset={8}>
+              Change {actor.name.split(' ')[0]}&apos;s role
+            </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>

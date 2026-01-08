@@ -6,30 +6,17 @@ import {
   WorkspaceMember,
   WORKSPACE_ACTIONS,
   ZWorkspaceItem,
-  WORKSPACE_MEMBER_ACTIONS,
-  WsMemberAddInput,
   WorkspaceActionKey,
-  ZWsMemberList,
+  WorkspaceUpdateInput,
 } from '@/contracts/workspaces';
 import { prisma } from '@/lib/prisma';
 import { init } from '@paralleldrive/cuid2';
-import { openfgaClient } from '@/lib/authz/openfga';
-import { cerbosEdge, checkResourcesMapped, mapCerbosActionsToBooleans } from '@/lib/authz/cerbos';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { cerbosEdge, mapCerbosActionsToBooleans } from '@/lib/auth/authz/cerbos';
 import get from 'lodash/get';
-import {
-  WorkspacePermissionError,
-  WorkspaceNotFoundError,
-  WorkspaceError,
-} from '@/lib/http/errors';
-import {
-  loadPrincipal,
-  workspaceMemberResourceFactory,
-  workspaceResourceFactory,
-} from '@/features/authz/server/pip';
-import {
-  buildWorkspaceTuples,
-  buildWorkspaceMemberTuples,
-} from '@/features/authz/api/tuple-factory';
+import { WorkspacePermissionError, WorkspaceNotFoundError } from '@/lib/http/errors';
+import { loadPrincipal, workspaceResourceFactory } from '@/features/authz/server/pip';
+import { buildWorkspaceTuples } from '@/features/authz/api/tuple-factory';
 
 // =============================== Utilities
 const genWorkspaceCuid = init({ length: 10, fingerprint: 'workspace' });
@@ -87,7 +74,7 @@ const getWorkspaceById = async (
 ) => {
   const include = { permissions: false, ...options?.include };
 
-  const ws = await prisma.workspace.findUnique({ where: { id } });
+  const ws = await prisma.workspace.findUnique({ where: { id }, include: { owner: true } });
   if (!ws) throw new WorkspaceNotFoundError();
 
   await ensureCanViewWorkspace(id, context.actorId);
@@ -142,6 +129,33 @@ const createWorkspace = async (input: WorkspaceCreateInput, context: WorkspaceSe
   return workspace;
 };
 
+const updateWorkspaceById = async (
+  id: string,
+  input: Partial<WorkspaceUpdateInput>,
+  context: WorkspaceServiceContext,
+  options?: { include?: { permissions?: boolean } },
+) => {
+  const workspace = await getWorkspaceById(id, context, { include: { permissions: true } });
+  if (!isWorkspaceActionAllowed('update', workspace.permissions)) {
+    throw new WorkspacePermissionError();
+  }
+
+  const updatedWorkspace = await prisma.workspace.update({
+    where: { id },
+    data: { ...input, updatedAt: new Date() },
+  });
+
+  if (!options?.include?.permissions) return ZWorkspaceItem.parse(updatedWorkspace);
+  const resource = workspaceResourceFactory(updatedWorkspace);
+  const principal = await loadPrincipal(context, { workspaceId: id });
+
+  const actions = Array.from(WORKSPACE_ACTIONS);
+  const check = await cerbosEdge.checkResource({ principal, resource, actions });
+
+  const permissions = mapCerbosActionsToBooleans(check.actions);
+  return ZWorkspaceItem.parse({ ...updatedWorkspace, permissions });
+};
+
 const archiveWorkspace = async (id: string, context: WorkspaceServiceContext) => {
   const workspace = await getWorkspaceById(id, context, { include: { permissions: true } });
   if (!isWorkspaceActionAllowed('delete', workspace.permissions)) {
@@ -173,6 +187,7 @@ const deleteWorkspace = async (id: string, context: WorkspaceServiceContext) => 
 export const workspaceService = {
   getById: getWorkspaceById,
   list: listWorkspacesOfUser,
+  updateById: updateWorkspaceById,
   create: createWorkspace,
   archive: archiveWorkspace,
   restore: restoreWorkspace,

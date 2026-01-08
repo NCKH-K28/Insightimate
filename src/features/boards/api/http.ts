@@ -1,13 +1,18 @@
-import { ZBoardIssueList, ZBoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import {
+  ZBoardIssueItem,
+  ZBoardIssueList,
+  ZBoardIssueQueryParams,
+  ZBoardItem,
+} from '@/contracts/boards/board.query';
 import {
   ZBoardIssueCreateInput,
   ZBoardIssueMoveInput,
   ZBoardIssueRankUpdate,
   ZBoardIssueUpdateInput,
-} from '@/contracts/boards/boards.input';
+} from '@/contracts/boards/board.input';
 import z from 'zod';
 import { ConfigTree, buildApi } from '@/lib/api/_buildapi';
-import { ZIssueFacets } from '@/contracts/issues/issues.query';
+import { ZIssueFacets } from '@/contracts/issues';
 
 // ========== URL FACTORY ==========
 const BoardListURL = 'v2/boards' as const;
@@ -17,7 +22,7 @@ const IssueItemURL = `${IssueListURL}/{issueId}` as const;
 
 const issueApiConfig = {
   create: { path: IssueListURL, method: 'post', schemas: { body: ZBoardIssueCreateInput } },
-  get: { path: IssueItemURL, method: 'get', schemas: { response: z.any() } },
+  get: { path: IssueItemURL, method: 'get', schemas: { response: ZBoardIssueItem } },
   list: {
     path: IssueListURL,
     method: 'get',
@@ -71,7 +76,7 @@ const sprintApiConfig = {
 
 export const boardApi = buildApi({
   list: { path: BoardListURL, method: 'get' },
-  get: { path: BoardItemURL, method: 'get', schemas: { response: z.any() } },
+  get: { path: BoardItemURL, method: 'get', schemas: { response: ZBoardItem } },
   update: { path: BoardItemURL, method: 'patch', schemas: { response: z.any(), body: z.any() } },
   delete: { path: BoardItemURL, method: 'delete', schemas: { response: z.any() } },
 

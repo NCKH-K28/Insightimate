@@ -33,6 +33,7 @@ export const TeamsSelector = ({
   className,
 }: TeamsSelectorProps) => {
   const pathname = usePathname();
+  if (!pathname) throw new Error('Missing pathname');
 
   const teamsPath = useMemo(() => {
     const pathParts = pathname.split('/');

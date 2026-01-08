@@ -1,51 +1,3 @@
-// import axiosInstance, { buildURL } from './_client';
-
-// import {
-//   Project,
-//   ProjectCreateInput,
-//   ProjectUpdateInput,
-//   ProjectQueryParams,
-//   ProjectList,
-// } from '@/lib/schemas/project';
-// import { projectMemberApi } from './project-member';
-// import { projectPermissionApi } from './project-permission';
-// import { issuePriorityApi } from './issue-priority';
-// import { issueStatusApi } from './issue-status';
-// import { issueTypeApi } from './issue-type';
-
-// const ProjectURLs = {
-//   get: 'projects/{projectId}',
-//   list: 'projects',
-//   create: 'projects',
-//   delete: 'projects/{projectId}',
-//   update: 'projects/{projectId}',
-// };
-
-// export const projectApi = {
-//   get: (ctx: { projectId: string }) => {
-//     return axiosInstance.get<Project>(buildURL(ProjectURLs.get, ctx));
-//   },
-//   list: (params?: ProjectQueryParams) => {
-//     return axiosInstance.get<ProjectList>(ProjectURLs.list, { params });
-//   },
-//   create: (data: ProjectCreateInput) => {
-//     return axiosInstance.post<Project>(ProjectURLs.create, data);
-//   },
-//   delete: (ctx: { projectId: string }) => {
-//     return axiosInstance.delete<void>(buildURL(ProjectURLs.delete, ctx));
-//   },
-//   update: (ctx: { projectId: string }, data: ProjectUpdateInput) => {
-//     return axiosInstance.patch<Project>(buildURL(ProjectURLs.update, ctx), data);
-//   },
-
-//   member: projectMemberApi,
-//   permission: projectPermissionApi,
-//   issueStatus: issueStatusApi,
-//   issuePriority: issuePriorityApi,
-//   issueType: issueTypeApi,
-// };
-
-// export default projectApi;
 import {
   ProjectActorAddInput,
   ProjectCreateInput,
@@ -59,6 +11,7 @@ import {
   ProjectRole,
 } from '@/contracts/projects';
 import { PathParams, baseApi } from '@/lib/api/_client';
+import { type ProjectListOutput, type ProjectListInput } from '../server/cqrs/search-projects'; // FIXME: remove circular dependency
 
 const BasePrj = `v2/projects` as const;
 const PrjItem = `${BasePrj}/{projectId}` as const;
@@ -71,6 +24,7 @@ export type PrjIssueCtx = PathParams<typeof PrjIssueItem>;
 
 const PrjEndpoints = {
   list: BasePrj,
+  recent: `${BasePrj}/recent`,
   create: BasePrj,
   get: PrjItem,
   delete: PrjItem,
@@ -114,16 +68,30 @@ const PrjEndpoints = {
     update: `${PrjItem}/actors/{actorId}` as const,
   },
 
+  issueStatuses: {
+    list: `${PrjItem}/issue-statuses`,
+    create: `${PrjItem}/issue-statuses`,
+    delete: `${PrjItem}/issue-statuses`,
+  },
+
   fields: {
-    statuses: `${PrjItem}/fields/statuses`,
+    statuses: `${PrjItem}/issue-statuses`, // Updated to use new endpoint
     priorities: `${PrjItem}/fields/priorities`,
     types: `${PrjItem}/fields/types`,
+  },
+  summary: {
+    get: `${PrjItem}/summary`,
   },
 } as const;
 
 export const projectApi = {
+  search: (input?: ProjectListInput) => {
+    const url = `v2/projects/search`;
+    return baseApi.get<ProjectListOutput>(url, undefined, { params: input });
+  },
   list: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectListRes>(PrjEndpoints.list, undefined, { params }),
+  recent: () => baseApi.get<{ data: any[] }>(PrjEndpoints.recent),
   create: (data: ProjectCreateInput) => baseApi.post<ProjectItem>(PrjEndpoints.create, data),
   getFacets: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectFacets>(PrjEndpoints.getFacets, undefined, { params }),
@@ -174,9 +142,18 @@ export const projectApi = {
       baseApi.put(PrjEndpoints.actors.update, data, ctx),
   },
 
+  issueStatuses: {
+    list: (ctx: PrjCtx) =>
+      baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.issueStatuses.list, ctx),
+    create: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.issueStatuses.create, data, ctx),
+    delete: (ctx: PrjCtx, statusId: string) =>
+      baseApi.delete(`${PrjEndpoints.issueStatuses.delete}?statusId=${statusId}`, ctx),
+  },
+
   fields: {
     statuses: {
-      list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.statuses, ctx),
+      list: (ctx: PrjCtx) =>
+        baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.fields.statuses, ctx),
     },
     priorities: {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.priorities, ctx),
@@ -185,4 +162,6 @@ export const projectApi = {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.types, ctx),
     },
   },
+
+  summary: { get: (ctx: PrjCtx) => baseApi.get<any>(PrjEndpoints.summary.get, ctx) },
 };

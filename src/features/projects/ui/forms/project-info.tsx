@@ -2,11 +2,11 @@
 
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
-import { useForm } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { ProjectIconSelect } from './project-icon-selecte';
-import { ProjectCreateInput } from '@/contracts/projects';
+// import { useForm } from 'react-hook-form';
+// import { ProjectCreateInput } from '@/contracts/projects';
 
 function genKeyFromName(name: string): string {
   if (name.length === 0) return '';
@@ -25,7 +25,7 @@ function genKeyFromName(name: string): string {
 }
 
 type ProjectInfoProps = {
-  form: ReturnType<typeof useForm<ProjectCreateInput>>;
+  form: any; // FIXME: useForm<ProjectCreateInput>;
   disableds?: { name?: boolean; key?: boolean; description?: boolean; avatar?: boolean };
 };
 
@@ -43,9 +43,7 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
               <ProjectIconSelect
                 disabled={field.disabled}
                 value={field.value}
-                onValueChange={(val) => {
-                  field.onChange(val, { shouldTouch: true, shouldValidate: true });
-                }}
+                onValueChange={(val) => field.onChange(val, { shouldDirty: true })}
               />
             </FormControl>
           </FormItem>
@@ -71,8 +69,9 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
                 <Input
                   placeholder='Enter project name'
                   className='h-10 sm:h-11'
+                  autoComplete={`project.${field.name}`}
                   {...field}
-                  onBlur={(e) => {
+                  onBlur={() => {
                     field.onBlur();
 
                     // ====
@@ -101,7 +100,13 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
                 Project Key <span className='text-red-500'>*</span>
               </FormLabel>
               <FormControl>
-                <Input placeholder='Key' className='h-10 sm:h-11' maxLength={10} {...field} />
+                <Input
+                  placeholder='Key'
+                  className='h-10 sm:h-11'
+                  maxLength={10}
+                  {...field}
+                  autoComplete={`project.${field.name}`}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -120,6 +125,7 @@ export const ProjectInfo = (props: ProjectInfoProps) => {
               <Textarea
                 placeholder='Enter project description'
                 className='max-h-24 resize-none'
+                autoComplete={`project.${field.name}`}
                 {...field}
                 value={field.value || ''}
                 onChange={(e) => field.onChange(e.target.value)}

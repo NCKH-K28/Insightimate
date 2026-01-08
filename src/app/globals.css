@@ -1,5 +1,8 @@
+@import '../styles/_variables.scss';
+@import '../styles/_keyframe-animations.scss';
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@plugin "@tailwindcss/typography";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -45,71 +48,115 @@
 
 :root {
   --radius: 0.625rem;
+
+  /* ===== Brand (từ logo + ảnh) ===== */
+  --brand-teal: oklch(0.6779 0.1102 197.9); /* ~ #1EACB0 */
+  --brand-navy: oklch(0.2889 0.0734 260.2); /* ~ #142A4F */
+
+  /* ===== Core surfaces ===== */
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: var(--brand-navy);
+
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: var(--brand-navy);
+
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --popover-foreground: var(--brand-navy);
+
+  /* ===== Primary (đậm hơn teal ảnh để đẹp + chữ trắng đủ tương phản) ===== */
+  --primary: oklch(0.555 0.094 197.9); /* ~ #028387 */
+  --primary-foreground: oklch(0.985 0 0); /* trắng */
+
+  /* ===== Neutrals (hơi ngả teal rất nhẹ để “đúng brand” nhưng vẫn sạch) ===== */
+  --secondary: oklch(0.97 0.01 197.9); /* ~ #EEF7F7 */
+  --secondary-foreground: var(--brand-navy);
+
+  --muted: oklch(0.97 0.004 197.9); /* ~ #F2F6F6 */
+  --muted-foreground: oklch(0.55 0.02 260.2); /* ~ #6B727E */
+
+  --accent: oklch(0.95 0.02 197.9); /* ~ #E0F3F3 */
+  --accent-foreground: var(--brand-navy);
+
+  /* ===== System ===== */
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
+
+  --border: oklch(0.92 0.008 197.9); /* ~ #DFE6E6 */
+  --input: oklch(0.92 0.008 197.9);
+  --ring: var(--brand-teal);
+
+  /* ===== Charts (bám teal + navy, còn lại giữ tương phản tốt) ===== */
+  --chart-1: var(--brand-teal);
+  --chart-2: oklch(0.55 0.09 260.2); /* xanh navy sáng hơn cho chart */
+  --chart-3: oklch(0.78 0.14 84);
+  --chart-4: oklch(0.62 0.2 302);
+  --chart-5: oklch(0.7 0.18 16);
+
+  /* ===== Sidebar ===== */
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-foreground: var(--brand-navy);
+
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--brand-navy);
+
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--brand-teal);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  /* Brand vẫn giữ */
+  --brand-teal: oklch(0.6779 0.1102 197.9);
+  --brand-navy: oklch(0.2889 0.0734 260.2);
+
+  /* Deep navy background cho “đúng mood” */
+  --background: oklch(0.18 0.03 260.2); /* ~ #0A121F */
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
+
+  --card: oklch(0.22 0.03 260.2); /* ~ #121B29 */
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
+
+  --popover: oklch(0.22 0.03 260.2);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+
+  /* Primary vẫn teal đậm + chữ trắng (đồng bộ với light) */
+  --primary: oklch(0.555 0.094 197.9);
+  --primary-foreground: oklch(0.985 0 0);
+
+  --secondary: oklch(0.26 0.02 260.2); /* ~ #1E242E */
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+
+  --muted: oklch(0.26 0.01 260.2);
+  --muted-foreground: oklch(0.72 0.02 260.2); /* ~ #9DA5B1 */
+
+  /* Accent: nền hover tối ngả teal */
+  --accent: oklch(0.28 0.03 197.9); /* ~ #162D2E */
   --accent-foreground: oklch(0.985 0 0);
+
   --destructive: oklch(0.704 0.191 22.216);
+
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+  --ring: var(--brand-teal);
+
+  --chart-1: var(--brand-teal);
+  --chart-2: oklch(0.68 0.06 260.2);
+  --chart-3: oklch(0.78 0.14 84);
+  --chart-4: oklch(0.7 0.16 302);
+  --chart-5: oklch(0.72 0.16 16);
+
+  --sidebar: oklch(0.2 0.03 260.2);
   --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
+
+  --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+
+  --sidebar-accent: oklch(0.26 0.02 260.2);
   --sidebar-accent-foreground: oklch(0.985 0 0);
+
   --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --sidebar-ring: var(--brand-teal);
 }
 
 @layer base {

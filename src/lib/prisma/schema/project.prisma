@@ -1,79 +1,77 @@
-// prisma/schema/project.prisma
-// Project related schema
-
 enum ProjectType {
-    SOFTWARE
+  SOFTWARE
 }
 
 model Project {
-    id          String      @id
-    workspaceId String
-    leadId      String
-    key         String
-    name        String
-    type        ProjectType
-    description String?
-    avatar      String?
+  id          String      @id @default(cuid())
+  orgId       String      @map("organization_id")
+  leadId      String      @map("lead_id")
+  key         String
+  name        String
+  type        ProjectType @default(SOFTWARE)
+  description String?
+  avatar      String?
 
-    // === internal ===
-    issueCounter  Int @default(0)
-    sprintCounter Int @default(0)
-    // ===
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  // === internal ===
+  issueCounter  Int @default(0) @map("issue_counter")
+  sprintCounter Int @default(0) @map("sprint_counter")
+  // ================
 
-    // Relations
-    workspace Workspace      @relation("WorkspaceProjects", fields: [workspaceId], references: [id], onDelete: Cascade)
-    lead      User           @relation("ProjectLead", fields: [leadId], references: [id], onDelete: Cascade)
-    roles     ProjectRole[]  @relation("ProjectRoles")
-    actors    ProjectActor[] @relation("ProjectActors")
+  organization Organization @relation("OrganizationProjects", fields: [orgId], references: [id], onDelete: Cascade)
+  lead         User         @relation("ProjectLead", fields: [leadId], references: [id], onDelete: Restrict)
 
-    issues      Issue[]           @relation("ProjectIssues")
-    statuses    IssueStatus[]     @relation("ProjectIssueStatus")
-    types       IssueType[]       @relation("ProjectIssueType")
-    resolutions IssueResolution[] @relation("ProjectIssueResolution")
-    priorities  IssuePriority[]   @relation("ProjectIssuePriority")
-    board       Board?            @relation("ProjectBoard")
+  roles  ProjectRole[]  @relation("ProjectRoles")
+  actors ProjectActor[] @relation("ProjectToActors")
 
-    @@unique([workspaceId, key])
-    @@map("projects")
+  issues      Issue[]           @relation("ProjectIssues")
+  statuses    IssueStatus[]     @relation("ProjectIssueStatus")
+  types       IssueType[]       @relation("ProjectIssueType")
+  resolutions IssueResolution[] @relation("ProjectIssueResolution")
+  priorities  IssuePriority[]   @relation("ProjectIssuePriority")
+  board       Board?            @relation("ProjectBoard")
+
+  @@unique([orgId, key])
+  @@index([orgId])
+  @@map("projects")
 }
 
 model ProjectRole {
-    id          String  @id
-    name        String
-    description String?
-    permissions Json
+  id          String   @id @default(cuid())
+  projectId   String   @map("project_id")
+  name        String
+  description String?
+  permissions String[] @default([])
 
-    projectId String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  project Project        @relation("ProjectRoles", fields: [projectId], references: [id], onDelete: Cascade)
+  actors  ProjectActor[] @relation("RoleToActors")
 
-    project Project        @relation("ProjectRoles", fields: [projectId], references: [id], onDelete: Cascade)
-    actors  ProjectActor[] @relation("ProjectActors")
-
-    @@map("project_roles")
+  @@index([projectId])
+  @@map("project_roles")
 }
 
 enum ActorType {
-    USER
-    TEAM
+  USER
+  TEAM
 }
 
 model ProjectActor {
-    id        String    @id
-    projectId String
-    actorType ActorType
-    actorId   String
-    roleId    String
+  id        String    @id @default(cuid())
+  projectId String    @map("project_id")
+  actorType ActorType @map("actor_type")
+  actorId   String    @map("actor_id")
+  roleId    String    @map("role_id")
 
-    project Project     @relation("ProjectActors", fields: [projectId], references: [id], onDelete: Cascade)
-    role    ProjectRole @relation("ProjectActors", fields: [roleId], references: [id], onDelete: Cascade)
+  project Project     @relation("ProjectToActors", fields: [projectId], references: [id], onDelete: Cascade)
+  role    ProjectRole @relation("RoleToActors", fields: [roleId], references: [id], onDelete: Cascade)
 
-    // user User? @relation("UserProjectActors", fields: [actorId], references: [id], onDelete: Cascade, map: "project_actor_userId_fkey")
-    // team Team? @relation("TeamProjectActors", fields: [actorId], references: [id], onDelete: Cascade, map: "project_actor_teamId_fkey")
-
-    @@map("project_actors")
+  @@unique([projectId, actorType, actorId])
+  @@index([projectId])
+  @@index([roleId])
+  @@map("project_actors")
 }

@@ -4,10 +4,11 @@ import {
   BoardSprintCompleteInput,
   BoardSprintCreateInput,
   BoardSprintUpdateInput,
-} from '@/contracts/boards/boards.input';
+} from '@/contracts/boards/board.input';
 import { validateBoardSprint } from '@/lib/validators';
 import { ZBoardSprint } from '@/contracts/boards/board';
 import { Prisma } from '@prisma/client';
+import { listIssuesWithDescendants, sumStoryPoints } from './q-sprint-summary';
 
 interface SprintContext {
   boardId: string;
@@ -143,8 +144,10 @@ const getIssueAggregations = async (
       },
       _sums: {
         storyPoints: {
-          completed: query.sum?.storyPoints ? completedStats._sum.storyPoints ?? 0 : undefined,
-          incompleted: query.sum?.storyPoints ? incompletedStats._sum.storyPoints ?? 0 : undefined,
+          completed: query.sum?.storyPoints ? (completedStats._sum.storyPoints ?? 0) : undefined,
+          incompleted: query.sum?.storyPoints
+            ? (incompletedStats._sum.storyPoints ?? 0)
+            : undefined,
         },
       },
     },
@@ -226,10 +229,7 @@ export const deleteBoardSprint = async (ctx: SprintContext) => {
     async (tx) => {
       await ensureSprintExists(tx, ctx);
 
-      await tx.boardIssue.deleteMany({
-        where: { sprintId: ctx.sprintId, boardId: ctx.boardId },
-      });
-
+      await tx.boardIssue.deleteMany({ where: { sprintId: ctx.sprintId, boardId: ctx.boardId } });
       await tx.sprint.delete({ where: { id: ctx.sprintId } });
 
       return { success: true };
@@ -249,9 +249,12 @@ export const startBoardSprint = async (ctx: SprintContext) => {
       ensureSprintCanStart(sprint);
       await ensureNoActiveSprint(tx, ctx.boardId);
 
+      const issues = await listIssuesWithDescendants(ctx.sprintId);
+      const committedPoints = sumStoryPoints(issues);
+
       return tx.sprint.update({
         where: { id: ctx.sprintId },
-        data: { state: SPRINT_STATE.ACTIVE },
+        data: { state: SPRINT_STATE.ACTIVE, committedPoints },
       });
     },
     { isolationLevel: 'Serializable' },

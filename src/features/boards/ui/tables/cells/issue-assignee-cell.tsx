@@ -1,13 +1,13 @@
 import React from 'react';
 import { ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
-import { BoardIssueList } from '@/contracts/boards/boards.query';
-import { UserSelectors } from '../../../../users/ui/user-selector';
-import { queryOptions, useMutation } from '@tanstack/react-query';
+import { BoardIssueList } from '@/contracts/boards/board.query';
+import { useMutation } from '@tanstack/react-query';
 import { listProjectMembersQueryOptions } from '@/features/projects/api/actions';
 import { get } from 'lodash';
 import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import { UserMinus } from 'lucide-react';
+import { UserSelectors } from '@/features/users/ui/user-selector';
 
 type IssueItem = BoardIssueList['data'][number];
 type CellType = ColumnDef<IssueItem>['cell'];

@@ -1,114 +1,103 @@
 enum BoardType {
-    SCRUM
-    KANBAN
+  SCRUM
+  KANBAN
 }
 
 model Board {
-    id          String    @id
-    projectId   String    @unique
-    name        String?
-    description String?
-    type        BoardType
-    ownerId     String
+  id          String    @id
+  projectId   String    @unique @map("project_id")
+  name        String?
+  description String?
+  type        BoardType
+  ownerId     String    @map("owner_id")
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    // Relations
-    project Project       @relation("ProjectBoard", fields: [projectId], references: [id], onDelete: Cascade)
-    columns BoardColumn[] @relation("BoardColumns")
-    sprints Sprint[]
-    issues  BoardIssue[]
+  // Relations
+  project Project       @relation("ProjectBoard", fields: [projectId], references: [id], onDelete: Cascade)
+  columns BoardColumn[] @relation("BoardColumns")
+  sprints Sprint[]
+  issues  BoardIssue[]
 
-    @@map("boards")
+  @@map("boards")
 }
 
 model BoardIssue {
-    issueId  String  @id
-    boardId  String
-    sprintId String?
+  issueId  String  @id @map("issue_id")
+  boardId  String  @map("board_id")
+  sprintId String? @map("sprint_id")
 
-    rank Decimal
+  rank Decimal
 
-    board  Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
-    issue  Issue   @relation("IssueBoards", fields: [issueId], references: [id], onDelete: Cascade)
-    sprint Sprint? @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+  board  Board   @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  issue  Issue   @relation("IssueBoards", fields: [issueId], references: [id], onDelete: Cascade)
+  sprint Sprint? @relation(fields: [boardId, sprintId], references: [boardId, id], onDelete: Cascade)
 
-    @@unique([issueId, boardId])
-    @@map("board_issues")
+  @@map("board_issues")
 }
 
 model BoardColumn {
-    id       String @id
-    name     String
-    boardId  String
-    sequence Int    @default(0)
+  id       String @id
+  name     String
+  boardId  String @map("board_id")
+  sequence Int    @default(0)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    // Relations
-    board    Board          @relation("BoardColumns", fields: [boardId], references: [id], onDelete: Cascade)
-    statuses ColumnStatus[]
+  // Relations
+  board    Board          @relation("BoardColumns", fields: [boardId], references: [id], onDelete: Cascade)
+  statuses ColumnStatus[]
 
-    @@unique([boardId, name])
-    @@index([boardId, sequence])
-    @@map("board_columns")
+  @@unique([boardId, name])
+  @@index([boardId, sequence])
+  @@map("board_columns")
 }
 
 model ColumnStatus {
-    columnId String
-    statusId String
+  id       String @id @default(cuid())
+  columnId String @map("column_id")
+  statusId String @map("status_id")
 
-    column BoardColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
-    status IssueStatus @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  column BoardColumn @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  status IssueStatus @relation(fields: [statusId], references: [id], onDelete: Cascade)
 
-    @@unique([columnId, statusId])
-    @@map("column_statuses")
+  @@unique([columnId, statusId])
+  @@map("column_statuses")
 }
 
 enum SprintState {
-    FUTURE // Sprint is planned but not started
-    ACTIVE // Sprint is currently in progress
-    CLOSED // Sprint has been completed
+  FUTURE // Sprint is planned but not started
+  ACTIVE // Sprint is currently in progress
+  CLOSED // Sprint has been completed
 }
 
 model Sprint {
-    id          String      @id
-    sequence    Int         @default(0)
-    name        String
-    goal        String?
-    description String?
-    state       SprintState
-    boardId     String
+  id          String      @id
+  sequence    Int         @default(0)
+  name        String
+  goal        String?
+  description String?
+  state       SprintState
+  boardId     String      @map("board_id")
 
-    // -- Sprint Planning
-    startAt DateTime?
-    endAt   DateTime?
+  // -- Sprint Planning
+  startAt DateTime? @map("start_at")
+  endAt   DateTime? @map("end_at")
 
-    // -- Actual (internal) 
-    startedAt DateTime?
-    endedAt   DateTime?
+  // -- Actual (internal) 
+  startedAt       DateTime? @map("started_at")
+  endedAt         DateTime? @map("ended_at")
+  committedPoints Decimal?  @map("committed_points")
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-    // Relations
-    board       Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
-    issues      SprintIssue[] @relation("SprintIssue")
-    boardIssues BoardIssue[]
+  // Relations
+  board       Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  boardIssues BoardIssue[]
 
-    @@map("sprints")
-}
-
-model SprintIssue {
-    issueId  String @id
-    sprintId String
-
-    rank Decimal?
-
-    issue  Issue  @relation("SprintIssue", fields: [issueId], references: [id], onDelete: Cascade)
-    sprint Sprint @relation("SprintIssue", fields: [sprintId], references: [id], onDelete: Cascade)
-
-    @@map("sprint_issues")
+  @@unique([boardId, id])
+  @@map("sprints")
 }

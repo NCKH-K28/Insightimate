@@ -1,6 +1,9 @@
 // === Custom Errors ===
 export class InviteError extends Error {
-  constructor(message: string, public code: string) {
+  constructor(
+    message: string,
+    public code: string,
+  ) {
     super(message);
     this.name = 'InviteError';
   }

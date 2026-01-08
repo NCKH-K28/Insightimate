@@ -1,0 +1,63 @@
+model Organization {
+    id       String  @id @default(cuid())
+    slug     String  @unique
+    name     String
+    ownerId  String
+    logo     String?
+    settings Json    @db.Json
+
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+    removedAt DateTime? @map("removed_at")
+
+    owner       User            @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+    members     OrgMember[]     @relation("OrganizationMembers")
+    teams       Team[]          @relation("OrganizationTeams")
+    invitations OrgInvitation[] @relation("OrganizationInvitations")
+    plans       Plan[]          @relation("OrganizationPlans")
+    projects    Project[]       @relation("OrganizationProjects")
+
+    @@map("organizations")
+}
+
+enum OrgRole {
+    ORG_OWNER
+    ORG_ADMIN
+    ORG_MEMBER
+}
+
+model OrgMember {
+    orgId     String   @map("org_id")
+    userId    String   @map("user_id")
+    role      OrgRole  @default(ORG_MEMBER)
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    organization Organization @relation("OrganizationMembers", fields: [orgId], references: [id], onDelete: Cascade)
+    user         User         @relation("UserOrgMemberships", fields: [userId], references: [id], onDelete: Cascade)
+
+    @@id([orgId, userId])
+    @@map("org_members")
+}
+
+model OrgInvitation {
+    id    String  @id @default(cuid())
+    orgId String  @map("org_id")
+    email String
+    role  OrgRole @default(ORG_MEMBER)
+
+    token      String    @unique
+    createdAt  DateTime  @default(now()) @map("created_at")
+    expiresAt  DateTime  @map("expires_at")
+    revokedAt  DateTime? @map("revoked_at")
+    acceptedAt DateTime? @map("accepted_at")
+    invitedBy  String?   @map("invited_by")
+    payload    Json?     @db.Json
+
+    organization Organization @relation("OrganizationInvitations", fields: [orgId], references: [id], onDelete: Cascade)
+    inviter      User?        @relation("OrgInvitationsSent", fields: [invitedBy], references: [id], onDelete: SetNull)
+
+    @@index([orgId])
+    @@index([orgId, email])
+    @@map("org_invites")
+}

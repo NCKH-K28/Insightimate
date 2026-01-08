@@ -7,8 +7,8 @@ import { authService } from '@/features/authn/server/service';
 export const POST = apiHandler(async (request) => {
   const body = await request.json();
   const valid = ZSignUpInput.parse(body);
-  const { token, user } = await authService.signUp(valid);
+  const { token, user, href } = await authService.signUp(valid);
   const cookieStore = await cookies();
   cookieStore.set('access_token', token);
-  return NextResponse.json(user, { status: 201 });
+  return NextResponse.json({ user, href }, { status: 201, headers: { Location: href } });
 });

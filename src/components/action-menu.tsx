@@ -227,7 +227,7 @@ export const ActionMenu = <TResource extends string = string, TAction extends st
             }
           }
 
-          const renderedItems = item.items?.map(renderActionItem).filter(Boolean) ?? []
+          const renderedItems = item.items?.map(renderActionItem).filter(Boolean) ?? [];
 
           if (renderedItems.length === 0) return null;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-react';
+import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -18,11 +18,15 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { getMeQueryOptions, signoutMutationOptions } from '@/features/authn/api/actions';
+import { usePathnameRequired } from '@/hooks/next-navigation';
 
 export function NavUser() {
+  const pathname = usePathnameRequired();
+  const params = useParams<{ workspaceId: string }>();
   const router = useRouter();
+  if (!params) throw new Error('Params is undefined');
 
   const { isMobile } = useSidebar();
   const { data: user, isPending } = useQuery(getMeQueryOptions());
@@ -30,9 +34,12 @@ export function NavUser() {
   const logout = useMutation(signoutMutationOptions());
 
   const handleLogout = () => {
-    logout.mutateAsync().then(() => {
-      router.push('/signin');
-    });
+    logout.mutateAsync().then(() => router.push('/signin'));
+  };
+
+  const toProfile = () => {
+    const path = `/user/profile?from=${pathname}`;
+    router.push(path);
   };
 
   if (isPending) return null;
@@ -79,23 +86,16 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
+            <DropdownMenuGroup onClick={toProfile}>
               <DropdownMenuItem>
                 <BadgeCheck />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <CreditCard />
                 Billing
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem disabled>
                 <Bell />
                 Notifications
               </DropdownMenuItem>

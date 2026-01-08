@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Divide, MoreHorizontal, Settings2, Trash2, User } from 'lucide-react';
+import { MoreHorizontal, Settings2, Trash2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { toast } from 'sonner';
 
 export type ProjectActionsProps = {
   projectId: string;
@@ -27,7 +26,6 @@ export function ProjectActions({
   projectId,
   onEdit,
   onDelete,
-  onInvite,
   permissions = { delete: false, invite: false, update: false },
 }: ProjectActionsProps) {
   const handleEdit = React.useCallback(() => {
@@ -38,9 +36,9 @@ export function ProjectActions({
     if (onDelete) onDelete(projectId);
   }, [onDelete, projectId]);
 
-  const handleInvite = React.useCallback(() => {
-    if (onInvite) onInvite(projectId);
-  }, [onInvite, projectId]);
+  // const handleInvite = React.useCallback(() => {
+  //   if (onInvite) onInvite(projectId);
+  // }, [onInvite, projectId]);
 
   const isPermEmpty = React.useMemo(() => {
     const can = Object.values(permissions).filter((v) => v === true);

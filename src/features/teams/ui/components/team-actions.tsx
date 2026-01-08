@@ -1,4 +1,4 @@
-import { EllipsisVertical, LogOut, MoreHorizontal, Trash2, UsersIcon } from 'lucide-react';
+import { EllipsisVertical, LogOut, Trash2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -1,6 +1,5 @@
 'use client';
 
-import { useMemo, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -36,6 +35,7 @@ import { toast } from 'sonner';
 
 export default function InvitePage() {
   const searchParams = useSearchParams();
+  if (!searchParams) throw new Error('Search params are not available');
   const router = useRouter();
 
   const token = searchParams.get('token') || undefined;
@@ -55,9 +55,7 @@ export default function InvitePage() {
         error: 'Failed to Accept Invitation',
       })
       .unwrap()
-      .then((data) => {
-        router.push('/');
-      });
+      .then(() => router.push('/'));
   };
 
   const handleRejectInvite = async () => {
@@ -68,9 +66,7 @@ export default function InvitePage() {
         error: 'Failed to Decline Invitation',
       })
       .unwrap()
-      .then((data) => {
-        router.push('/');
-      });
+      .then(() => router.push('/'));
   };
 
   const getInitials = (name: string | null) => {
@@ -169,7 +165,7 @@ export default function InvitePage() {
             <Building2 className='h-6 w-6 text-primary' />
           </div>
           <CardTitle className='text-2xl'>Workspace Invitation</CardTitle>
-          <CardDescription>You've been invited to join a workspace</CardDescription>
+          <CardDescription>You&apos;ve been invited to join a workspace</CardDescription>
         </CardHeader>
 
         <CardContent className='space-y-6'>

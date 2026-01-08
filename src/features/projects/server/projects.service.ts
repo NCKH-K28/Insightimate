@@ -1,6 +1,6 @@
-// src/lib/services/projects.service.ts
 import {
   PROJECT_ACTIONS,
+  PROJECT_ROLE_PERMISSION_KEYS,
   ProjectCreateInput,
   ProjectUpdateInput,
   ZProject,
@@ -8,21 +8,30 @@ import {
   ZProjectListRes,
 } from '@/contracts/projects';
 import { addSeconds } from 'date-fns';
-import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
-import { templateConfigs } from './cqrs/template';
+import { templateConfigs } from '../configs/template';
 import { prisma } from '@/lib/prisma';
-import { checkResourcesMapped } from '@/lib/authz/cerbos';
-import { openfgaClient } from '@/lib/authz/openfga';
-import { genProjectId } from './cqrs/id-generators';
-import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
+import { checkResourcesMapped } from '@/lib/auth/authz/cerbos';
+import { openfgaClient } from '@/lib/auth/authz/openfga';
 import {
-  projectResourceFactory,
-  loadPrincipal,
-  workspaceResourceFactory,
-  ensureCan,
-} from '@/features/authz/server/pip';
-import { listStatuses } from './cqrs/project-field.service';
+  genBoardId,
+  genColumnId,
+  genProjectActorId,
+  genProjectId,
+  genSprintId,
+} from '../configs/id-generators';
+import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
+import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
+import { listStatuses } from './project-field.service';
+import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';
+import z from 'zod';
+import {
+  genIssuePriorityId,
+  genIssueResolutionId,
+  genIssueStatusId,
+  genIssueTypeId,
+  genProjectRoleId,
+} from '../configs/id-generators';
 
 class ProjectError extends Error {
   constructor(message: string) {
@@ -36,16 +45,13 @@ class ProjectError extends Error {
 type TxClient = Prisma.TransactionClient;
 type TemplateConfig = (typeof templateConfigs)['SCRUM'];
 
-const genProjectRoleId = () => `role_${createId()}`;
-const genIssuePriorityId = () => `priority_${createId()}`;
-const genIssueStatusId = () => `status_${createId()}`;
-const genIssueTypeId = () => `type_${createId()}`;
-const genIssueResolutionId = () => `resolution_${createId()}`;
-
+type PrismaRoleCreateInput = Omit<Prisma.ProjectRoleCreateManyInput, 'permissions'> & {
+  permissions: string[];
+};
 const buildRoleCreateManyData = (
   input: ProjectCreateInput,
   projectId: string,
-): Prisma.ProjectRoleCreateManyProjectInput[] => {
+): PrismaRoleCreateInput[] => {
   if (!input.roles || input.roles.length === 0) return [];
   return input.roles
     .map((r) => ({ ...r, projectId }))
@@ -84,7 +90,7 @@ const buildResolutionCreateManyData = (
   return resolutions.map((r) => ({ ...r, id: genIssueResolutionId() }));
 };
 
-const assertProjectKeyAvailable = async (
+export const assertProjectKeyAvailable = async (
   tx: TxClient,
   workspaceId: string,
   key: string,
@@ -114,22 +120,24 @@ const createDefaultBoard = async (
 
   return tx.board.create({
     data: {
-      id: `brd_${createId()}`,
+      id: genBoardId(),
       type: 'SCRUM',
       ownerId: projectLeadId,
       name: `${inputKey} Board`,
       projectId,
       columns: {
         create: statuses.map((status, index) => ({
-          id: `col_${createId()}`,
+          id: genColumnId(),
           name: status.name,
           sequence: index,
-          statuses: { create: { statusId: status.id } },
+          statuses: {
+            create: { statusId: status.id },
+          },
         })),
       },
       sprints: {
         create: {
-          id: `spt_${createId()}`,
+          id: genSprintId(),
           name: `Sprint ${sprintCounter}`,
           sequence: 0,
           state: 'FUTURE',
@@ -187,23 +195,29 @@ const listProjects = async (
 };
 
 const createProject = async (input: ProjectCreateInput, context: ProjectContext) => {
+  if (input.leadId !== context.actorId) {
+    // chua xu ly case nay
+    throw new Error('Project lead must be the actor creating the project');
+  }
+
   const workspace = await prisma.workspace.findUnique({ where: { id: input.workspaceId } });
   if (!workspace) throw new Error('Workspace not found');
-  const resource = workspaceResourceFactory(workspace);
+
+  // const resource = workspaceResourceFactory(workspace);
   // await ensureCan('projects:create', resource, context); FIXME: BUG (loi khi tao project voi WS_AMDIN role)
 
   const templateConfig = templateConfigs['SCRUM'];
   const project = ZProject.parse({
     ...input,
-    leadId: context.actorId,
     id: genProjectId(),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   });
+
   const roles = buildRoleCreateManyData(input, project.id).map((r, idx) => ({
     ...r,
-    createdAt: addSeconds(new Date(), idx).toISOString(),
-    updatedAt: addSeconds(new Date(), idx).toISOString(),
+    createdAt: addSeconds(new Date(), idx),
+    updatedAt: addSeconds(new Date(), idx),
   }));
 
   const priorities = buildPriorityCreateManyData(templateConfig);
@@ -244,9 +258,11 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     });
 
     // --- authz ---
+
     const tuples = buildProjectTuples({
       ...project,
-      roles: roles.map((r) => ({ ...r, projectId, actors: [] })),
+      roles: roles.map((r) => ({ ...r, actors: [] })),
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
     });
     await openfgaClient.writeTuples(tuples);
   });
@@ -301,7 +317,18 @@ const deleteProject = async (projectId: string, context: ProjectContext) => {
       where: { id: projectId },
       include: { roles: { include: { actors: true } } },
     });
-    const tuples = buildProjectTuples(project);
+
+    const roles = project.roles.map((r) => {
+      const permJSON = JSON.parse(JSON.stringify(r.permissions));
+      const permissions = Array.isArray(permJSON) ? permJSON : [];
+      return { ...r, permissions };
+    });
+
+    const tuples = buildProjectTuples({
+      ...project,
+      roles,
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
+    });
     await openfgaClient.deleteTuples(tuples);
   });
 
@@ -332,8 +359,8 @@ const getProjectById = async (projectId: string, ctx: ProjectContext) => {
 };
 
 const getProjectsFacets = async (
-  projectId: string,
-  options: { workspaceId?: string } = {},
+  _projectId: string,
+  _options: { workspaceId?: string } = {},
   context: ProjectContext,
 ) => {
   const { objects } = await openfgaClient.listObjects({
@@ -344,16 +371,16 @@ const getProjectsFacets = async (
   const projectIds = objects.map((obj) => obj.replace('project:', ''));
   if (projectIds.length === 0) return {};
 
-  const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
-  const grouped = await prisma.project.groupBy({
-    where,
-    by: ['type', 'leadId'],
-    _count: { type: true, leadId: true },
-  });
+  // const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
+  // const grouped = await prisma.project.groupBy({
+  //   where,
+  //   by: ['type', 'leadId'],
+  //   _count: { type: true, leadId: true },
+  // });
 };
 
 // Project Actor
-const listProjectActors = async (params: { projectId: string }, context: ProjectContext) => {
+const listProjectActors = async (params: { projectId: string }) => {
   const { projectId } = params;
   const actors = await prisma.projectActor.findMany({
     where: { projectId },
@@ -395,7 +422,7 @@ const addProjectActor = async (
     if (exists) throw new ProjectError('Actor already a member of this project');
     const actor = await tx.projectActor.create({
       data: {
-        id: `pa_${createId()}`,
+        id: genProjectActorId(),
         projectId: input.projectId,
         actorId: input.actorId,
         actorType: input.actorType,
@@ -460,7 +487,7 @@ const updateActor = async (
 };
 
 const listMembers = async (params: { projectId: string }, context: ProjectContext) => {
-  const actors = await listProjectActors({ projectId: params.projectId }, context);
+  const actors = await listProjectActors({ projectId: params.projectId });
   const userIds = actors.data.filter((a) => a.actorType === 'USER').map((a) => a.actorId);
   const teamIds = actors.data.filter((a) => a.actorType === 'TEAM').map((a) => a.actorId);
   const teams = await prisma.team.findMany({ where: { id: { in: teamIds } } });
@@ -481,6 +508,43 @@ const listMembers = async (params: { projectId: string }, context: ProjectContex
   const users = await prisma.user.findMany({ where: { id: { in: allUserIds } } });
   const result = { data: users };
   return result;
+};
+
+const addStatus = async (
+  projectId: string,
+  input: z.infer<typeof ZIssueStatusCreateInput>,
+  context: { actorId: string },
+) => {
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) throw new ProjectError('Project not found');
+
+  const canEdit = await openfgaClient.check({
+    user: `user:${context.actorId}`,
+    relation: 'can_edit',
+    object: `project:${projectId}`,
+  });
+  if (!canEdit.allowed) throw new ProjectError('Permission denied to add status');
+
+  const maxSeq = await prisma.issueStatus.aggregate({
+    where: { projectId },
+    _max: { sequence: true },
+  });
+  const nextSeq = (maxSeq._max.sequence ?? 0) + 1;
+
+  const status = await prisma.issueStatus.create({
+    data: {
+      id: genIssueStatusId(),
+      projectId,
+      name: input.name,
+      description: input.description,
+      color: input.color,
+      iconURL: input.iconURL,
+      category: input.category as IssueStatusCategory,
+      sequence: input.sequence ?? nextSeq,
+    },
+  });
+
+  return status;
 };
 
 export const projectsService = {
@@ -511,4 +575,5 @@ export const projectsService = {
 
   // -- field
   listStatuses,
+  addStatus,
 };

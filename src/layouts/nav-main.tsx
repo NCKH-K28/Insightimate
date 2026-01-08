@@ -25,6 +25,7 @@ export function NavMain({
     url: string;
     icon?: LucideIcon;
     isActive?: boolean;
+    disabled?: boolean;
     items?: { title: string; url: string }[];
   }[];
 }) {
@@ -40,8 +41,8 @@ export function NavMain({
             className='group/collapsible'
           >
             <SidebarMenuItem>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton tooltip={item.title}>
+              <CollapsibleTrigger asChild disabled={item.disabled}>
+                <SidebarMenuButton tooltip={item.title} disabled={item.disabled}>
                   {item.icon && <item.icon />}
                   <Link href={item.url}>
                     <span>{item.title}</span>

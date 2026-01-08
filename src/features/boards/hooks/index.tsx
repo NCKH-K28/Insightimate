@@ -3,17 +3,16 @@ import { useMutation } from '@tanstack/react-query';
 import groupBy from 'lodash/groupBy';
 import { toast } from 'sonner';
 
-import { BoardIssueItem } from '@/contracts/boards/boards.query';
+import { BoardIssueItem } from '@/contracts/boards/board.query';
 import { moveBoardIssueMutationOptions } from '@/features/boards/api/actions';
-import { ItemIssue } from '../ui/components/scrum-item-issue';
-import { MoveEvent, MoveRelative, ScrumRowProps } from '../ui/components/scrum-board';
-import { RowBacklog } from '../ui/components/row-backlog';
-import { RowSprint } from '../ui/components/row-sprint';
+import { ItemIssue } from '../ui/containers/scrum/scrum-item-issue';
+import { MoveEvent, MoveRelative, ScrumRowProps } from '../ui/containers/scrum/scrum-board';
+import { RowBacklog, RowSprint } from '../ui/containers/scrum';
 
 const BACKLOG_ROW_ID = 'backlog';
 
 export const useIssuesToScrumRows = (
-  params: { boardId: string; projectId: string },
+  params: { boardId: string; projectId: string; workspaceId: string },
   issues: BoardIssueItem[],
   sprints: { id: string; name: string }[] = [],
 ): ScrumRowProps[] => {
@@ -36,7 +35,7 @@ export const useIssuesToScrumRows = (
             ? { type: 'after', refId: relative.afterId }
             : { type: relative.position },
         from: { parentId: issue.sprintId },
-        to: { parentId: relative.rowId === BACKLOG_ROW_ID ? null : relative.rowId ?? null },
+        to: { parentId: relative.rowId === BACKLOG_ROW_ID ? null : (relative.rowId ?? null) },
       });
 
       toast.promise(movePromise, {
@@ -71,7 +70,7 @@ export const useIssuesToScrumRows = (
         return <RowSprint id={id} params={params} sprint={sprint} {...props} />;
       },
     }),
-    [grouped, createScrumItem],
+    [grouped, createScrumItem, params],
   );
 
   return useMemo(() => {

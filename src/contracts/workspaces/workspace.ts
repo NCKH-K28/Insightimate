@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isoString } from '../common';
+import { isoString } from '../_shared';
 import { ZUserPublic } from '../users';
 
 export const WORKSPACE_ROLES = ['WS_ADMIN', 'WS_MEMBER'] as const;

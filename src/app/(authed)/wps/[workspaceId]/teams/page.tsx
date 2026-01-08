@@ -1,5 +1,6 @@
 'use client';
 
+import { Separator } from '@/components/ui/separator';
 import { TeamsHeader } from '@/features/teams/ui/components/teams-header';
 import { TeamsList } from '@/features/teams/ui/components/teams-list';
 import { useParams } from 'next/navigation';
@@ -7,6 +8,7 @@ import { Suspense } from 'react';
 
 export default function TeamsPage() {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('TeamsPage must be used within a route with workspaceId param');
 
   return (
     <Suspense
@@ -17,8 +19,11 @@ export default function TeamsPage() {
         </div>
       }
     >
-      <TeamsHeader params={{ workspaceId: params.workspaceId }} />
-      <TeamsList params={{ workspaceId: params.workspaceId }} />
+      <div className='space-y-4'>
+        <TeamsHeader params={{ workspaceId: params.workspaceId }} />
+        <Separator />
+        <TeamsList params={{ workspaceId: params.workspaceId }} />
+      </div>
     </Suspense>
   );
 }

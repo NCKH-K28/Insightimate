@@ -1,8 +1,7 @@
-import { CerbosCheckResourcesRequest, cerbosEdge } from '@/lib/authz/cerbos';
+import { cerbosEdge } from '@/lib/auth/authz/cerbos';
 import { prisma } from '@/lib/prisma';
-import z from 'zod';
 
-const ZStringArrayOptional = z.array(z.string()).optional();
+// const ZStringArrayOptional = z.array(z.string()).optional();
 type WorkspaceAttr = { id: string; ownerId: string };
 type ProjectAttr = { id: string; leadId: string; workspace?: WorkspaceAttr };
 type WsMemberAttr = { id: string; userId: string; role: string; workspace: WorkspaceAttr };

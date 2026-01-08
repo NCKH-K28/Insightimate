@@ -1,7 +1,7 @@
 import { ZProjectActorAddInput } from '@/contracts/projects';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { projectsService } from '@/features/projects/server/projects.service';
 import { NextResponse } from 'next/server';
 
@@ -12,7 +12,7 @@ export const GET = middlewareHandler<{ projectId: string }>(
     const actorId = auth.user.id;
 
     const { projectId } = params;
-    const result = await projectsService.listProjectActors({ projectId }, { actorId }); // FIXME: move to /actors instead /members
+    const result = await projectsService.listProjectActors({ projectId }); // FIXME: move to /actors instead /members
     const members = await projectsService.listMembers({ projectId }, { actorId });
 
     Object.assign(result, { members }); // -- attach members

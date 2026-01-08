@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { listProjectStatusesQueryOptions } from '../../api/actions';
 import { Button } from '@/components/ui/button';
+import { useMemo } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -29,7 +30,6 @@ type StatusSettingsProps = {
 
 const categories = ['TODO', 'IN_PROGRESS', 'DONE'];
 
-// Component cho từng status item có thể drag được
 const DraggableStatusItem = ({ status }: { status: Status }) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: status.id,
@@ -120,18 +120,15 @@ export const StatusSettings = (props: StatusSettingsProps) => {
   const [localStatuses, setLocalStatuses] = useState<Status[]>([]);
   const [overId, setOverId] = useState<string | null>(null);
 
-  const { data: statuses = [] } = useQuery(
+  const { data: statusesResponse } = useQuery(
     listProjectStatusesQueryOptions({ projectId: props.projectId }),
   );
 
-  // Initialize local state when data loads
-  useState(() => {
-    if (statuses.length > 0 && localStatuses.length === 0) {
-      setLocalStatuses(statuses);
-    }
-  }, [statuses]);
+  const statuses = useMemo(() => {
+    if (!statusesResponse) return [];
+    return (statusesResponse as any).items || [];
+  }, [statusesResponse]);
 
-  // Update local state when server data changes
   if (statuses.length > 0 && localStatuses.length === 0) {
     setLocalStatuses(statuses);
   }
@@ -170,12 +167,9 @@ export const StatusSettings = (props: StatusSettingsProps) => {
 
     let targetCategory = activeStatus.category;
 
-    // Xác định category đích
     if (over.data.current?.status) {
-      // Drop trên một status khác
       targetCategory = over.data.current.status.category;
     } else {
-      // Drop trên category container
       const overCategory = categories.find(
         (cat) => over.id === cat || (typeof over.id === 'string' && over.id.includes(cat)),
       );
@@ -184,7 +178,6 @@ export const StatusSettings = (props: StatusSettingsProps) => {
       }
     }
 
-    // Cập nhật local state để có feedback tức thì
     if (targetCategory !== activeStatus.category) {
       setLocalStatuses((prev) =>
         prev.map((status) =>
@@ -199,7 +192,6 @@ export const StatusSettings = (props: StatusSettingsProps) => {
   };
 
   const handleAddStatus = (category: string) => {
-    // Tạo status mới cho demo
     const newStatus: Status = {
       id: `temp-${Date.now()}`,
       name: `New Status ${localStatuses.length + 1}`,
@@ -210,11 +202,13 @@ export const StatusSettings = (props: StatusSettingsProps) => {
     console.log('Added new status to category:', category);
   };
 
-  // Group statuses by category
-  const statusesByCategory = categories.reduce((acc, category) => {
-    acc[category] = localStatuses.filter((status) => status.category === category);
-    return acc;
-  }, {} as Record<string, Status[]>);
+  const statusesByCategory = categories.reduce(
+    (acc, category) => {
+      acc[category] = localStatuses.filter((status) => status.category === category);
+      return acc;
+    },
+    {} as Record<string, Status[]>,
+  );
 
   return (
     <div className='p-6 bg-gray-100 min-h-screen'>

@@ -1,8 +1,8 @@
-import { ZBoardIssueCreateInput } from '@/contracts/boards/boards.input';
-import { ZBoardIssueQueryParams } from '@/contracts/boards/boards.query';
+import { ZBoardIssueCreateInput } from '@/contracts/boards/board.input';
+import { ZBoardIssueQueryParams } from '@/contracts/boards/board.query';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth';
-import { authenticated } from '@/lib/auth/guards';
+import { getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { boardsService } from '@/features/boards/server/service';
 import { NextResponse } from 'next/server';
 
@@ -14,6 +14,7 @@ export const GET = middlewareHandler<{ boardId: string }>(
 
     const { query } = req;
     const { boardId } = params;
+
     const validQuery = ZBoardIssueQueryParams.parse(query);
     const result = await boardsService.listIssues(
       { id: boardId, type: validQuery.filter?.type },
@@ -33,7 +34,7 @@ export const POST = middlewareHandler<{ boardId: string }>(
     const { boardId } = params;
     const body = await req.json();
     const input = await ZBoardIssueCreateInput.parse(body);
-    const result = await boardsService.addIssue(boardId, input);
+    const result = await boardsService.addIssue(boardId, input, context);
     return NextResponse.json(result, { status: 201 });
   },
 );

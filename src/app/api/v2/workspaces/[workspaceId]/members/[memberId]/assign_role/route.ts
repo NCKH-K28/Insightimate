@@ -1,7 +1,7 @@
 // src/app/api/v2/workspaces/[workspaceId]/members/assign_role/route.ts
 
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { authenticated } from '@/lib/auth/guards';
+import { authenticated } from '@/lib/auth/authn/guards';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 

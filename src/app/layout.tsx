@@ -6,8 +6,8 @@ import AppLayout from '@/layouts/layout-app';
 
 const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
-  title: 'Project Management App',
-  description: 'A modern project management application',
+  title: 'Insightimate',
+  description: 'Insightimate - AI-Powered Project Management',
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

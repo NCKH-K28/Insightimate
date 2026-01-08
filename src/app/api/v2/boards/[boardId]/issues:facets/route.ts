@@ -1,4 +1,4 @@
-import { authenticated, getAuthFromRequest } from '@/lib/auth';
+import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
 import { boardsService } from '@/features/boards/server/service';
 import { NextResponse } from 'next/dist/server/web/spec-extension/response';
 import { middlewareHandler } from '@/lib/http/api-handler';

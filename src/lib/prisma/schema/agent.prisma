@@ -1,0 +1,156 @@
+model AIAgent {
+  id            String   @id
+  name          String
+  description   String?
+  ownerId       String   @map("owner_id")
+  orgId         String   @map("org_id")
+  tags          String[] @default([])
+  model         String?
+  instructions  String?
+  configuration Json?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner       User          @relation("UserAIAgents", fields: [ownerId], references: [id], onDelete: Cascade)
+  dataSources DataSource[]
+  analyses    Analysis[]
+  memories    AgentMemory[]
+  traces      AgentTrace[]
+
+  @@map("analysis_agents")
+}
+
+model FileReference {
+  id        String   @id
+  filename  String
+  key       String
+  url       String?
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("file_references")
+}
+
+// === DATA SOURCE MANAGEMENT ===
+
+enum DataSourceType {
+  PROJECT
+  FILE
+
+  @@map("data_source_type")
+}
+
+enum DataSourceStatus {
+  READY
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("data_source_status")
+}
+
+model DataSource {
+  id         String           @id
+  agentId    String
+  sourceType DataSourceType   @map("source_type")
+  sourceId   String           @map("source_id")
+  status     DataSourceStatus
+  snapshot   Json? // FIXME: create a proper snapshot model later
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // -- Internal Use --
+  isHidden Boolean @default(false)
+
+  aiAgent  AIAgent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  analyses Analysis[]
+
+  @@unique([agentId, sourceType, sourceId])
+  @@map("data_sources")
+}
+
+enum AnalysisStatus {
+  READY
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+
+  @@map("analysis_status")
+}
+
+enum AnalysisType {
+  SUMMARY
+  INSIGHT_EXTRACTION
+  ANOMALY_DETECTION
+  ESTIMATION
+
+  @@map("analysis_type")
+}
+
+model Analysis {
+  id           String         @id
+  agentId      String         @map("agent_id")
+  dataSourceId String?        @map("data_source_id")
+  runStatus    AnalysisStatus @default(PENDING) @map("run_status")
+  type         AnalysisType   @map("type")
+  version      Int            @default(1)
+
+  output  Json?
+  metrics Json?
+
+  // Timestamps
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  processedAt DateTime? @map("processed_at")
+
+  agent      AIAgent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  dataSource DataSource? @relation(fields: [dataSourceId], references: [id], onDelete: SetNull)
+
+  @@map("analyses")
+}
+
+// === AGENT MEMORY & TRACING ===
+
+model AgentMemory {
+  id       String @id @default(uuid())
+  agentId  String @map("agent_id")
+  content  String
+  metadata Json?
+
+  // Vector embedding support via pgvector
+  // embedding Unsupported("vector(768)")? 
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  agent AIAgent @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@map("agent_memories")
+}
+
+model AgentTrace {
+  id      String  @id @default(uuid())
+  runId   String  @map("run_id")
+  agentId String? @map("agent_id")
+  userId  String  @map("user_id")
+
+  input       String
+  plan        Json? // The generated plan
+  steps       Json? // Array of executed steps { tool, input, output }
+  finalOutput String? @map("final_output")
+
+  durationMs Int?   @map("duration_ms")
+  status     String @default("SUCCESS") // SUCCESS, FAILED
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  agent AIAgent? @relation(fields: [agentId], references: [id])
+
+  @@index([runId])
+  @@index([userId])
+  @@map("agent_traces")
+}

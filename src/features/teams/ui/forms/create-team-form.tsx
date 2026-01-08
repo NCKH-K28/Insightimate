@@ -42,11 +42,13 @@ export const CreateTeamForm = ({ params, onSubmit }: CreateTeamFormProps) => {
 
   const handleSubmit = form.handleSubmit((data) => {
     if (onSubmit) onSubmit(data);
-    return toast.promise(createTeam.mutateAsync(data), {
-      loading: 'Creating team...',
-      success: 'Team created successfully!',
-      error: (err) => `Error creating team: ${err.message}`,
-    }).unwrap()
+    return toast
+      .promise(createTeam.mutateAsync(data), {
+        loading: 'Creating team...',
+        success: 'Team created successfully!',
+        error: (err) => `Error creating team: ${err.message}`,
+      })
+      .unwrap();
   });
 
   return (

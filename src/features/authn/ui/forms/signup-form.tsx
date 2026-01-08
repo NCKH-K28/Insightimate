@@ -30,6 +30,9 @@ import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ZSignUpInput } from '@/contracts/auth/auth.input';
 import { signUpMutationOptions } from '../../api/actions';
+import { GoogleIcon } from '@/components/icons/google-icon';
+import { FacebookIcon } from '@/components/icons/facebook-icon';
+import { InsightmateLogoFull } from '@/components/icons/insightmate';
 
 const ZFormData = ZSignUpInput.extend({
   confirmPassword: ZSignUpInput.shape.password,
@@ -39,6 +42,7 @@ const ZFormData = ZSignUpInput.extend({
 });
 
 type SignUpFormProps = { redirectTo?: string };
+
 export function SignUpForm(props: SignUpFormProps) {
   const router = useRouter();
   const signUp = useMutation(signUpMutationOptions());
@@ -51,8 +55,8 @@ export function SignUpForm(props: SignUpFormProps) {
   const handleSubmit = form.handleSubmit(async (data) => {
     await toast
       .promise(signUp.mutateAsync(data), {
-        loading: 'Creating your account...',
-        success: 'Account created successfully! Redirecting...',
+        loading: 'Creating your account.. .',
+        success: 'Account created successfully!  You can now sign in.',
         error: (err) => {
           if (err instanceof AxiosError) {
             const status = err.response?.status;
@@ -63,117 +67,164 @@ export function SignUpForm(props: SignUpFormProps) {
       })
       .unwrap()
       .then(() => {
+        form.reset();
         if (props.redirectTo) router.push(props.redirectTo);
       });
   });
 
   return (
-    <Card className='w-full max-w-md mx-auto'>
-      <CardHeader className='space-y-1'>
-        <CardTitle className='text-2xl font-bold text-center'>Create an account</CardTitle>
-        <CardDescription className='text-center'>
-          Enter your information to create your account
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={handleSubmit} className='space-y-4'>
-            <FormField
-              control={form.control}
-              name='name'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='Enter your full name'
-                      type='text'
-                      autoComplete='name'
-                      disabled={form.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='email'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='Enter your email'
-                      type='email'
-                      autoComplete='email'
-                      disabled={form.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='password'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='Create a password'
-                      type={'password'}
-                      autoComplete='new-password'
-                      disabled={form.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='confirmPassword'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder='Confirm your password'
-                      type='password'
-                      autoComplete='new-password'
-                      disabled={form.formState.isSubmitting}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+    <div className='flex flex-col gap-6'>
+      {/* Logo */}
+      <div className='flex justify-center'>
+        <Link href='/'>
+          <InsightmateLogoFull height={40} />
+          <span className='sr-only'>Insightmate</span>
+        </Link>
+      </div>
+
+      <Card className='w-full max-w-md mx-auto'>
+        <CardHeader className='space-y-4'>
+          {/* Title + Description */}
+          <div className='space-y-1 text-center'>
+            <CardTitle className='text-2xl font-semibold'>Sign up</CardTitle>
+            <CardDescription>Create your Insightmate account to get started</CardDescription>
+          </div>
+        </CardHeader>
+
+        <CardContent className='flex flex-col gap-2'>
+          {/* Email/Password Form */}
+          <Form {...form}>
+            <form onSubmit={handleSubmit} className='space-y-4'>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter your full name'
+                        type='text'
+                        autoComplete={`user. ${field.name}`}
+                        disabled={form.formState.isSubmitting}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='email'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Enter your email'
+                        type='email'
+                        autoComplete={`user. ${field.name}`}
+                        disabled={form.formState.isSubmitting}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='password'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Create a password'
+                        type={'password'}
+                        autoComplete={`user.${field.name}`}
+                        disabled={form.formState.isSubmitting}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name='confirmPassword'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder='Confirm your password'
+                        type='password'
+                        disabled={form.formState.isSubmitting}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type='submit'
+                className='w-full'
+                disabled={form.formState.isSubmitting || !form.formState.isValid}
+              >
+                {form.formState.isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
+                {form.formState.isSubmitting ? 'Signing up...' : 'Sign Up with Email'}
+              </Button>
+            </form>
+          </Form>
+
+          {/* Divider */}
+          <div className='relative my-2'>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t' />
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-background px-2 text-muted-foreground'>
+                Or continue with Email
+              </span>
+            </div>
+          </div>
+
+          {/* Social Sign Up Buttons */}
+          <div className='grid grid-cols-2 gap-3'>
             <Button
-              type='submit'
-              className='w-full'
-              disabled={form.formState.isSubmitting || !form.formState.isValid}
+              type='button'
+              variant='outline'
+              size='lg'
+              disabled={form.formState.isSubmitting}
             >
-              {form.formState.isSubmitting && <Loader2 className='mr-2 h-4 w-4 animate-spin' />}
-              {form.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+              <GoogleIcon alt='Google Icon' className='mr-2 h-5 w-5' />
+              Google
             </Button>
-          </form>
-        </Form>
-      </CardContent>
-      <CardFooter>
-        <div className='text-sm text-center text-muted-foreground w-full'>
-          Already have an account?{' '}
-          <Link href='/signin' className='text-primary hover:underline font-medium'>
-            Sign in
-          </Link>
-        </div>
-      </CardFooter>
-    </Card>
+            <Button
+              type='button'
+              variant='outline'
+              size='lg'
+              disabled={form.formState.isSubmitting}
+            >
+              <FacebookIcon alt='Facebook Icon' className='mr-2 h-5 w-5' />
+              Facebook
+            </Button>
+          </div>
+        </CardContent>
+        <CardFooter>
+          <div className='text-sm text-center text-muted-foreground w-full'>
+            Already have an account?{' '}
+            <Link href='/signin' className='text-primary hover:underline font-medium'>
+              Sign in
+            </Link>
+          </div>
+        </CardFooter>
+      </Card>
+    </div>
   );
 }
 

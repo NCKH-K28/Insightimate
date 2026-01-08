@@ -13,11 +13,12 @@ type BoardIssueActionsProps = {
   disables?: { delete?: boolean };
   hiddens?: { delete?: boolean };
   disabled?: boolean;
+  className?: string;
 };
 export const BoardIssueActions = (props: BoardIssueActionsProps) => {
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={props.disabled}>
+      <DropdownMenuTrigger asChild disabled={props.disabled} className={props.className}>
         <Button variant='outline' size='icon'>
           <EllipsisVertical />
           <span className='sr-only'>Open menu</span>

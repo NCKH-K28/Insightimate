@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isoString } from '../common';
+import { isoString } from '../_shared';
 import { ZUserPublic } from '../users';
 
 export const ZIdString = z.string().min(1, 'ID is required');
@@ -7,12 +7,10 @@ export const ZIdString = z.string().min(1, 'ID is required');
 export const PROJECT_ACTIONS = ['view', 'create', 'update', 'delete', 'manage-roles'] as const;
 
 export const PROJECT_ROLE_PERMISSION_KEYS = Object.freeze([
-  'kanban:view',
   'kanban:manage',
   'kanban.column:manage',
   'kanban.issue:manage',
 
-  'backlog:view',
   'backlog:manage',
   'backlog.issue:manage',
   'backlog.sprint:manage',

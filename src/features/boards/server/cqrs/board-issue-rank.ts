@@ -1,4 +1,4 @@
-import { BoardIssueRankUpdate } from '@/contracts/boards/boards.input';
+import { BoardIssueRankUpdate } from '@/contracts/boards/board.input';
 import { prisma } from '@/lib/prisma';
 import LexRank from '@/lib/utils/lexorank-num';
 import Decimal from 'decimal.js';

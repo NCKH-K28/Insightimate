@@ -8,8 +8,9 @@ import TeamLinks from '@/features/teams/ui/components/team-links';
 import { TeamShare } from '@/features/teams/ui/components/team-share';
 
 export default function TeamPage() {
-  const { teamId } = useParams<{ teamId: string }>();
-  if (!teamId) throw new Error('teamId is required');
+  const params = useParams<{ teamId: string }>();
+  if (!params) throw new Error('TeamPage must be used within a route with teamId param');
+  const { teamId } = params;
 
   return (
     <div className={'flex flex-col gap-6 overflow-y-auto h-full'}>

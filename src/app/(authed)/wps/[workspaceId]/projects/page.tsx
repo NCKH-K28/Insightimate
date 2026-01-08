@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/incompatible-library */
+
 'use client';
 
 import React, { Suspense, useMemo } from 'react';
@@ -13,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { DataTable, DataTableToolbar, DataTablePagination } from '@/components/table';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { ProjectItem } from '@/contracts/projects';
+import { ProjectImport, ProjectItem } from '@/contracts/projects';
 import { Loader2 } from 'lucide-react';
 import {
   fetchProjectFacetsQueryOptions,
@@ -22,13 +24,30 @@ import {
 import { useProjectsQueryParams } from '@/hooks/use-projects-params';
 import { projectColumns } from '@/features/projects/ui/table/project-column';
 import { Separator } from '@/components/ui/separator';
+import ImportProjectButton from '@/features/projects/ui/buttons/import-project-button';
+import { useSetAtom } from 'jotai';
+import { upsertProjectDraftAtom } from '@/features/projects/state/project-draft-atom';
+import { createId } from '@paralleldrive/cuid2';
+import AICreateProjectButton from '@/features/projects/ui/buttons/ai-create-project';
 
 const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<ProjectItem>> }) => {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('Params are undefined');
   const { query } = useProjectsQueryParams();
 
+  const setUpsert = useSetAtom(upsertProjectDraftAtom);
+
+  const handleUpload = async (file: File) => {
+    const text = await file.text();
+    const project: ProjectImport = JSON.parse(text);
+    console.log('Uploaded project:', project);
+    const draftId = createId();
+    setUpsert({ id: draftId, data: project });
+    router.push(`/wps/${params.workspaceId}/projects/import?d=${draftId}`);
+  };
+
   const { table } = props;
-  const { workspaceId } = params;
+  const workspaceId = params?.workspaceId ?? '';
   const router = useRouter();
 
   const { data: facets } = useSuspenseQuery(fetchProjectFacetsQueryOptions(query));
@@ -60,8 +79,20 @@ const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<Pro
         ],
         actions: [
           {
+            label: 'Generate Project',
+            renderLabel() {
+              return <AICreateProjectButton />;
+            },
+          },
+          {
             label: 'Create Project',
             onClick: () => router.push(`/wps/${workspaceId}/projects/create`),
+          },
+          {
+            label: 'Import Project',
+            renderLabel() {
+              return <ImportProjectButton onImport={(v) => handleUpload(v)} />;
+            },
           },
         ],
       }}
@@ -84,7 +115,7 @@ const ProjectsList = ({ params }: ProjectsListProps) => {
   });
 
   return (
-    <div id='projects-toolbar' className={cn('w-full', 'p-4 sm:p-6 lg:p-8', 'space-y-4')}>
+    <div id='projects-toolbar' className={cn('w-full', 'space-y-4')}>
       <Suspense
         fallback={
           <div className='w-full h-12 flex items-center justify-center text-sm text-gray-500' />
@@ -106,22 +137,23 @@ const ProjectsList = ({ params }: ProjectsListProps) => {
 
 const ProjectsHeader = () => {
   return (
-    <div
-      id='projects-header'
-      className={cn('w-full', 'px-4 sm:px-6 lg:px-8', 'py-4', 'flex flex-col space-y-2')}
-    >
-      <div className={cn('text-2xl font-bold')}>Projects</div>
-      <Separator orientation='horizontal' className='w-full' />
+    <div id='projects-header' className={cn('w-full', 'flex flex-col gap-2')}>
+      <h1 className='text-2xl font-semibold'>Projects</h1>
+      <span className='text-sm text-muted-foreground'>Manage your workspace projects here.</span>
     </div>
   );
 };
 
 export default function ProjectsPage() {
   const params = useParams<{ workspaceId: string }>();
+  if (!params) throw new Error('ProjectsPage must be used within a route with workspaceId param');
+
+  if (!params) return null;
 
   return (
-    <section className={cn('w-full h-full', 'relative')}>
+    <section className={cn('w-full h-full', 'relative flex flex-col gap-4')}>
       <ProjectsHeader />
+      <Separator orientation='horizontal' />
       <Suspense fallback={<div>Loading...</div>}>
         <ProjectsList params={params} />
       </Suspense>

@@ -1,8 +1,27 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const authRoutes = ['/signin', '/signup'];
+let isDebeziumPing = false;
+const pingDebezium = async (request: NextRequest) => {
+  const pingPath = '/api/system/debezium';
+  if (isDebeziumPing) return NextResponse.next();
+  isDebeziumPing = true;
+  const { pathname } = request.nextUrl;
+  if (pathname === pingPath) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}${pingPath}`);
+};
 
+let isSocketPing: boolean = false;
+const pingSocket = async (request: NextRequest) => {
+  const pingPath = '/api/socket';
+  if (isSocketPing) return;
+  isSocketPing = true;
+  const { pathname } = request.nextUrl;
+  if (pathname === pingPath) return NextResponse.next();
+  await fetch(`${request.nextUrl.origin}${pingPath}`);
+};
+
+const authRoutes = ['/signin', '/signup'];
 const authenticated = async (request: NextRequest) => {
   const { pathname } = request.nextUrl;
   const isApiRoute = pathname.startsWith('/api/');
@@ -15,16 +34,13 @@ const authenticated = async (request: NextRequest) => {
   const isAuthRoute = authRoutes.includes(pathname);
 
   if (!token && isAuthRoute) return NextResponse.next();
-  if (!token && !isAuthRoute) {
-    const url = new URL('/signin', request.url);
-    url.searchParams.set('from', pathname);
-    return NextResponse.redirect(url);
-  }
 
   return NextResponse.next();
 };
 
 export async function middleware(request: NextRequest) {
+  await Promise.all([pingSocket(request), pingDebezium(request)]);
+
   return authenticated(request);
 }
 
@@ -37,6 +53,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };

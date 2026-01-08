@@ -1,0 +1,48 @@
+model
+  schema 1.1
+
+type user
+
+type organization
+  relations
+    # roles
+    define ORG_OWNER: [user]
+    define ORG_ADMIN: [user]
+    define ORG_MEMBER: [user]
+  
+    # permissions
+    define can_delete: ORG_OWNER
+    define can_view: can_delete or ORG_ADMIN or ORG_MEMBER
+
+type team
+  relations
+    define parent: [organization]
+
+    # roles
+    define TEAM_LEAD: [user]
+    define TEAM_MEMBER: [user]
+    
+    # permissions
+    define can_delete: can_delete from parent or TEAM_LEAD
+    define can_view: TEAM_MEMBER or can_delete
+
+type project_role
+  relations
+    define parent: [project]
+    define child: [user, team#TEAM_MEMBER]
+
+    # permissions
+    define can_delete: can_delete from parent
+    define can_view: can_delete or child
+
+type project
+  relations
+    define parent: [organization]
+    define child: [project_role]
+    
+    define PROJ_LEAD: [user]
+    define PROJ_MEMBER: [user]
+
+    # permissions
+    define can_delete: can_delete from parent or PROJ_LEAD
+    define can_view: can_delete or can_view from child or PROJ_MEMBER
