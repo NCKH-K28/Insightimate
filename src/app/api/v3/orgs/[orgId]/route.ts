@@ -1,33 +1,33 @@
 import { ZOrgItem } from '@/contracts/organizations/organization.query';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
-import { compose } from '@/lib/http/api-compose';
-import { getZodQuery, zodQueryPipe } from '@/lib/http/zod-pipes';
+import { authenticatedHono, getAuthFromRequestHono } from '@/lib/auth/authn';
+import { appAPIV3 } from '@/lib/hono';
+import { httpExceptionFilterHono } from '@/lib/http/filters';
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
+import { zValidator } from '@hono/zod-validator';
+import { handle } from 'hono/vercel';
 import z from 'zod';
 
+appAPIV3.onError(httpExceptionFilterHono);
+
 const ZQuery = z.object({ by: z.enum(['id', 'slug']).optional() });
-export const GET = compose<{ orgId: string }>(
-  authenticatedV2,
-  zodQueryPipe(ZQuery),
-  async (req) => {
-    const auth = await getAuthFromRequest(req);
-    const { by = 'id' } = getZodQuery(req, ZQuery);
-    const { orgId: id } = req.params;
-    const actorId = auth.user.id;
+appAPIV3.get('/orgs/:orgId', authenticatedHono, zValidator('query', ZQuery), async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { by = 'id' } = c.req.valid('query');
+  const { orgId: id } = c.req.param();
+  const actorId = auth.id;
+  const where = by === 'id' ? { id } : by === 'slug' ? { slug: id } : { id };
+  const org = await prisma.organization.findUnique({
+    where,
+    include: { owner: true, members: { where: { userId: actorId } } },
+  });
+  if (!org) return c.notFound();
 
-    const where = by === 'id' ? { id } : by === 'slug' ? { slug: id } : { id };
-    const org = await prisma.organization.findUnique({
-      where,
-      include: { owner: true, members: { where: { userId: actorId } } },
-    });
-    if (!org) throw new Response('Organization not found', { status: 404 });
+  const logo = org.logo ? `/api/avatar/${org.logo}` : null;
+  const _me = org.members.length > 0 ? org.members[0] : null;
+  const data = ZOrgItem.parse({ ...org, logo, _me });
+  const result = { data };
 
-    const logo = org.logo ? `/api/avatar/${org.logo}` : null;
-    const _me = org.members.length > 0 ? org.members[0] : null;
-    const data = ZOrgItem.parse({ ...org, logo, _me });
-    const result = { data };
+  return c.json(result);
+});
 
-    return NextResponse.json(result);
-  },
-);
+export const GET = handle(appAPIV3);

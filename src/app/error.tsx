@@ -3,21 +3,25 @@
 import { useEffect, useMemo } from 'react';
 import get from 'lodash/get';
 import { Button } from '@/components/ui/button';
+import { AppError } from '@/lib/http/errors';
 
-type ErrorProps = {
-  error: Error & { digest?: string };
-  reset: () => void;
+const getErrorMessage = (error: Error & { digest?: string }): string | undefined => {
+  const resErr = get(error, 'response.data.error');
+  if (resErr && AppError.isAppError(resErr)) {
+    const appErr = AppError.from(resErr);
+    return appErr.message;
+  } else if (error.message) {
+    return error.message;
+  }
 };
 
+type ErrorProps = { error: Error & { digest?: string }; reset: () => void };
 export default function Error({ error, reset }: ErrorProps) {
-  useEffect(() => {
-    // Optionally log the error to an error reporting service
-    console.error(error);
-  }, [error]);
+  useEffect(() => {}, [error]);
 
   const errorMessage = useMemo(() => {
-    const msg = get(error, 'response.data.error', get(error, 'message', 'Unknown error'));
-    return msg;
+    const msg = getErrorMessage(error);
+    return msg || 'An unexpected error occurred. Please try again later.';
   }, [error]);
 
   return (

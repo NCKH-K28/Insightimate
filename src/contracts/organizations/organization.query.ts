@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ZOrganization, ZOrgInvitation, ZOrgMember, ZOrgRole } from './organization';
+import { ZOrgActions, ZOrganization, ZOrgInvitation, ZOrgMember, ZOrgRole } from './organization';
 
 export const ZOrgPermissions = z.record(z.string(), z.boolean());
 export const ZPublicUser = z.object({
@@ -14,7 +14,7 @@ export const ZOrgItem = ZOrganization.extend({
 
   // == System Extended Fields ==
   _count: z.object({ members: z.number(), projects: z.number(), teams: z.number() }).optional(),
-  _me: z.object({ role: ZOrgRole, perms: z.string().array().optional() }).optional(),
+  _me: z.object({ role: ZOrgRole, perms: ZOrgActions.array().optional() }).optional(),
 });
 export const ZOrgMemberItem = ZOrgMember;
 

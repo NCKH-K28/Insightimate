@@ -3,14 +3,12 @@ import { ZOrgItem } from '@/contracts/organizations/organization.query';
 import { openfgaClient } from '@/features/authz-v2/clients/openfga';
 import { buildOrganizationTuples } from '@/features/authz-v2/tuple-factory';
 import { accessibleOrgs } from '@/features/organization/utils/authz';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
-import { compose } from '@/lib/http/api-compose';
-import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
+import { authenticatedHono, getAuthFromRequestHono } from '@/lib/auth/authn';
+import { appAPIV3 } from '@/lib/hono';
 import { prisma } from '@/lib/prisma';
 import { createId } from '@paralleldrive/cuid2';
 import { Prisma } from '@prisma/client';
 import uniqBy from 'lodash/uniqBy';
-import { NextResponse } from 'next/server';
 
 // transformers
 const orgCreateInputTransformer = (arg: OrgCreateInput): OrgCreateInput => {
@@ -83,33 +81,22 @@ const listOrgs = async (input: null, context: { actorId: string }) => {
   return { data: orgItems, meta: { total } };
 };
 
-export const GET = compose(authenticatedV2, async (req) => {
-  try {
-    const auth = await getAuthFromRequest(req);
+import { zValidator } from '@hono/zod-validator';
+import { handle } from 'hono/vercel';
 
-    // == Business Logic ==
-    const result = await listOrgs(null, { actorId: auth.user.id });
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error('Error in listing orgs:', err);
-    return NextResponse.json({
-      error: { message: err instanceof Error ? err.message : 'Unknown error' },
-    });
-  }
+appAPIV3.get('/orgs', authenticatedHono, async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const result = await listOrgs(null, { actorId: auth.id });
+  return c.json(result);
 });
+
 const ZPOSTInput = ZOrgCreateInput.transform(orgCreateInputTransformer);
-export const POST = compose(authenticatedV2, zodBodyPipe(ZPOSTInput), async (req) => {
-  try {
-    const auth = await getAuthFromRequest(req);
-    const input = getZodBody(req, ZPOSTInput);
-
-    // == Business Logic ==
-    const result = await createOrg(input, { actorId: auth.user.id });
-    return NextResponse.json(result);
-  } catch (err) {
-    console.error('Error in creating org:', err);
-    return NextResponse.json({
-      error: { message: err instanceof Error ? err.message : 'Unknown error' },
-    });
-  }
+appAPIV3.post('/orgs', authenticatedHono, zValidator('json', ZPOSTInput), async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const input = c.req.valid('json');
+  const result = await createOrg(input, { actorId: auth.id });
+  return c.json(result);
 });
+
+export const GET = handle(appAPIV3);
+export const POST = handle(appAPIV3);

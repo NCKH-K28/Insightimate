@@ -61,7 +61,7 @@ const rawConfig: ServerConfig = {
   db: { url: env.DATABASE_URL },
   auth: {
     secret: env.AUTH_SECRET || 'dev-auth-secret',
-    cookieName: env.AUTH_COOKIE_NAME || 'auth_token',
+    cookieName: env.AUTH_COOKIE_NAME || 'access_token',
   },
   smtp: {
     host: env.SMTP_HOST,

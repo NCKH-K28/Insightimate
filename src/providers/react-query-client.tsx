@@ -7,12 +7,12 @@ import get from 'lodash/get';
 
 // Helpers
 function getStatus(error: unknown): number | undefined {
-  const e = error as AxiosError | any;
-  return e?.response?.status;
+  const e = error as AxiosError;
+  return e?.status || e?.response?.status;
 }
 
 function isNetworkError(error: unknown): boolean {
-  const e = error as any;
+  const e = error as AxiosError;
   return !e?.response;
 }
 
@@ -23,9 +23,8 @@ function shouldRetry(error: unknown): boolean {
 
   if (status === 408) return true; // Request Timeout
   if (status === 429) return true; // Too Many Requests
-  if (status && status >= 500) return true; // Server errors
-
-  if (status && status >= 400 && status < 500) return false;
+  if (status && status >= 500) return false; // Server errors
+  if (status && status >= 400 && status < 500) return false; // Client errors
 
   return true;
 }

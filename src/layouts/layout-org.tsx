@@ -18,13 +18,7 @@ import { SearchButton } from '@/features/query/ui/search-button';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-
-/* ----------------------------- helpers / query ---------------------------- */
-
-const fetchOrgBySlug = async (orgSlug: string): Promise<OrgItem> => {
-  const { data } = await axiosInstance.get(`/v3/orgs/${orgSlug}?by=slug`);
-  return data.data as OrgItem;
-};
+import { getOrgQueryOptions } from '@/features/organization/api/actions';
 
 /* -------------------------------- Skeleton -------------------------------- */
 
@@ -128,16 +122,11 @@ type OrgLayoutProps = PropsWithChildren;
 const OrgLayout: React.FC<OrgLayoutProps> = ({ children }) => {
   const { orgSlug } = useParamsRequired<{ orgSlug: string }>();
 
-  const orgQuery = useSuspenseQuery({
-    queryKey: ['org', orgSlug],
-    queryFn: () => fetchOrgBySlug(orgSlug),
-  });
+  const fetchOrg = useSuspenseQuery(getOrgQueryOptions({ id: orgSlug, by: 'slug' }));
 
-  if (orgQuery.isError) {
-    return <div>Error: {(orgQuery.error as Error).message}</div>;
-  }
+  if (fetchOrg.isError) throw fetchOrg.error;
 
-  const org = orgQuery.data;
+  const org = fetchOrg.data;
 
   return (
     <SidebarProvider>

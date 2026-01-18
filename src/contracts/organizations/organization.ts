@@ -6,13 +6,17 @@ export const ORG_ACTIONS = [
   'read',
   'update',
   'delete',
+  'members:read',
   'members:manage#admin',
   'members:manage#member',
+  'teams:create',
   'projects:create',
   'plans:create',
 ] as const;
 
 export const ORG_SLUG_REGEX = /^[a-z0-9-]+$/;
+export const ZOrgActions = z.enum(ORG_ACTIONS);
+export type OrgAction = z.infer<typeof ZOrgActions>;
 export const ZOrgSlug = z.string().min(3).max(32).regex(ORG_SLUG_REGEX, 'Invalid slug');
 
 export const ZOrganization = z.object({

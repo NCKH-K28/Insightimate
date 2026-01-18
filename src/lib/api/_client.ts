@@ -40,10 +40,7 @@ const axiosInstance = axios.create({
     qs.stringify(params, { arrayFormat: 'brackets', skipNulls: true, encodeValuesOnly: true }),
 });
 
-axiosInstance.interceptors.response.use(
-  (res) => res,
-  (error) => Promise.reject(error),
-);
+axiosInstance.interceptors.response.use((res) => res);
 
 // ==================== Helpers ====================
 const unwrap = <T>(promise: Promise<AxiosResponse<T>>): Promise<T> =>

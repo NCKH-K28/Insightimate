@@ -1,15 +1,16 @@
 import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
-import { compose } from '@/lib/http/api-compose';
+import { authenticatedHono, getAuthFromRequestHono } from '@/lib/auth/authn';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 
-// v3/me/invites/route.ts
-export const GET = compose(authenticatedV2, async (req) => {
-  const auth = await getAuthFromRequest(req);
+import { appAPIV3 } from '@/lib/hono';
+import { handle } from 'hono/vercel';
+
+appAPIV3.get('/me/invites', authenticatedHono, async (c) => {
+  const auth = await getAuthFromRequestHono(c);
 
   const now = new Date();
-  const where = { email: auth.user.email, expiresAt: { gt: now } };
+  const where = { email: auth.email, expiresAt: { gt: now } };
   const invitations = await prisma.orgInvitation.findMany({
     where,
     select: {
@@ -29,3 +30,5 @@ export const GET = compose(authenticatedV2, async (req) => {
 
   return NextResponse.json(result);
 });
+
+export const GET = handle(appAPIV3);

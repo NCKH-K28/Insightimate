@@ -14,3 +14,9 @@ export const getAuthFromRequest = async (
     throw new Error('Invalid "auth" in "request"' + JSON.stringify(valid.error.issues));
   return valid.data;
 };
+
+export const getAuthFromRequestHono = async (c: any, parse: boolean = true) => {
+  const auth = c.get('jwtPayload');
+  if (!auth) throw new Error('Missing "auth" in "request"');
+  return { id: auth.sub, email: auth.email };
+};

@@ -1,10 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useFileUpload, type FileWithPreview } from '@/hooks/use-file-upload';
 import { Button } from '@/components/ui/button';
 import { User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import Image from 'next/image';
 
 type AvatarUploadClassNames = Partial<{
   root: string;
@@ -23,6 +25,10 @@ interface AvatarUploadProps {
   classNames?: AvatarUploadClassNames;
   onFileChange?: (file: FileWithPreview | null) => void;
   defaultAvatar?: string;
+  disabled?: boolean;
+
+  /** Custom fallback when no image / image error */
+  renderFallback?: (args: { disabled: boolean }) => ReactNode;
 }
 
 export default function AvatarUpload({
@@ -30,7 +36,11 @@ export default function AvatarUpload({
   classNames,
   onFileChange,
   defaultAvatar,
+  disabled = false,
+  renderFallback,
 }: AvatarUploadProps) {
+  const [imageError, setImageError] = useState(false);
+
   const [
     { files, isDragging },
     {
@@ -47,50 +57,75 @@ export default function AvatarUpload({
     maxSize,
     accept: 'image/*',
     multiple: false,
-    onFilesChange: (files) => onFileChange?.(files[0] || null),
+    onFilesChange: (files) => {
+      setImageError(false); // reset when file changes
+      onFileChange?.(files[0] || null);
+    },
   });
 
   const currentFile = files[0];
   const previewUrl = currentFile?.preview || defaultAvatar;
+  const hasImage = Boolean(previewUrl) && !imageError;
 
   const handleRemove = () => {
+    if (disabled) return;
     if (currentFile) removeFile(currentFile.id);
+    setImageError(false);
   };
 
-  const inputProps = useMemo(() => getInputProps(), [getInputProps]);
+  const inputProps = useMemo(() => {
+    const props = getInputProps();
+    return {
+      ...props,
+      disabled,
+      tabIndex: disabled ? -1 : props.tabIndex,
+    };
+  }, [getInputProps, disabled]);
+
+  const canInteract = !disabled;
+
+  const fallbackNode = renderFallback?.({ disabled }) ?? (
+    <div className={cn('flex h-full w-full items-center justify-center', classNames?.empty)}>
+      <User className={cn('size-6 text-muted-foreground', classNames?.emptyIcon)} />
+    </div>
+  );
 
   return (
-    <div className={cn('flex flex-col items-center gap-4', classNames?.root)}>
+    <div
+      className={cn('flex flex-col items-center gap-4', classNames?.root)}
+      aria-disabled={disabled}
+    >
       <div className={cn('relative', classNames?.wrapper)}>
         <div
           className={cn(
-            'group/avatar relative h-24 w-24 cursor-pointer overflow-hidden rounded-full border border-dashed transition-colors',
-            isDragging
-              ? 'border-primary bg-primary/5'
-              : 'border-muted-foreground/25 hover:border-muted-foreground/20',
+            'group/avatar relative h-24 w-24 overflow-hidden rounded-full border border-dashed transition-colors',
+            canInteract ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
+            !disabled &&
+              (isDragging
+                ? 'border-primary bg-primary/5'
+                : 'border-muted-foreground/25 hover:border-muted-foreground/20'),
             previewUrl && 'border-solid',
             classNames?.dropzone,
           )}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={openFileDialog}
+          onDragEnter={canInteract ? handleDragEnter : undefined}
+          onDragLeave={canInteract ? handleDragLeave : undefined}
+          onDragOver={canInteract ? handleDragOver : undefined}
+          onDrop={canInteract ? handleDrop : undefined}
+          onClick={canInteract ? openFileDialog : undefined}
+          role='button'
+          tabIndex={canInteract ? 0 : -1}
         >
           <input {...inputProps} className={cn('sr-only', classNames?.input)} />
 
-          {previewUrl ? (
-            <img
+          {hasImage && previewUrl ? (
+            <Image
               src={previewUrl}
               alt='Avatar'
               className={cn('h-full w-full object-cover', classNames?.image)}
+              onError={() => setImageError(true)}
             />
           ) : (
-            <div
-              className={cn('flex h-full w-full items-center justify-center', classNames?.empty)}
-            >
-              <User className={cn('size-6 text-muted-foreground', classNames?.emptyIcon)} />
-            </div>
+            fallbackNode
           )}
         </div>
 
@@ -99,6 +134,7 @@ export default function AvatarUpload({
             type='button'
             size='icon'
             variant='outline'
+            disabled={disabled}
             onClick={(e) => {
               e.stopPropagation();
               handleRemove();
