@@ -38,6 +38,8 @@ export const httpExceptionFilter = <T>(error: T, request: NextRequest): NextResp
 export const httpExceptionFilterHono: ErrorHandler = (e, c) => {
   let json: AppErrorJSON = { code: 'UNKNOWN_ERROR', message: 'Internal server error' };
   let status: ContentfulStatusCode = 500;
+  // log
+  console.error(`Unhandled error at ${c.req.url}:`, e);
   if (e instanceof z.ZodError) {
     const msg = e.issues.map((issue) => `${issue.path.join('.')} - ${issue.message}`).join(', ');
     json = { code: 'VALIDATION_ERROR', message: msg };

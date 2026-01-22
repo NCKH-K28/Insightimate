@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { createAgentUIStreamResponse, generateObject, UIMessage } from 'ai';
 import { google } from '@ai-sdk/google';
 import { cookies } from 'next/headers';
-import { verifyToken } from '@/lib/auth/authn/session';
+import { verifyToken } from '@/lib/authn/session';
 import {
   createSpecAgent,
   createEstimationAgent,

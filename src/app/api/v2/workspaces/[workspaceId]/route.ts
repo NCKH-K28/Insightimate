@@ -1,10 +1,10 @@
 // app/api/v2/workspaces/[workspaceId]/route.ts
 
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { authenticated } from '@/lib/auth/authn/guards';
+import { authenticated } from '@/lib/authn/guards';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
-import { getAuthFromRequest } from '@/lib/auth/authn';
+import { getAuthFromRequest } from '@/lib/authn';
 import { workspaceService } from '@/features/workspaces/server/service';
 
 type Params = { workspaceId: string };

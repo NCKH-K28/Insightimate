@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { compose } from '@/lib/http/api-compose';
 import { ZAIAgentCreateInput } from '@/contracts/agents/agent.input';
 import { aiAgentService } from '@/features/agents/server/services/agent.service';

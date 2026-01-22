@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { traceRepository } from '@/features/agents/server/trace-repository';
 import { compose } from '@/lib/http/api-compose';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 
 export const GET = compose<{ workspaceId: string }>(authenticatedV2, async (req) => {
   const auth = await getAuthFromRequest(req);

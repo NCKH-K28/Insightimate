@@ -89,8 +89,6 @@ const createStore = async () => {
 };
 
 const healthCheck = async () => {
-  // // log
-  // console.log('Performing OpenFGA health check...');
   // await clearStores();
   // const store = await createStore();
   // console.log(`Using OpenFGA store ID: ${store.id}`);

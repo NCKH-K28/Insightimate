@@ -26,8 +26,7 @@ interface AvatarUploadProps {
   onFileChange?: (file: FileWithPreview | null) => void;
   defaultAvatar?: string;
   disabled?: boolean;
-
-  /** Custom fallback when no image / image error */
+  size?: { width?: number; height?: number };
   renderFallback?: (args: { disabled: boolean }) => ReactNode;
 }
 
@@ -38,8 +37,10 @@ export default function AvatarUpload({
   defaultAvatar,
   disabled = false,
   renderFallback,
+  ...props
 }: AvatarUploadProps) {
   const [imageError, setImageError] = useState(false);
+  const size = useMemo(() => ({ width: 96, height: 96, ...props.size }), [props.size]);
 
   const [
     { files, isDragging },
@@ -119,6 +120,8 @@ export default function AvatarUpload({
 
           {hasImage && previewUrl ? (
             <Image
+              width={size.width}
+              height={size.height}
               src={previewUrl}
               alt='Avatar'
               className={cn('h-full w-full object-cover', classNames?.image)}

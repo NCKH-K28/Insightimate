@@ -1,5 +1,5 @@
 import { sourceService } from '@/features/agents/server/services/source.service';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { NextResponse } from 'next/server';
 import merge from 'lodash/merge';
 

@@ -1,7 +1,7 @@
 import { ZProjectRoleWriteInput } from '@/contracts/projects';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth/authn';
-import { authenticated } from '@/lib/auth/authn/guards';
+import { getAuthFromRequest } from '@/lib/authn';
+import { authenticated } from '@/lib/authn/guards';
 import { projectRolesService } from '@/features/projects/server/project-roles.service';
 import { NextResponse } from 'next/server';
 

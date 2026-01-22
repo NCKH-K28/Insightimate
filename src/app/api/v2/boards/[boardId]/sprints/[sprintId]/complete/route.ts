@@ -1,6 +1,6 @@
 import { ZBoardSprintCompleteInput } from '@/contracts/boards/board.input';
 import { boardsService } from '@/features/boards/server/service';
-import { authenticated } from '@/lib/auth/authn';
+import { authenticated } from '@/lib/authn';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { NextResponse } from 'next/server';
 

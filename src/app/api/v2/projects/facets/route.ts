@@ -1,7 +1,7 @@
 import { ZProjectQueryParams, ZProjectFacets } from '@/contracts/projects';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth/authn';
-import { authenticated } from '@/lib/auth/authn/guards';
+import { getAuthFromRequest } from '@/lib/authn';
+import { authenticated } from '@/lib/authn/guards';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';

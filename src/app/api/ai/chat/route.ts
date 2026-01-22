@@ -11,7 +11,7 @@ import {
   listSprintsTool,
   patchIssuesTool,
 } from '@/features/ai/tools';
-import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated, getAuthFromRequest } from '@/lib/authn';
 import { ChatInput, ZChatInput } from '@/contracts/agents/agent.input';
 
 type Lang = 'vi' | 'en' | 'auto';

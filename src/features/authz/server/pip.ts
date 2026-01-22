@@ -1,60 +1,49 @@
 import { cerbosEdge } from '@/lib/auth/authz/cerbos';
 import { prisma } from '@/lib/prisma';
 
-// const ZStringArrayOptional = z.array(z.string()).optional();
-type WorkspaceAttr = { id: string; ownerId: string };
-type ProjectAttr = { id: string; leadId: string; workspace?: WorkspaceAttr };
-type WsMemberAttr = { id: string; userId: string; role: string; workspace: WorkspaceAttr };
+type OrgAttr = { id: string; ownerId: string };
+type OrgMemberAttr = { id: string; userId: string; role: string; org: OrgAttr };
+type ProjectAttr = { id: string; leadId: string; org?: OrgAttr };
 
-type WorkspaceResource = { kind: 'workspace'; id: string; attr?: WorkspaceAttr };
+type OrgResource = { kind: 'org'; id: string; attr?: Record<string, any> };
+type OrgMemberResource = { kind: 'org_member'; id: string; attr?: Record<string, any> };
 type ProjectResource = { kind: 'project'; id: string; attr?: ProjectAttr };
-type WsMemberResource = { kind: 'workspace_member'; id: string; attr?: WsMemberAttr };
-type AnyResource = WorkspaceResource | ProjectResource | WsMemberResource;
+type AnyResource = OrgResource | OrgMemberResource | ProjectResource;
 
+export type PrincipalParams = { orgId?: string; projectId?: string };
 export const loadPrincipal = async (
   context: { actorId: string },
-  params: { workspaceId?: string; projectId?: string },
-  _resources: AnyResource[] = [],
+  resources: AnyResource[] = [],
 ) => {
-  const resources = [..._resources];
-  // old roles -- remove later
-  if (params.workspaceId) resources.push({ kind: 'workspace', id: params.workspaceId });
-  if (params.projectId) resources.push({ kind: 'project', id: params.projectId });
-
   const { actorId } = context;
   const roles: string[] = ['user'];
   const attr: Record<string, any> = {};
 
   // Resource-based roles
-  const workspaceIds: Set<string> = new Set();
-  const projectIds: Set<string> = new Set();
-  const wsMemberIds: Set<string> = new Set();
+  const orgIds = new Set<string>();
+  const orgMemberIds = new Set<string>();
+  const projIds = new Set<string>();
   for (const r of resources) {
-    if (r.kind === 'workspace') workspaceIds.add(r.id);
-    else if (r.kind === 'project') projectIds.add(r.id);
-    else if (r.kind === 'workspace_member') wsMemberIds.add(r.id);
+    if (r.kind === 'org') orgIds.add(r.id);
+    else if (r.kind === 'org_member') orgMemberIds.add(r.id);
+    else if (r.kind === 'project') projIds.add(r.id);
+    else throw new Error(`Unknown resource kind: ${(r as any).kind}`);
   }
 
-  if (wsMemberIds.size > 0) {
-    const wsMembers = await prisma.workspaceMember.findMany({
-      where: { id: { in: Array.from(wsMemberIds) }, userId: actorId },
-      select: { workspaceId: true },
+  if (orgIds.size > 0) {
+    const orgMembers = await prisma.orgMember.findMany({
+      where: { orgId: { in: Array.from(orgIds) }, userId: actorId },
+      select: { orgId: true, role: true },
     });
-    const wsIds = new Set(wsMembers.map((m) => m.workspaceId));
-    wsIds.forEach((id) => workspaceIds.add(id));
+    orgMembers.forEach((m) => roles.push(`org:${m.orgId}#${m.role}`));
   }
 
-  if (workspaceIds.size > 0) {
-    const wsMembers = await prisma.workspaceMember.findMany({
-      where: { workspaceId: { in: Array.from(workspaceIds) }, userId: actorId },
-      select: { workspaceId: true, role: true },
-    });
-    wsMembers.forEach((m) => roles.push(`workspace:${m.workspaceId}#${m.role}`));
+  if (orgMemberIds.size > 0) {
   }
 
-  if (projectIds.size > 0) {
+  if (projIds.size > 0) {
     const actors = await prisma.projectActor.findMany({
-      where: { projectId: { in: Array.from(projectIds) }, actorId },
+      where: { projectId: { in: Array.from(projIds) }, actorId },
     });
     actors.forEach((a) => roles.push(`project:${a.projectId}#PROJ_MEMBER`));
   }
@@ -65,16 +54,16 @@ export const loadPrincipal = async (
 };
 
 // Helpers
-export const workspaceResourceFactory = (w: WorkspaceAttr) => {
-  return { kind: 'workspace' as const, id: w.id, attr: w };
+export const orgResourceFactory = (o: OrgAttr) => {
+  return { kind: 'org' as const, id: o.id, attr: o };
+};
+
+export const orgMemberResourceFactory = (m: OrgMemberAttr) => {
+  return { kind: 'org_member' as const, id: m.id, attr: m };
 };
 
 export const projectResourceFactory = (p: ProjectAttr) => {
   return { kind: 'project' as const, id: p.id, attr: p };
-};
-
-export const workspaceMemberResourceFactory = (m: WsMemberAttr) => {
-  return { kind: 'workspace_member' as const, id: m.id, attr: m };
 };
 
 export const ensureCan = async (
@@ -83,7 +72,7 @@ export const ensureCan = async (
   context: { actorId: string },
   throwOnDenied = true,
 ) => {
-  const principal = await loadPrincipal(context, {}, [resource]);
+  const principal = await loadPrincipal(context, [resource]);
   const decision = await cerbosEdge.checkResource({ principal, actions: [action], resource });
   const isAllowed = decision.isAllowed(action);
   if (!isAllowed && throwOnDenied)
@@ -97,12 +86,13 @@ export const ensureCanMany = async (
   context: { actorId: string },
   throwOnDenied = true,
 ) => {
-  const principal = await loadPrincipal(context, {}, [resource]);
+  const principal = await loadPrincipal(context, [resource]);
   const decision = await cerbosEdge.checkResource({ principal, actions, resource });
   if (throwOnDenied) {
     const denied = actions.filter((action) => !decision.isAllowed(action));
-    if (denied.length > 0)
+    if (denied.length > 0) {
       throw new Error(`Permission denied to ${denied.join(', ')} on this resource`);
+    }
   }
   return decision;
 };

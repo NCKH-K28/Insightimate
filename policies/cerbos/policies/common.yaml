@@ -8,18 +8,18 @@ derivedRoles:
       parentRoles: ["*"]
       condition:
         match:
-          expr: P.id == R.attr.organization.ownerId || P.id == R.attr.ownerId #FIXME: legacy attr
+          expr: ('org:%s#ORG_OWNER'.format([R.attr.orgId])) in P.roles
     - name: org_admin
       parentRoles: ["*"]
       condition:
         match:
-          expr: ('organization:%s#ORG_ADMIN'.format([R.attr.orgId])) in P.roles
+          expr: ('org:%s#ORG_ADMIN'.format([R.attr.orgId])) in P.roles
     - name: org_member
       parentRoles: ["*"]
       condition:
         match:
           expr: >
-            ("organization:" + R.attr.orgId + "#ORG_MEMBER") in P.roles
+            ("org:" + R.attr.orgId + "#ORG_MEMBER") in P.roles
 
     - name: proj_lead
       parentRoles: ["*"]

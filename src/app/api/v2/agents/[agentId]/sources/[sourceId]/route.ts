@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { compose } from '@/lib/http/api-compose';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { sourceService } from '@/features/agents/server/services/source.service';
 import z from 'zod';
 

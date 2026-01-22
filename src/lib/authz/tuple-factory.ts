@@ -7,32 +7,40 @@ type ProjectRoleId = string;
 type ProjectId = string;
 type OrganizationId = string;
 
-const asUser = (id: UserId) => `user:${id}`;
-const asOrg = (id: OrganizationId) => `organization:${id}`;
-const asTeam = (id: string) => `team:${id}`;
-const asProj = (id: ProjectId) => `project:${id}`;
-// const asProjPerm = (projectId: string, perm: string) => `project_permission:${projectId}:${perm}`;
-const asProjRole = (id: ProjectRoleId) => `project_role:${id}`;
+type UserKey = `user:${string}`;
+type OrgKey = `org:${string}`;
+type TeamKey = `team:${string}`;
+type ProjKey = `proj:${string}`;
+type ProjRoleKey = `proj_role:${string}`;
+type ProjPermKey = `proj_perm:${string}:${string}`;
 
-export type ProjectActorInput = {
+export const asUser = (id: UserId): UserKey => `user:${id}`;
+export const asOrg = (id: OrganizationId): OrgKey => `org:${id}`;
+export const asTeam = (id: string): TeamKey => `team:${id}`;
+export const asProj = (id: ProjectId): ProjKey => `proj:${id}`;
+export const asProjPerm = (projId: ProjectId, perm: string): ProjPermKey =>
+  `proj_perm:${projId}:${perm}`;
+export const asProjRole = (id: ProjectRoleId): ProjRoleKey => `proj_role:${id}`;
+
+export type ProjActorInput = {
   id: string;
   roleId: ProjectRoleId;
   actorType: 'USER' | 'TEAM';
   actorId: UserId;
 };
 
-export type ProjectRoleInput = {
+export type ProjRoleInput = {
   id: ProjectRoleId;
   projectId: ProjectId;
-  actors: ProjectActorInput[];
+  actors: ProjActorInput[];
   permissions: string[];
 };
 
-export type ProjectInput = {
+export type ProjInput = {
   id: ProjectId;
   leadId: UserId;
   orgId: OrganizationId;
-  roles: ProjectRoleInput[];
+  roles: ProjRoleInput[];
   permissions: string[];
 };
 
@@ -43,7 +51,7 @@ export type TeamInput = {
   members: TeamMemberInput[];
 };
 
-export type WorkspaceMemberInput = {
+export type OrgMemberInput = {
   orgId: OrganizationId;
   userId: UserId;
   role: 'ORG_OWNER' | 'ORG_ADMIN' | 'ORG_MEMBER';
@@ -52,11 +60,11 @@ export type WorkspaceMemberInput = {
 export type OrganizationInput = {
   id: OrganizationId;
   ownerId: UserId;
-  members: WorkspaceMemberInput[];
+  members: OrgMemberInput[];
 };
 
 // =========================== For Projects
-export const buildProjectActorTuples = (input: ProjectActorInput): TupleKey[] => {
+export const buildProjectActorTuples = (input: ProjActorInput): TupleKey[] => {
   const { actorType, roleId } = input;
 
   const tuples: TupleKey[] = [];
@@ -67,7 +75,7 @@ export const buildProjectActorTuples = (input: ProjectActorInput): TupleKey[] =>
   return tuples;
 };
 
-export const buildProjectRoleTuples = (input: ProjectRoleInput): TupleKey[] => {
+export const buildProjectRoleTuples = (input: ProjRoleInput): TupleKey[] => {
   const tuples: TupleKey[] = [];
 
   // parent project
@@ -91,7 +99,7 @@ export const buildProjectRoleTuples = (input: ProjectRoleInput): TupleKey[] => {
   return tuples;
 };
 
-export const buildProjectTuples = (input: ProjectInput): TupleKey[] => {
+export const buildProjectTuples = (input: ProjInput): TupleKey[] => {
   const tuples: TupleKey[] = [];
 
   // parent organization
@@ -115,6 +123,7 @@ export const buildProjectTuples = (input: ProjectInput): TupleKey[] => {
 
 // =========================== For Teams
 export type TeamMemberInput = { userId: UserId; teamId: string };
+
 export const buildTeamMemberTuples = (input: TeamMemberInput): TupleKey[] => {
   return [{ user: asUser(input.userId), relation: 'TEAM_MEMBER', object: asTeam(input.teamId) }];
 };
@@ -134,7 +143,7 @@ export const buildTeamTuples = (input: TeamInput): TupleKey[] => {
 };
 
 // =========================== For Organizations
-export const buildOrganizationMemberTuples = (input: WorkspaceMemberInput): TupleKey[] => {
+export const buildOrganizationMemberTuples = (input: OrgMemberInput): TupleKey[] => {
   return [{ user: asUser(input.userId), relation: input.role, object: asOrg(input.orgId) }];
 };
 

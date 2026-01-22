@@ -1,4 +1,4 @@
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { openfgaClient } from '@/lib/auth/authz/openfga';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';

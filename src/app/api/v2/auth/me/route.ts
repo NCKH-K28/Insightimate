@@ -1,6 +1,6 @@
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth/authn';
-import { authenticated, authenticatedV2 } from '@/lib/auth/authn/guards';
+import { getAuthFromRequest } from '@/lib/authn';
+import { authenticated, authenticatedV2 } from '@/lib/authn/guards';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { compose } from '@/lib/http/api-compose';

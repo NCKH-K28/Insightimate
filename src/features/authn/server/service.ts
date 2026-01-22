@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 
 import { verifyPassword, hashPassword } from '../lib/password';
-import { generateToken } from '@/lib/auth/authn/session';
+import { generateToken } from '@/lib/authn/session';
 import serverConfig from '@/configs/server';
 import { AuthError } from '@/lib/http/errors';
 import { genUserId } from '../lib/id';

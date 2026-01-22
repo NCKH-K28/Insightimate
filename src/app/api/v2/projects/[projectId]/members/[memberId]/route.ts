@@ -1,6 +1,6 @@
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth/authn';
-import { authenticated } from '@/lib/auth/authn/guards';
+import { getAuthFromRequest } from '@/lib/authn';
+import { authenticated } from '@/lib/authn/guards';
 import { projectsService } from '@/features/projects/server/projects.service';
 import { NextResponse } from 'next/server';
 

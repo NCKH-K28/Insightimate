@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { AgentOrchestrator } from '@/features/agents/server/orchestrator';
 import { randomUUID } from 'crypto';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated, getAuthFromRequest } from '@/lib/authn';
 
 const schema = z.object({ input: z.string() });
 

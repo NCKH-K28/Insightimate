@@ -1,4 +1,4 @@
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { compose } from '@/lib/http/api-compose';
 import { s3 } from '@/lib/s3';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';

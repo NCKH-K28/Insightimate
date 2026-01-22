@@ -1,5 +1,5 @@
 import { AnalysisCreateInput, ZAnalysisCreateInput } from '@/contracts/agents/agent.input';
-import { authenticatedV2 } from '@/lib/auth/authn';
+import { authenticatedV2 } from '@/lib/authn';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, getZodParams, zodBodyPipe, zodParamsPipe } from '@/lib/http/zod-pipes';
 import { kafka } from '@/lib/kafka';

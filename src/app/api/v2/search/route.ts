@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { search } from '@/features/query/server/cqrs/q-search-v2';
 import { compose } from '@/lib/http/api-compose';
-import { authenticatedV2, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { ZQueryParams } from '@/contracts/query/schema-v2';
 import { getZodQuery, zodQueryPipe } from '@/lib/http/zod-pipes';
 

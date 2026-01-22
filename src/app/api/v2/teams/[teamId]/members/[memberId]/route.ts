@@ -1,5 +1,5 @@
 import { teamsService } from '@/features/teams/server/teams.service';
-import { authenticated, getAuthFromRequest } from '@/lib/auth/authn';
+import { authenticated, getAuthFromRequest } from '@/lib/authn';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { NextResponse } from 'next/server';
 

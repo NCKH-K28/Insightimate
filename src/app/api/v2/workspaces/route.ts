@@ -1,7 +1,7 @@
 import { ZWorkspaceCreateInput } from '@/contracts/workspaces';
 import { middlewareHandler } from '@/lib/http/api-handler';
-import { getAuthFromRequest } from '@/lib/auth/authn';
-import { authenticated } from '@/lib/auth/authn/guards';
+import { getAuthFromRequest } from '@/lib/authn';
+import { authenticated } from '@/lib/authn/guards';
 import { NextResponse } from 'next/server';
 import { workspaceService } from '@/features/workspaces/server/service';
 

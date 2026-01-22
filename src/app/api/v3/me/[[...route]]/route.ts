@@ -1,12 +1,14 @@
-import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
-import { authenticatedHono, getAuthFromRequestHono } from '@/lib/auth/authn';
+import { authenticatedHono, getAuthFromRequestHono } from '@/lib/authn';
 import { prisma } from '@/lib/prisma';
-import { NextResponse } from 'next/server';
-
-import { appAPIV3 } from '@/lib/hono';
+import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
+import { NextResponse } from 'next/server';
+import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
 
-appAPIV3.get('/me/invites', authenticatedHono, async (c) => {
+const meHono = new Hono().basePath('/api/v3/me');
+meHono.use(authenticatedHono);
+
+meHono.get('/invites', async (c) => {
   const auth = await getAuthFromRequestHono(c);
 
   const now = new Date();
@@ -31,4 +33,8 @@ appAPIV3.get('/me/invites', authenticatedHono, async (c) => {
   return NextResponse.json(result);
 });
 
-export const GET = handle(appAPIV3);
+export const GET = handle(meHono);
+export const POST = handle(meHono);
+export const PUT = handle(meHono);
+export const PATCH = handle(meHono);
+export const DELETE = handle(meHono);
