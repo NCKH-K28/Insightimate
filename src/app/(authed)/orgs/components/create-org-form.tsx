@@ -231,6 +231,7 @@ export const CreateOrgForm = ({
       name: '',
       slug: '',
       logo: null,
+      invitees: [],
       ...defaultValues,
     },
     mode: 'onChange',

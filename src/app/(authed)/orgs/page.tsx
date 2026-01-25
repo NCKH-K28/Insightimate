@@ -20,9 +20,11 @@ import { OrgListPageHeader } from './components/org-list-page-header';
 import { InvitationsSection } from './components/invitations';
 import { OrgList, OrgListSkeleton } from './components/organizations';
 import { CreateOrgForm, CreateOrgFormData } from './components/create-org-form';
+import { useCreateOrg } from '@/hooks/org';
 
 export default function Page() {
   const [createOrgDialogOpen, setCreateOrgDialogOpen] = useState(false);
+  const createOrg = useCreateOrg();
 
   const handleCreateOrg = async (data: CreateOrgFormData) => {
     let logoURL: string | null = null;
@@ -48,15 +50,15 @@ export default function Page() {
       logoURL = data.logo;
     }
 
-    return orgAPI.create({ ...data, logo: logoURL });
+    createOrg.mutate(
+      { ...data, logo: logoURL },
+      {
+        onSuccess: () => {
+          setCreateOrgDialogOpen(false);
+        },
+      },
+    );
   };
-
-  const createMutation = useMutation({
-    mutationFn: handleCreateOrg,
-    onSuccess: (newOrg) => {
-      window.location.href = `/o/${newOrg.slug}`;
-    },
-  });
 
   return (
     <div className='w-screen h-screen flex flex-col'>
@@ -76,8 +78,8 @@ export default function Page() {
 
             <CreateOrgForm
               onCancel={() => setCreateOrgDialogOpen(false)}
-              onSubmit={(form) => createMutation.mutate(form)}
-              isSubmitting={createMutation.isPending}
+              onSubmit={(i) => handleCreateOrg(i)}
+              isSubmitting={createOrg.isPending}
             />
           </DialogContent>
         </Dialog>

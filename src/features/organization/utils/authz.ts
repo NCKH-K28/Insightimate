@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import uniqby from 'lodash/uniqBy';
 import { cerbosClient, CerbosPrincipal, openfgaClient } from '@/lib/authz/clients';
-import { asOrg, asUser } from '@/lib/authz/tuple-factory';
+import { asUser } from '@/lib/authz/tuple-factory';
+import { OrgError } from '@/lib/http/errors';
 
-type ActionType = 'read';
+type ActionType = 'read' | 'delete';
 
 export const accessibleOrgs = async (
   input: { action: ActionType },
@@ -17,18 +18,6 @@ export const accessibleOrgs = async (
   const prefix = 'org:';
   const ids = res.objects.map((obj) => obj.slice(prefix.length));
   return ids;
-};
-
-export const canAccessOrg = async (
-  input: { orgId: string; action: ActionType },
-  context: { actorId: string },
-): Promise<boolean> => {
-  const res = await openfgaClient.check({
-    user: asUser(context.actorId),
-    object: asOrg(input.orgId),
-    relation: input.action,
-  });
-  return res.allowed ?? false;
 };
 
 export type OrgResource = { kind: 'org'; id: string; attr?: Record<string, string> };
@@ -70,7 +59,7 @@ export const ensureCan = async (
   const principal = await loadPrincipal(context, [resource]);
   const actions = [action];
   const decision = await cerbosClient.checkResource({ principal, actions, resource });
-  if (!decision.isAllowed(action)) throw new Error('Access denied');
+  if (!decision.isAllowed(action)) throw new OrgError('ORG_FORBIDDEN', 'Access denied');
 };
 
 export const ensureCanMany = async (
@@ -81,8 +70,9 @@ export const ensureCanMany = async (
   const principal = await loadPrincipal(context, [resource]);
   const decision = await cerbosClient.checkResource({ principal, actions, resource });
   const deniedActions = actions.filter((action) => !decision.isAllowed(action));
-  if (deniedActions.length > 0)
-    throw new Error(`Access denied for actions: ${deniedActions.join(', ')}`);
+  if (deniedActions.length > 0) {
+    throw new OrgError('ORG_FORBIDDEN', `Access denied for actions: ${deniedActions.join(', ')}`);
+  }
 };
 
 export const allowedOrgPerms = async (

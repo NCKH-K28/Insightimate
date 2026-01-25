@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 import type { OrgItem } from '@/contracts/organizations/organization.query';
 import { Role, OrgAvatar, RoleBadge, StatItem, formatRelative } from './org-shared';
+import { useOrgsSuspense } from '@/hooks/org';
 
 export const OrgListSkeleton = () => (
   <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
@@ -97,13 +98,7 @@ export const OrgCard: React.FC<OrgCardProps> = ({ org, href }) => {
 };
 
 export const OrgList = () => {
-  const { data: orgs } = useSuspenseQuery({
-    queryKey: ['orgs'],
-    queryFn: async () => {
-      const res = await axiosInstance.get<{ data: OrgItem[]; meta: { total: number } }>('/v3/orgs');
-      return res.data.data;
-    },
-  });
+  const { data: orgs } = useOrgsSuspense();
 
   return (
     <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { accessibleOrgs, allowedOrgPerms, canAccessOrg } from '../utils/authz';
+import { accessibleOrgs, allowedOrgPerms, ensureCan } from '../utils/authz';
 import { ZOrgItem } from '@/contracts/organizations/organization.query';
 import { ORG_ACTIONS } from '@/contracts/organizations/organization';
 import { genOrgId } from '../utils/id';
@@ -8,7 +8,9 @@ import { Prisma } from '@prisma/client';
 import { createId } from '@paralleldrive/cuid2';
 import { buildOrganizationTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients';
+import { OrgError } from '@/lib/http/errors';
 
+const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 type OrgContext = { actorId: string };
 
 const buildOrgLogoUrl = <O extends { logo: string | null }, I extends O | O[]>(org: I): I => {
@@ -19,14 +21,10 @@ const buildOrgLogoUrl = <O extends { logo: string | null }, I extends O | O[]>(o
 
 export const getOrg = async (input: { id: string; by?: 'id' | 'slug' }, ctx: OrgContext) => {
   const { id, by = 'id' } = input;
-
-  const org = await prisma.organization.findUnique({
-    where: by === 'id' ? { id } : { slug: id },
-    include: { owner: true },
-  });
-  if (!org) throw new Error('Organization not found');
-  const canView = await canAccessOrg({ orgId: org.id, action: 'read' }, ctx);
-  if (!canView) throw new Error('Permission Deny');
+  const where = by === 'id' ? { id } : { slug: id };
+  const org = await prisma.organization.findUnique({ where, include: { owner: true } });
+  if (!org) throw new OrgError('ORG_NOT_FOUND', 'Organization not found');
+  await ensureCan('read', { kind: 'org', id: org.id, attr: { orgId: org.id } }, ctx);
   const orgWithLogo = buildOrgLogoUrl(org);
 
   // == load _me
@@ -73,7 +71,6 @@ export const listOrgs = async (input: null, ctx: OrgContext) => {
   return { data: orgItems, meta: { total } };
 };
 
-const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 export const createOrg = async (input: OrgCreateInput, context: { actorId: string }) => {
   const { invitees: inviteesInput = [], ...orgInput } = input;
   const org = { ...orgInput, id: genOrgId(), ownerId: context.actorId, settings: {} };
@@ -87,6 +84,9 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
   }));
 
   const result = await prisma.$transaction(async (tx) => {
+    const slug = await tx.organization.findUnique({ where: { slug: org.slug } });
+    if (slug) throw new OrgError('ORG_CONFLICT', 'Organization slug already exists');
+
     const newOrg = await tx.organization.create({
       include: { owner: true, members: true },
       data: { ...org, members: { create: { userId: context.actorId, role: 'ORG_OWNER' } } },
@@ -101,8 +101,32 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
     return orgItem;
   });
 
-  // send invitations
-  // FIXME: send invitation emails here
-
   return result;
+};
+
+export const deleteOrg = async (orgId: string, ctx: OrgContext) => {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw new OrgError('ORG_NOT_FOUND', 'Organization not found');
+  await ensureCan('delete', { kind: 'org', id: orgId, attr: { orgId: org.id } }, ctx);
+  await prisma.organization.delete({ where: { id: orgId } });
+};
+
+export const updateOrg = async (
+  orgId: string,
+  input: Partial<{ name: string; logo: string | null }>,
+  ctx: OrgContext,
+) => {
+  const org = await prisma.organization.findUnique({ where: { id: orgId } });
+  if (!org) throw new OrgError('ORG_NOT_FOUND', 'Organization not found');
+  await ensureCan('update', { kind: 'org', id: orgId, attr: { orgId: org.id } }, ctx);
+
+  const updatedOrg = await prisma.organization.update({
+    where: { id: orgId },
+    data: {
+      name: input.name ?? undefined,
+      logo: input.logo !== undefined ? input.logo : undefined,
+    },
+    include: { owner: true },
+  });
+  return ZOrgItem.parse(buildOrgLogoUrl(updatedOrg));
 };

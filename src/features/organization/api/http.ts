@@ -20,8 +20,19 @@ const createOrg = async (data: OrgCreateInput): Promise<OrgItem> => {
   return resp.data as OrgItem;
 };
 
+const deleteOrg = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/v3/orgs/${id}`);
+};
+
+const updateOrg = async (id: string, data: Partial<OrgCreateInput>): Promise<OrgItem> => {
+  const resp = await axiosInstance.patch(`/v3/orgs/${id}`, data);
+  return resp.data as OrgItem;
+};
+
 export const orgAPI = {
   list: listOrgs,
   get: getOrg,
   create: createOrg,
+  delete: deleteOrg,
+  update: updateOrg,
 };

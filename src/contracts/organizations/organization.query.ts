@@ -10,7 +10,7 @@ export const ZPublicUser = z.object({
 });
 
 export const ZOrgItem = ZOrganization.extend({
-  owner: ZPublicUser,
+  owner: ZPublicUser.optional(),
 
   // == System Extended Fields ==
   _count: z.object({ members: z.number(), projects: z.number(), teams: z.number() }).optional(),

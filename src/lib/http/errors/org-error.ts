@@ -10,7 +10,10 @@ export const ORG_ERROR_CODE = {
 export type OrgErrorCode = (typeof ORG_ERROR_CODE)[keyof typeof ORG_ERROR_CODE];
 
 export class OrgError extends AppError<OrgErrorCode> {
-  constructor(code: OrgErrorCode, options: AppErrorOptions = { message: 'Organization error' }) {
+  constructor(
+    code: OrgErrorCode,
+    options: AppErrorOptions | string = { message: 'Organization error' },
+  ) {
     super(code, options);
     this.name = 'OrgError';
     Object.setPrototypeOf(this, OrgError.prototype);
