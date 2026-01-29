@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MiniCraft - 1 file HTML</title>
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; background: #000; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    canvas { position: fixed; inset: 0; display: block; }
+
+    /* Overlay hướng dẫn */
+    #overlay {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.55);
+      color: #fff; text-align: left;
+      padding: 24px;
+      z-index: 10;
+    }
+    #panel {
+      max-width: 760px;
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 12px;
+      padding: 18px 18px 14px;
+      backdrop-filter: blur(6px);
+    }
+    #panel h1 { margin: 0 0 10px; font-size: 22px; font-weight: 700; }
+    #panel p { margin: 8px 0; line-height: 1.5; }
+    #panel kbd {
+      display: inline-block; padding: 2px 6px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+    }
+    #panel .hint { opacity: .9; font-size: 14px; }
+
+    /* Crosshair */
+    #crosshair {
+      position: fixed;
+      left: 50%; top: 50%;
+      transform: translate(-50%, -50%);
+      color: rgba(255,255,255,.9);
+      font-size: 18px;
+      user-select: none;
+      z-index: 5;
+      text-shadow: 0 0 8px rgba(0,0,0,.65);
+      pointer-events: none;
+    }
+
+    /* HUD */
+    #hud {
+      position: fixed;
+      left: 50%; bottom: 18px;
+      transform: translateX(-50%);
+      display: flex; gap: 8px;
+      z-index: 6;
+      pointer-events: none;
+    }
+    .slot {
+      width: 64px; height: 44px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(0,0,0,.25);
+      backdrop-filter: blur(6px);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: rgba(255,255,255,.9);
+      font-size: 12px;
+      text-shadow: 0 0 8px rgba(0,0,0,.65);
+    }
+    .slot strong { font-size: 12px; }
+    .slot small { opacity: .85; }
+    .slot.active {
+      border-color: rgba(255,255,255,.65);
+      box-shadow: 0 0 0 2px rgba(255,255,255,.18) inset;
+    }
+
+    /* góc trái: debug */
+    #debug {
+      position: fixed; left: 12px; top: 12px;
+      color: rgba(255,255,255,.9);
+      font-size: 12px;
+      background: rgba(0,0,0,.25);
+      border: 1px solid rgba(255,255,255,.18);
+      padding: 8px 10px;
+      border-radius: 10px;
+      backdrop-filter: blur(6px);
+      z-index: 6;
+      pointer-events: none;
+      white-space: pre;
+      text-shadow: 0 0 8px rgba(0,0,0,.65);
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <div id="panel">
+      <h1>MiniCraft (1 file .html)</h1>
+      <p class="hint">Click vào màn hình để chơi (khóa chuột). Nhấn <kbd>Esc</kbd> để thoát khóa chuột.</p>
+      <p>
+        <strong>Di chuyển:</strong> <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> &nbsp;|&nbsp;
+        <strong>Bay lên/xuống:</strong> <kbd>Space</kbd> / <kbd>Shift</kbd> &nbsp;|&nbsp;
+        <strong>Bay nhanh:</strong> <kbd>Ctrl</kbd>
+      </p>
+      <p>
+        <strong>Đập block:</strong> Chuột trái &nbsp;|&nbsp;
+        <strong>Đặt block:</strong> Chuột phải &nbsp;|&nbsp;
+        <strong>Chọn block:</strong> <kbd>1</kbd>–<kbd>4</kbd>
+      </p>
+      <p class="hint">Game mini này là sandbox đơn giản (creative mode). Bạn có thể nâng cấp thêm va chạm, chunk, texture đẹp hơn, mob, v.v.</p>
+    </div>
+  </div>
+
+  <div id="crosshair">+</div>
+  <div id="debug"></div>
+  <div id="hud"></div>
+
+  <!-- Three.js (CDN) -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+  <script>
+    (() => {
+      // =========================
+      // Helpers
+      // =========================
+      const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+      const keyOf = (x, y, z) => `${x},${y},${z}`;
+      const roundInt = (v) => Math.round(v);
+
+      // =========================
+      // DOM
+      // =========================
+      const overlay = document.getElementById('overlay');
+      const hud = document.getElementById('hud');
+      const debugEl = document.getElementById('debug');
+
+      // =========================
+      // Renderer / Scene / Camera
+      // =========================
+      const renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x87ceeb);
+      scene.fog = new THREE.Fog(0x87ceeb, 20, 160);
+
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        500
+      );
+      camera.rotation.order = 'YXZ';
+
+      // Lights
+      const ambient = new THREE.AmbientLight(0xffffff, 0.55);
+      scene.add(ambient);
+
+      const sun = new THREE.DirectionalLight(0xffffff, 0.95);
+      sun.position.set(50, 80, 30);
+      scene.add(sun);
+
+      // =========================
+      // Pixel textures (canvas) để tạo cảm giác "block"
+      // =========================
+      function makePixelTexture(drawFn) {
+        const size = 16;
+        const c = document.createElement('canvas');
+        c.width = c.height = size;
+        const ctx = c.getContext('2d', { alpha: false });
+        ctx.imageSmoothingEnabled = false;
+        drawFn(ctx, size);
+
+        const tex = new THREE.CanvasTexture(c);
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.magFilter = THREE.NearestFilter;
+        tex.minFilter = THREE.NearestMipMapNearestFilter;
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        return tex;
+      }
+
+      function speckle(ctx, size, colors, count) {
+        for (let i = 0; i < count; i++) {
+          ctx.fillStyle = colors[(Math.random() * colors.length) | 0];
+          ctx.fillRect((Math.random() * size) | 0, (Math.random() * size) | 0, 1, 1);
+        }
+      }
+
+      const texGrassTop = makePixelTexture((ctx, s) => {
+        ctx.fillStyle = '#4fb14a';
+        ctx.fillRect(0, 0, s, s);
+        speckle(ctx, s, ['#3f9a3b', '#5fca58', '#2f7f2b'], 70);
+      });
+
+      const texDirt = makePixelTexture((ctx, s) => {
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(0, 0, s, s);
+        speckle(ctx, s, ['#7a4d24', '#9a6a35', '#6b421f'], 90);
+      });
+
+      const texGrassSide = makePixelTexture((ctx, s) => {
+        // nền dirt
+        ctx.fillStyle = '#8b5a2b';
+        ctx.fillRect(0, 0, s, s);
+        speckle(ctx, s, ['#7a4d24', '#9a6a35', '#6b421f'], 80);
+
+        // dải cỏ phía trên
+        ctx.fillStyle = '#4fb14a';
+        ctx.fillRect(0, 0, s, 5);
+        speckle(ctx, s, ['#3f9a3b', '#5fca58', '#2f7f2b'], 30);
+      });
+
+      const texStone = makePixelTexture((ctx, s) => {
+        ctx.fillStyle = '#808080';
+        ctx.fillRect(0, 0, s, s);
+        speckle(ctx, s, ['#6f6f6f', '#8c8c8c', '#5e5e5e', '#9a9a9a'], 110);
+      });
+
+      const texWood = makePixelTexture((ctx, s) => {
+        ctx.fillStyle = '#a0703b';
+        ctx.fillRect(0, 0, s, s);
+        // sọc gỗ dọc
+        for (let x = 0; x < s; x += 3) {
+          ctx.fillStyle = (x % 6 === 0) ? '#8a5d2f' : '#b27a45';
+          ctx.fillRect(x, 0, 1, s);
+        }
+        speckle(ctx, s, ['#7b532a', '#c28a55'], 40);
+      });
+
+      // Materials (dùng chung)
+      const matGrassTop = new THREE.MeshLambertMaterial({ map: texGrassTop });
+      const matGrassSide = new THREE.MeshLambertMaterial({ map: texGrassSide });
+      const matDirt = new THREE.MeshLambertMaterial({ map: texDirt });
+      const matStone = new THREE.MeshLambertMaterial({ map: texStone });
+      const matWood = new THREE.MeshLambertMaterial({ map: texWood });
+
+      // BoxGeometry group order: +X, -X, +Y, -Y, +Z, -Z  (right, left, top, bottom, front, back)
+      const grassMaterials = [
+        matGrassSide, // right
+        matGrassSide, // left
+        matGrassTop,  // top
+        matDirt,      // bottom
+        matGrassSide, // front
+        matGrassSide  // back
+      ];
+
+      const BLOCKS = [
+        { name: 'Cỏ',   material: grassMaterials },
+        { name: 'Đất',  material: matDirt },
+        { name: 'Đá',   material: matStone },
+        { name: 'Gỗ',   material: matWood },
+      ];
+
+      // =========================
+      // World (blocks)
+      // =========================
+      const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+
+      const blocks = new Map();      // key -> mesh
+      const blockMeshes = [];        // để raycast
+
+      const WORLD_SIZE = 32;         // 32x32
+      const MAX_TERRAIN = 8;         // cao tối đa
+      const BUILD_LIMIT_Y = 40;
+
+      function addBlock(x, y, z, type) {
+        x = roundInt(x); y = roundInt(y); z = roundInt(z);
+        const k = keyOf(x, y, z);
+        if (blocks.has(k)) return false;
+        if (y < 0 || y > BUILD_LIMIT_Y) return false;
+
+        const mat = BLOCKS[type]?.material ?? matStone;
+        const mesh = new THREE.Mesh(boxGeo, mat);
+        mesh.position.set(x, y, z);
+        mesh.userData.type = type;
+
+        scene.add(mesh);
+        blocks.set(k, mesh);
+        blockMeshes.push(mesh);
+        return true;
+      }
+
+      function removeBlock(mesh) {
+        if (!mesh) return false;
+        const { x, y, z } = mesh.position;
+        const k = keyOf(x, y, z);
+        if (!blocks.has(k)) return false;
+
+        scene.remove(mesh);
+        blocks.delete(k);
+
+        const idx = blockMeshes.indexOf(mesh);
+        if (idx !== -1) blockMeshes.splice(idx, 1);
+
+        return true;
+      }
+
+      // Tạo địa hình đơn giản
+      function heightAt(x, z) {
+        // dạng “đồi” đơn giản (sin/cos) + chút ngẫu nhiên
+        const n =
+          Math.sin(x * 0.28) * 1.6 +
+          Math.cos(z * 0.25) * 1.6 +
+          Math.sin((x + z) * 0.18) * 1.2;
+
+        const h = 4 + n + (Math.random() * 1.0);
+        return clamp(Math.floor(h), 1, MAX_TERRAIN);
+      }
+
+      function generateWorld() {
+        for (let x = 0; x < WORLD_SIZE; x++) {
+          for (let z = 0; z < WORLD_SIZE; z++) {
+            const h = heightAt(x, z);
+            for (let y = 0; y <= h; y++) {
+              let type = 2; // stone
+              if (y === h) type = 0;         // grass on top
+              else if (y >= h - 2) type = 1; // dirt near top
+              else type = 2;                 // stone deeper
+              addBlock(x, y, z, type);
+            }
+
+            // Tạo “cây” đơn giản ngẫu nhiên
+            if (Math.random() < 0.04 && h >= 3) {
+              const trunkH = 3 + ((Math.random() * 2) | 0);
+              for (let ty = h + 1; ty <= h + trunkH; ty++) addBlock(x, ty, z, 3);
+
+              // tán lá: dùng block cỏ (đỡ phải thêm loại mới)
+              const leafStart = h + trunkH - 1;
+              for (let lx = -2; lx <= 2; lx++) {
+                for (let lz = -2; lz <= 2; lz++) {
+                  for (let ly = 0; ly <= 2; ly++) {
+                    const dist = Math.abs(lx) + Math.abs(lz) + ly;
+                    if (dist <= 4 && Math.random() > 0.2) {
+                      const px = x + lx, py = leafStart + ly, pz = z + lz;
+                      if (px >= 0 && px < WORLD_SIZE && pz >= 0 && pz < WORLD_SIZE) {
+                        addBlock(px, py, pz, 0);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        // nền bedrock giới hạn (viền đá) cho đẹp
+        for (let x = -1; x <= WORLD_SIZE; x++) {
+          for (let z = -1; z <= WORLD_SIZE; z++) {
+            if (x === -1 || z === -1 || x === WORLD_SIZE || z === WORLD_SIZE) {
+              for (let y = 0; y <= 2; y++) addBlock(x, y, z, 2);
+            }
+          }
+        }
+      }
+
+      generateWorld();
+
+      // đặt camera lên cao
+      camera.position.set(WORLD_SIZE / 2, 12, WORLD_SIZE / 2);
+
+      // =========================
+      // Selection boxes
+      // =========================
+      const selBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.03, 1.03, 1.03),
+        new THREE.MeshBasicMaterial({ color: 0xffffff, wireframe: true })
+      );
+      selBox.visible = false;
+      scene.add(selBox);
+
+      const placeBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.03, 1.03, 1.03),
+        new THREE.MeshBasicMaterial({ color: 0xffff66, wireframe: true })
+      );
+      placeBox.visible = false;
+      scene.add(placeBox);
+
+      // =========================
+      // Pointer lock + mouse look
+      // =========================
+      let locked = false;
+      let yaw = 0;
+      let pitch = 0;
+
+      function lockPointer() {
+        renderer.domElement.requestPointerLock();
+      }
+
+      overlay.addEventListener('click', lockPointer);
+
+      document.addEventListener('pointerlockchange', () => {
+        locked = (document.pointerLockElement === renderer.domElement);
+        overlay.style.display = locked ? 'none' : 'flex';
+      });
+
+      document.addEventListener('mousemove', (e) => {
+        if (!locked) return;
+        const sens = 0.0022;
+        yaw   -= e.movementX * sens;
+        pitch -= e.movementY * sens;
+        pitch = clamp(pitch, -Math.PI / 2 + 0.02, Math.PI / 2 - 0.02);
+        camera.rotation.set(pitch, yaw, 0);
+      });
+
+      // =========================
+      // Keyboard movement (creative fly)
+      // =========================
+      const keys = Object.create(null);
+
+      window.addEventListener('keydown', (e) => {
+        keys[e.code] = true;
+
+        // Chọn block 1-4
+        if (e.code.startsWith('Digit')) {
+          const n = parseInt(e.code.slice(5), 10);
+          if (n >= 1 && n <= BLOCKS.length) {
+            selectedType = n - 1;
+            updateHotbar();
+          }
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        keys[e.code] = false;
+      });
+
+      // =========================
+      // Hotbar UI
+      // =========================
+      let selectedType = 0;
+
+      function updateHotbar() {
+        hud.innerHTML = '';
+        for (let i = 0; i < BLOCKS.length; i++) {
+          const s = document.createElement('div');
+          s.className = 'slot' + (i === selectedType ? ' active' : '');
+          s.innerHTML = `<strong>${i + 1}</strong><small>${BLOCKS[i].name}</small>`;
+          hud.appendChild(s);
+        }
+      }
+      updateHotbar();
+
+      // =========================
+      // Raycast interact (break/place)
+      // =========================
+      const raycaster = new THREE.Raycaster();
+      const ndc = new THREE.Vector2(0, 0);
+
+      function getHit() {
+        raycaster.setFromCamera(ndc, camera);
+        const hits = raycaster.intersectObjects(blockMeshes, false);
+        return hits.length ? hits[0] : null;
+      }
+
+      function tryBreak() {
+        const hit = getHit();
+        if (!hit) return;
+        removeBlock(hit.object);
+      }
+
+      function tryPlace() {
+        const hit = getHit();
+        if (!hit) return;
+
+        // Tính vị trí đặt: block hiện tại + normal mặt bị nhìn
+        const normal = hit.face.normal; // cube không xoay => ok
+        const p = hit.object.position.clone().add(normal);
+
+        const x = roundInt(p.x), y = roundInt(p.y), z = roundInt(p.z);
+
+        // Không đặt vào người (tránh self-trap)
+        const dist = camera.position.distanceTo(new THREE.Vector3(x, y, z));
+        if (dist < 1.2) return;
+
+        addBlock(x, y, z, selectedType);
+      }
+
+      window.addEventListener('contextmenu', (e) => e.preventDefault());
+
+      window.addEventListener('mousedown', (e) => {
+        if (!locked) return;
+        if (e.button === 0) tryBreak();      // left
+        if (e.button === 2) tryPlace();      // right
+      });
+
+      // =========================
+      // Resize
+      // =========================
+      window.addEventListener('resize', () => {
+        const w = window.innerWidth, h = window.innerHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+      });
+
+      // =========================
+      // Main loop
+      // =========================
+      const clock = new THREE.Clock();
+      let selectionTimer = 0;
+
+      function updateMovement(dt) {
+        // tốc độ
+        const base = 7;
+        const speed = keys.ControlLeft || keys.ControlRight ? base * 1.7 : base;
+
+        // input local
+        let dx = 0, dz = 0;
+        if (keys.KeyW) dz -= 1;
+        if (keys.KeyS) dz += 1;
+        if (keys.KeyA) dx -= 1;
+        if (keys.KeyD) dx += 1;
+
+        if (dx !== 0 || dz !== 0) {
+          const len = Math.hypot(dx, dz);
+          dx /= len; dz /= len;
+
+          // xoay theo yaw (chỉ mặt phẳng XZ)
+          const cos = Math.cos(yaw);
+          const sin = Math.sin(yaw);
+
+          const wx = dx * cos + dz * sin;
+          const wz = -dx * sin + dz * cos;
+
+          camera.position.x += wx * speed * dt;
+          camera.position.z += wz * speed * dt;
+        }
+
+        if (keys.Space) camera.position.y += speed * dt;
+        if (keys.ShiftLeft || keys.ShiftRight) camera.position.y -= speed * dt;
+
+        // giới hạn nhẹ để không bay xuống quá sâu
+        camera.position.y = clamp(camera.position.y, 1, BUILD_LIMIT_Y + 10);
+      }
+
+      function updateSelection(dt) {
+        if (!locked) {
+          selBox.visible = false;
+          placeBox.visible = false;
+          return;
+        }
+
+        // raycast không cần mỗi frame, giảm tải (10 lần/s)
+        selectionTimer += dt;
+        if (selectionTimer < 0.1) return;
+        selectionTimer = 0;
+
+        const hit = getHit();
+        if (!hit) {
+          selBox.visible = false;
+          placeBox.visible = false;
+          return;
+        }
+
+        selBox.visible = true;
+        selBox.position.copy(hit.object.position);
+
+        const p = hit.object.position.clone().add(hit.face.normal);
+        placeBox.visible = true;
+        placeBox.position.set(roundInt(p.x), roundInt(p.y), roundInt(p.z));
+      }
+
+      function updateDebug() {
+        const p = camera.position;
+        debugEl.textContent =
+          `Block: ${BLOCKS[selectedType].name} (phím ${selectedType + 1})\n` +
+          `Pos: x=${p.x.toFixed(2)}  y=${p.y.toFixed(2)}  z=${p.z.toFixed(2)}\n` +
+          `Blocks: ${blocks.size}`;
+      }
+
+      function animate() {
+        const dt = Math.min(clock.getDelta(), 0.05);
+
+        if (locked) updateMovement(dt);
+        updateSelection(dt);
+        updateDebug();
+
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+      animate();
+    })();
+  </script>
+</body>
+</html>

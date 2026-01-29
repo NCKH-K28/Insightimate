@@ -1,7 +1,7 @@
 'use client';
 
 import { useParamsRequired } from '@/hooks/next-navigation';
-import { OrgInfo } from './_components';
+import { OrgInfo } from '../_components';
 import { useOrg } from '@/hooks/org';
 
 export default function Page() {

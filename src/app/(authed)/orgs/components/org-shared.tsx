@@ -7,22 +7,17 @@ import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 
-export enum Role {
-  ORG_OWNER = 'ORG_OWNER',
-  ORG_ADMIN = 'ORG_ADMIN',
-  ORG_MEMBER = 'ORG_MEMBER',
-}
-
+export type Role = 'ORG_OWNER' | 'ORG_ADMIN' | 'ORG_MEMBER';
 const ROLE_LABEL: Record<Role, string> = {
-  [Role.ORG_OWNER]: 'Owner',
-  [Role.ORG_ADMIN]: 'Admin',
-  [Role.ORG_MEMBER]: 'Member',
+  ORG_OWNER: 'Owner',
+  ORG_ADMIN: 'Admin',
+  ORG_MEMBER: 'Member',
 };
 
 const ROLE_COLOR: Record<Role, string> = {
-  [Role.ORG_OWNER]: 'bg-blue-50 text-blue-700 border-blue-100',
-  [Role.ORG_ADMIN]: 'bg-green-50 text-green-700 border-green-100',
-  [Role.ORG_MEMBER]: 'bg-slate-100 text-slate-600 border-slate-200',
+  ORG_OWNER: 'bg-blue-50 text-blue-700 border-blue-100',
+  ORG_ADMIN: 'bg-green-50 text-green-700 border-green-100',
+  ORG_MEMBER: 'bg-slate-100 text-slate-600 border-slate-200',
 };
 
 export const getInitials = (name?: string | null) => (name ?? '').trim().slice(0, 2).toUpperCase();

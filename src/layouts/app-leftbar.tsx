@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { redirect, useParams } from 'next/navigation';
 import {
@@ -29,7 +29,7 @@ import NavUser from './nav-user';
 import { OrgItem } from '@/contracts/organizations/organization.query';
 import OrgSwitcher from './org-switcher';
 import { Separator } from '@/components/ui/separator';
-import axiosInstance from '@/lib/api/_client';
+import { listOrgsQueryOptions } from '@/features/organization/api/actions';
 
 type AppLeftbarProps = React.ComponentProps<typeof Sidebar> & { org: OrgItem };
 const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
@@ -38,12 +38,7 @@ const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
   const { orgSlug } = params;
 
   const fetchOrgs = useQuery({
-    queryKey: ['orgs'],
-    queryFn: async () => {
-      const path = `/v3/orgs`;
-      const res = await axiosInstance.get<{ data: OrgItem[] }>(path);
-      return res.data.data;
-    },
+    ...listOrgsQueryOptions(),
     initialData: [],
     enabled: false,
   });
@@ -63,6 +58,7 @@ const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
         <OrgSwitcher
           org={props.org}
           onSelect={(org) => redirect(`/o/${org.slug}`)}
+          onAddOrg={() => redirect('/orgs')}
           fetchOrgs={async () => {
             const { data: orgs } = await fetchOrgs.refetch();
             return orgs ?? [];

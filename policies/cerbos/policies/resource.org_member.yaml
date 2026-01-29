@@ -1,16 +1,16 @@
 # yaml-language-server: $schema=https://api.cerbos.dev/latest/cerbos/policy/v1/Policy.schema.json
 apiVersion: api.cerbos.dev/v1
 resourcePolicy:
-  version: 'default'
+  version: "default"
   importDerivedRoles:
     - common_derived_roles
 
-  resource: 'workspace_member'
+  resource: "org_member"
   rules:
     # Chặn tự thao tác
-    - actions: [revoke, assign_role]
+    - actions: ["delete", "assign_role"]
       effect: EFFECT_DENY
-      roles: ['*']
+      roles: ["*"]
       condition:
         match:
           expr: P.id == R.attr.userId
@@ -18,31 +18,31 @@ resourcePolicy:
     # REVOKE
     - actions: [revoke]
       effect: EFFECT_ALLOW
-      derivedRoles: [ws_owner]
+      derivedRoles: [org_owner]
       condition:
         match:
-          expr: R.attr.role in ["WS_ADMIN","WS_MEMBER"]
+          expr: R.attr.role in ["ORG_ADMIN","ORG_MEMBER"]
 
     - actions: [revoke]
       effect: EFFECT_ALLOW
-      derivedRoles: [ws_admin]
+      derivedRoles: [org_admin]
       condition:
         match:
-          expr: R.attr.role in ["WS_MEMBER"]
+          expr: R.attr.role in ["ORG_MEMBER"]
 
     # ASSIGN_ROLE
     # Owner có thể gán mọi role (trừ OWNER đã bị deny ở trên)
     - actions: [assign_role]
       effect: EFFECT_ALLOW
-      derivedRoles: [ws_owner]
+      derivedRoles: [org_owner]
       condition:
         match:
-          expr: R.attr.role in ["WS_ADMIN","WS_MEMBER"]
+          expr: R.attr.role in ["ORG_ADMIN","ORG_MEMBER"]
 
     # Admin chỉ được gán MEMBER/GUEST, không tạo ADMIN
     - actions: [assign_role]
       effect: EFFECT_ALLOW
-      derivedRoles: [ws_admin]
+      derivedRoles: [org_admin]
       condition:
         match:
-          expr: R.attr.role in ["WS_MEMBER"]
+          expr: R.attr.role in ["ORG_MEMBER"]

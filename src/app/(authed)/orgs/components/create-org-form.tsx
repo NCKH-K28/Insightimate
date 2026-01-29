@@ -26,8 +26,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { z } from 'zod';
+import clientConfig from '@/configs/client';
 
-const SLUG_PREFIX = 'app.com/o/';
+// replace https/https
+const appDomain = clientConfig.appDomain;
+const SLUG_PREFIX = appDomain + `/o/`;
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
 
 const ZFileOrPath = z.union([
@@ -212,9 +215,20 @@ const MemberSettings: React.FC<MemberSettingsProps> = ({ form, className, hidden
 
 type CreateOrgFormProps = {
   defaultValues?: Partial<CreateOrgFormData>;
-  onSubmit?: (data: CreateOrgFormData) => void;
+  onSubmit?: (data: CreateOrgFormData) => void | Promise<void>;
   onCancel?: () => void;
   isSubmitting?: boolean;
+};
+
+const buidSlug = (name: string) => {
+  // ex: "My Organization!" => "my-organization"
+  // ex: "  Leading and trailing  " => "leading-and-trailing"
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 50);
 };
 
 export const CreateOrgForm = ({
@@ -249,12 +263,7 @@ export const CreateOrgForm = ({
       callback: ({ values }) => {
         const name = values.name ?? '';
         if (form.getFieldState('slug').isDirty) return;
-        const slug = name
-          .toLowerCase()
-          .trim()
-          .replace(/[^a-z0-9]+/g, '-')
-          .replace(/^-+|-+$/g, '')
-          .slice(0, 50);
+        const slug = buidSlug(name);
         form.setValue('slug', slug);
       },
     });

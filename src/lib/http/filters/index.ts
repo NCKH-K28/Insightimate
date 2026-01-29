@@ -34,8 +34,7 @@ export const httpExceptionFilter = <T>(error: T, request: NextRequest): NextResp
   return NextResponse.json({ error: msg }, { status: 500 });
 };
 
-//
-export const httpExceptionFilterHono: ErrorHandler = (e, c) => {
+export const httpExceptionFilterHono: ErrorHandler = async (e, c) => {
   let json: AppErrorJSON = { code: 'UNKNOWN_ERROR', message: 'Internal server error' };
   let status: ContentfulStatusCode = 500;
   // log

@@ -25,3 +25,11 @@ export const getOrgQueryOptions = (params: { id: string; by?: 'id' | 'slug' }) =
     staleTime: 1000 * 60 * 5,
   });
 };
+
+export const listOrgsInviteesQueryOptions = () => {
+  return queryOptions({
+    queryKey: ['orgs', 'invitees'] as const,
+    queryFn: orgAPI.me.invitees,
+    staleTime: 1000 * 60 * 5,
+  });
+};

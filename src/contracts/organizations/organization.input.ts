@@ -22,3 +22,34 @@ export type OrgCreateInput = z.infer<typeof ZOrgCreateInput>;
 export type OrgUpdateInput = z.infer<typeof ZOrgUpdateInput>;
 
 // ======== For Members
+export const ZOrgMemberCreateInput = z.object({
+  userId: z.string().min(1),
+  orgId: z.string().min(1),
+  role: z.enum(['ORG_ADMIN', 'ORG_MEMBER']),
+});
+
+export const ZOrgMemberUpdateInput = z.object({
+  userId: z.string().min(1),
+  orgId: z.string().min(1),
+  role: z.enum(['ORG_ADMIN', 'ORG_MEMBER']),
+});
+
+// ======== For Invitations
+export const ZOrgInvitationCreateInput = z.object({
+  orgId: z.string().min(1),
+  email: z.string().email(),
+  role: z.enum(['ORG_ADMIN', 'ORG_MEMBER']),
+});
+
+export const ZOrgInvitationUpdateInput = z.object({
+  id: z.string().min(1),
+  role: z.enum(['ORG_ADMIN', 'ORG_MEMBER']),
+});
+
+export const ZOrgInvitationResendInput = z.object({ id: z.string().min(1) });
+export const ZOrgInvitationRevokeInput = z.object({ id: z.string().min(1) });
+export const ZOrgInvitationAcceptInput = z.object({ token: z.string().min(1) });
+
+export type OrgMemberCreateInput = z.infer<typeof ZOrgMemberCreateInput>;
+export type OrgMemberUpdateInput = z.infer<typeof ZOrgMemberUpdateInput>;
+export type OrgInvitationCreateInput = z.infer<typeof ZOrgInvitationCreateInput>;

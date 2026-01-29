@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest, NextFetchEvent } from 'next/server';
+import serverConfig from './configs/server';
 
 /** =========================
  *  Proxy-style interfaces
@@ -87,6 +88,7 @@ const PingSocket: ProxySideEffectHandler = {
 // ---- Chain: auth/redirect rules ----
 const AUTH_ROUTES = new Set(['/signin', '/signup']);
 const PROTECTED_PREFIXES = ['/orgs', '/o'];
+const AUTH_COOKIE = serverConfig.auth.cookieName;
 
 function isApiRoute(pathname: string) {
   return pathname.startsWith('/api/');
@@ -97,7 +99,7 @@ function isProtected(pathname: string) {
 }
 
 function tokenOf(request: NextRequest) {
-  return request.cookies.get('access_token')?.value;
+  return request.cookies.get(AUTH_COOKIE)?.value || null;
 }
 
 const AuthGuard: ProxyChainHandler = {

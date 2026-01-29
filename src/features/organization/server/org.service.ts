@@ -4,13 +4,11 @@ import { ZOrgItem } from '@/contracts/organizations/organization.query';
 import { ORG_ACTIONS } from '@/contracts/organizations/organization';
 import { genOrgId } from '../utils/id';
 import { OrgCreateInput } from '@/contracts/organizations/organization.input';
-import { Prisma } from '@prisma/client';
-import { createId } from '@paralleldrive/cuid2';
 import { buildOrganizationTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients';
 import { OrgError } from '@/lib/http/errors';
+import { inviteMembers } from './org-member.service';
 
-const INVITATION_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 type OrgContext = { actorId: string };
 
 const buildOrgLogoUrl = <O extends { logo: string | null }, I extends O | O[]>(org: I): I => {
@@ -75,14 +73,6 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
   const { invitees: inviteesInput = [], ...orgInput } = input;
   const org = { ...orgInput, id: genOrgId(), ownerId: context.actorId, settings: {} };
 
-  const expiresAt = new Date(Date.now() + INVITATION_EXPIRY_MS);
-  const invitees: Prisma.OrgInvitationCreateManyInput[] = inviteesInput.map((inv) => ({
-    ...inv,
-    orgId: org.id,
-    expiresAt,
-    token: createId(),
-  }));
-
   const result = await prisma.$transaction(async (tx) => {
     const slug = await tx.organization.findUnique({ where: { slug: org.slug } });
     if (slug) throw new OrgError('ORG_CONFLICT', 'Organization slug already exists');
@@ -91,7 +81,6 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
       include: { owner: true, members: true },
       data: { ...org, members: { create: { userId: context.actorId, role: 'ORG_OWNER' } } },
     });
-    if (invitees.length > 0) await tx.orgInvitation.createMany({ data: invitees });
     const orgItem = ZOrgItem.parse(newOrg);
 
     // ==== Build Open FGA Tuples
@@ -99,6 +88,13 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
     await openfgaClient.writeTuples(tuples);
 
     return orgItem;
+  });
+
+  await inviteMembers(
+    { orgId: result.id, invites: inviteesInput },
+    { actorId: context.actorId },
+  ).catch((err) => {
+    console.error('Failed to invite members after org creation:', err);
   });
 
   return result;

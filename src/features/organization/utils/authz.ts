@@ -21,9 +21,13 @@ export const accessibleOrgs = async (
 };
 
 export type OrgResource = { kind: 'org'; id: string; attr?: Record<string, string> };
+export type OrgMemberResource = { kind: 'org_member'; id: string; attr?: Record<string, string> };
+
+type Resource = OrgResource | OrgMemberResource;
+
 export const loadPrincipal = async (
   context: { actorId: string },
-  resources: OrgResource[] = [],
+  resources: Resource[] = [],
 ): Promise<CerbosPrincipal> => {
   const { actorId } = context;
   const roles: ('user' | `org:${string}#${string}`)[] = ['user'];
@@ -31,9 +35,11 @@ export const loadPrincipal = async (
 
   // Resource-based roles
   const orgIds = new Set<string>();
+  const orgMemberIds = new Set<string>();
   for (const r of resources) {
     if (r.kind === 'org') orgIds.add(r.id);
-    else throw new Error(`Unknown resource kind: ${r.kind}`);
+    else if (r.kind === 'org_member') orgMemberIds.add(r.id);
+    else throw new Error(`Unknown resource kind: ${r}`);
   }
 
   if (orgIds.size > 0) {
@@ -44,8 +50,13 @@ export const loadPrincipal = async (
     orgMembers.forEach((m) => roles.push(`org:${m.orgId}#${m.role}`));
   }
 
-  // log
-  console.log(`Loaded principal for actor ${actorId} with roles: ${roles.join(', ')}`);
+  if (orgMemberIds.size > 0) {
+    const orgMembers = await prisma.orgMember.findMany({
+      where: { id: { in: Array.from(orgMemberIds) }, userId: actorId },
+      select: { orgId: true, role: true },
+    });
+    orgMembers.forEach((m) => roles.push(`org:${m.orgId}#${m.role}`));
+  }
 
   const uniqueRoles = uniqby(roles, (r) => r);
   return { id: actorId, roles: uniqueRoles, attr };
@@ -77,7 +88,7 @@ export const ensureCanMany = async (
 
 export const allowedOrgPerms = async (
   context: { actorId: string },
-  resource: OrgResource,
+  resource: Resource,
   actions: string[] = [],
 ): Promise<string[]> => {
   const principal = await loadPrincipal(context, [resource]);
@@ -87,7 +98,7 @@ export const allowedOrgPerms = async (
 
 export const allowedOrgsPerms = async (
   context: { actorId: string },
-  resources: OrgResource[],
+  resources: Resource[],
   actions: string[] = [],
 ): Promise<Record<string, string[]>> => {
   if (resources.length === 0) return {};

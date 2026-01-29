@@ -163,7 +163,6 @@ export const OrgInfo: React.FC<OrgInfoProps> = ({ org, onDelete }) => {
             <div>
               <Button
                 type='submit'
-                className='px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50'
                 disabled={!form.formState.isDirty || form.formState.isSubmitting}
               >
                 {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}

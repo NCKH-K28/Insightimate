@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
 
-import axiosInstance from '@/lib/api/_client';
 import { cn } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
@@ -12,7 +11,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
 import type { OrgInvitationItem } from '@/contracts/organizations/organization.query';
-import { OrgAvatar, Role, RoleBadge, formatRelative } from './org-shared';
+import { OrgAvatar, RoleBadge, formatRelative } from './org-shared';
+import { listOrgsInviteesQueryOptions } from '@/features/organization/api/actions';
 
 type InvitationRowProps = {
   invite: OrgInvitationItem;
@@ -28,7 +28,7 @@ export const InvitationRow: React.FC<InvitationRowProps> = ({
   isProcessing,
 }) => {
   const org = invite.organization;
-  const role = invite.role as Role | undefined;
+  const role = invite.role;
 
   return (
     <Card>
@@ -73,15 +73,7 @@ export const InvitationRow: React.FC<InvitationRowProps> = ({
 export const InvitationsSection: React.FC = () => {
   const [collapsed, setCollapsed] = useState(true);
 
-  const fetchInvites = useQuery({
-    queryKey: ['orgs', 'invites'],
-    queryFn: async () => {
-      const res = await axiosInstance.get<{ data: OrgInvitationItem[]; meta: { total: number } }>(
-        '/v3/me/invites',
-      );
-      return res.data.data;
-    },
-  });
+  const fetchInvites = useQuery(listOrgsInviteesQueryOptions());
 
   const inviteMutation = useMutation({
     mutationFn: async (i: { inviteId: string; action: 'accept' | 'reject' }) => {

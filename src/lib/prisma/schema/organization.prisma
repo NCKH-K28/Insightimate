@@ -27,6 +27,7 @@ enum OrgRole {
 }
 
 model OrgMember {
+    id        String   @id @default(cuid())
     orgId     String   @map("org_id")
     userId    String   @map("user_id")
     role      OrgRole  @default(ORG_MEMBER)
@@ -36,28 +37,37 @@ model OrgMember {
     organization Organization @relation("OrganizationMembers", fields: [orgId], references: [id], onDelete: Cascade)
     user         User         @relation("UserOrgMemberships", fields: [userId], references: [id], onDelete: Cascade)
 
-    @@id([orgId, userId])
+    @@unique([orgId, userId])
     @@map("org_members")
 }
 
+enum OrgInvitationStatus {
+    PENDING
+    ACCEPTED
+    REJECTED
+    REVOKED
+}
+
 model OrgInvitation {
-    id    String  @id @default(cuid())
-    orgId String  @map("org_id")
-    email String
-    role  OrgRole @default(ORG_MEMBER)
+    id     String              @id @default(cuid())
+    orgId  String              @map("org_id")
+    email  String
+    role   OrgRole             @default(ORG_MEMBER)
+    status OrgInvitationStatus @default(PENDING)
 
     token      String    @unique
-    createdAt  DateTime  @default(now()) @map("created_at")
     expiresAt  DateTime  @map("expires_at")
     revokedAt  DateTime? @map("revoked_at")
     acceptedAt DateTime? @map("accepted_at")
-    invitedBy  String?   @map("invited_by")
+    rejectedAt DateTime? @map("rejected_at")
+    invitedBy  String    @map("invited_by")
     payload    Json?     @db.Json
+    createdAt  DateTime  @default(now()) @map("created_at")
+    updatedAt  DateTime  @updatedAt @map("updated_at")
 
     organization Organization @relation("OrganizationInvitations", fields: [orgId], references: [id], onDelete: Cascade)
-    inviter      User?        @relation("OrgInvitationsSent", fields: [invitedBy], references: [id], onDelete: SetNull)
+    inviter      User         @relation("OrgInvitationsSent", fields: [invitedBy], references: [id], onDelete: SetNull)
 
-    @@index([orgId])
-    @@index([orgId, email])
+    @@unique([orgId, email], name: "orgId_email")
     @@map("org_invites")
 }

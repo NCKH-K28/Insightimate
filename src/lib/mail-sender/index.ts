@@ -5,7 +5,7 @@ import nodemailer from 'nodemailer';
 const smtp = serverConfig.smtp;
 const defaultFrom = serverConfig.appEmail || `no-reply@${serverConfig.host}`;
 
-const transporter = nodemailer.createTransport({
+export const transporter = nodemailer.createTransport({
   host: smtp.host,
   port: smtp.port,
   secure: false, // true for 465, false for other ports

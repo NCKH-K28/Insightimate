@@ -1,3 +1,4 @@
+import { listOrgMems } from '@/features/organization/server/org-member.service';
 import { createOrg, deleteOrg, getOrg, listOrgs } from '@/features/organization/server/org.service';
 import { authenticatedHono, getAuthFromRequestHono } from '@/lib/authn';
 import { zValidator } from '@hono/zod-validator';
@@ -48,7 +49,10 @@ orgsHono.patch('/:orgId', async (c) => {
 
 // == api/v3/orgs/:orgId/members ==
 orgsHono.get('/:orgId/members', async (c) => {
-  return c.json({ message: 'List organization members - to be implemented' });
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId } = c.req.param();
+  const result = await listOrgMems({ orgId }, { actorId: auth.id });
+  return c.json(result);
 });
 
 export const GET = handle(orgsHono);
