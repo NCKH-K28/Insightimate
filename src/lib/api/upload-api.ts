@@ -49,3 +49,5 @@ export async function presignUpload(input: PresignUploadInput): Promise<PresignU
   const resp = await axiosInstance.post(PRESIGN_ENDPOINT, input);
   return ZPresignUploadOutput.parse(resp.data);
 }
+
+export const uploadAPI = { presign: presignUpload };

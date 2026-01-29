@@ -24,4 +24,6 @@ const verifyInviteToken = async (token: string) => {
   return ZInviteTokenPayload.parse(payload);
 };
 
+// kiểm tra xem token còn hạn không?
+
 export const inviteToken = { generate: generateInviteToken, verify: verifyInviteToken };

@@ -27,22 +27,42 @@ import {
 } from '@/components/ui/select';
 import { z } from 'zod';
 import clientConfig from '@/configs/client';
+import { useMutation } from '@tanstack/react-query';
+import { uploadAPI } from '@/lib/api/upload-api';
 
 // replace https/https
 const appDomain = clientConfig.appDomain;
 const SLUG_PREFIX = appDomain + `/o/`;
 const MAX_LOGO_SIZE = 2 * 1024 * 1024; // 2MB
 
-const ZFileOrPath = z.union([
-  z.instanceof(File, { message: 'Must be a valid file' }),
-  z.string().regex(/^\/.*/, 'Must be a valid file path'),
-]);
-export const ZCreateOrgFormData = ZRawCreateOrgFormData.extend({ logo: ZFileOrPath.nullable() });
+export const ZCreateOrgFormData = ZRawCreateOrgFormData;
 export type CreateOrgFormData = z.infer<typeof ZCreateOrgFormData>;
 export type UseCreateOrgForm = ReturnType<typeof useForm<CreateOrgFormData>>;
 
 type BaseSettingsProps = { form: UseCreateOrgForm; className?: string; hidden?: boolean };
 const BaseSettings: React.FC<BaseSettingsProps> = ({ form, className, hidden }) => {
+  const uploadLogo = useMutation({
+    mutationFn: async (file: File) => {
+      const logoFile = file;
+      const { uploadURL, assetKey } = await uploadAPI.presign({
+        kind: 'org-logo',
+        fileName: logoFile.name,
+        fileSize: logoFile.size,
+        fileType: logoFile.type,
+      });
+
+      await fetch(uploadURL, {
+        method: 'PUT',
+        headers: { 'Content-Type': logoFile.type },
+        body: logoFile,
+      });
+
+      return { key: assetKey };
+    },
+    onSuccess: (data) => form.setValue('logo', data.key, { shouldDirty: true }),
+    onError: (error) => form.setValue('logo', null, { shouldDirty: true }),
+  });
+
   return (
     <div className={`flex flex-col gap-4 ${className || ''}`} hidden={hidden}>
       <FormField
@@ -105,8 +125,9 @@ const BaseSettings: React.FC<BaseSettingsProps> = ({ form, className, hidden }) 
               <FormControl>
                 <AvatarUpload
                   onFileChange={(f) => {
-                    if (f) field.onChange(f.file);
-                    else field.onChange(null);
+                    if (f && f.file instanceof File) {
+                      uploadLogo.mutate(f.file);
+                    } else field.onChange(null);
                   }}
                   maxSize={MAX_LOGO_SIZE}
                   classNames={{ dropzone: 'size-16 rounded-xl', image: 'rounded-xl' }}
@@ -118,6 +139,10 @@ const BaseSettings: React.FC<BaseSettingsProps> = ({ form, className, hidden }) 
                 We&apos;ve auto-generated a logo for you.
                 <br />
                 You can upload a custom image later in settings.
+                <br />
+                <span className='text-slate-400 italic'>
+                  {uploadLogo.isPending ? ' Uploading...' : uploadLogo.data ? ' Uploaded!' : ''}
+                </span>
               </FormDescription>
             </div>
             <FormMessage />
@@ -217,7 +242,7 @@ type CreateOrgFormProps = {
   defaultValues?: Partial<CreateOrgFormData>;
   onSubmit?: (data: CreateOrgFormData) => void | Promise<void>;
   onCancel?: () => void;
-  isSubmitting?: boolean;
+  uploadLogo?: (file: File) => Promise<string>;
 };
 
 const buidSlug = (name: string) => {
@@ -231,12 +256,7 @@ const buidSlug = (name: string) => {
     .slice(0, 50);
 };
 
-export const CreateOrgForm = ({
-  defaultValues,
-  onSubmit,
-  onCancel,
-  isSubmitting,
-}: CreateOrgFormProps) => {
+export const CreateOrgForm = ({ defaultValues, onSubmit, onCancel }: CreateOrgFormProps) => {
   const [step, setStep] = useState<1 | 2>(1);
 
   const form = useForm({
@@ -270,6 +290,8 @@ export const CreateOrgForm = ({
 
     return () => callback();
   }, [form]);
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Form {...form}>

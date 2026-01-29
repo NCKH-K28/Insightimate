@@ -17,6 +17,11 @@ const buildOrgLogoUrl = <O extends { logo: string | null }, I extends O | O[]>(o
   return { ...org, logo: buildURL(org.logo) } as I;
 };
 
+export const slugAvailable = async (slug: string): Promise<boolean> => {
+  const existing = await prisma.organization.findUnique({ where: { slug } });
+  return !existing;
+};
+
 export const getOrg = async (input: { id: string; by?: 'id' | 'slug' }, ctx: OrgContext) => {
   const { id, by = 'id' } = input;
   const where = by === 'id' ? { id } : { slug: id };
@@ -105,11 +110,12 @@ export const deleteOrg = async (orgId: string, ctx: OrgContext) => {
   if (!org) throw new OrgError('ORG_NOT_FOUND', 'Organization not found');
   await ensureCan('delete', { kind: 'org', id: orgId, attr: { orgId: org.id } }, ctx);
   await prisma.organization.delete({ where: { id: orgId } });
+  return { data: orgId };
 };
 
 export const updateOrg = async (
   orgId: string,
-  input: Partial<{ name: string; logo: string | null }>,
+  input: Partial<{ name: string; logo: string | null; slug: string }>,
   ctx: OrgContext,
 ) => {
   const org = await prisma.organization.findUnique({ where: { id: orgId } });
@@ -121,8 +127,17 @@ export const updateOrg = async (
     data: {
       name: input.name ?? undefined,
       logo: input.logo !== undefined ? input.logo : undefined,
+      slug: input.slug ?? undefined,
     },
     include: { owner: true },
   });
   return ZOrgItem.parse(buildOrgLogoUrl(updatedOrg));
+};
+
+export const orgService = {
+  create: createOrg,
+  get: getOrg,
+  list: listOrgs,
+  delete: deleteOrg,
+  update: updateOrg,
 };

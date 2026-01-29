@@ -1,7 +1,6 @@
 'use client';
 
 import React, { Suspense, useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
 
 import { Separator } from '@/components/ui/separator';
 import {
@@ -12,52 +11,34 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
-import { presignUpload } from '@/lib/api/upload-api';
-import { orgAPI } from '@/features/organization/api/http';
-
 import { AppHeader } from './components/app-header';
 import { OrgListPageHeader } from './components/org-list-page-header';
 import { InvitationsSection } from './components/invitations';
 import { OrgList, OrgListSkeleton } from './components/organizations';
 import { CreateOrgForm, CreateOrgFormData } from './components/create-org-form';
 import { useCreateOrg } from '@/hooks/org';
+import { toast } from 'sonner';
 
 export default function Page() {
   const [createOrgDialogOpen, setCreateOrgDialogOpen] = useState(false);
   const createOrg = useCreateOrg();
 
   const handleCreateOrg = async (data: CreateOrgFormData) => {
-    let logoURL: string | null = null;
-
-    if (data.logo instanceof File) {
-      const logoFile = data.logo;
-
-      const { uploadURL, assetKey } = await presignUpload({
-        kind: 'org-logo',
-        fileName: logoFile.name,
-        fileSize: logoFile.size,
-        fileType: logoFile.type,
-      });
-
-      await fetch(uploadURL, {
-        method: 'PUT',
-        headers: { 'Content-Type': logoFile.type },
-        body: logoFile,
-      });
-
-      logoURL = assetKey;
-    } else {
-      logoURL = data.logo;
-    }
-
-    createOrg.mutate(
-      { ...data, logo: logoURL },
-      {
-        onSuccess: () => {
-          setCreateOrgDialogOpen(false);
+    await toast
+      .promise(
+        createOrg.mutateAsync(data, {
+          onSuccess: () => setCreateOrgDialogOpen(false),
+        }),
+        {
+          loading: 'Creating organization...',
+          success: 'Organization created successfully!',
+          error: (e) => {
+            const msg = e instanceof Error ? e.message : 'Failed to create organization.';
+            return msg;
+          },
         },
-      },
-    );
+      )
+      .unwrap();
   };
 
   return (
@@ -79,7 +60,6 @@ export default function Page() {
             <CreateOrgForm
               onCancel={() => setCreateOrgDialogOpen(false)}
               onSubmit={(i) => handleCreateOrg(i)}
-              isSubmitting={createOrg.isPending}
             />
           </DialogContent>
         </Dialog>

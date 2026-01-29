@@ -7,8 +7,9 @@ import serverConfig from '@/configs/server';
 import { buildOrganizationMemberTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients';
 import { randomUUID } from 'node:crypto';
+import { inviteToken } from './invite-token';
 
-type OrgMemContext = { actorId: string; email?: string };
+type OrgMemContext = { actorId: string };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const INVITE_TTL_DAYS = 7;
@@ -177,82 +178,8 @@ export const revokeOrgInvitation = async (
 };
 
 /** ===================== ACCEPT / REJECT ===================== **/
-export const acceptOrgInvitation = async (
-  input: { token: string; orgId: string },
-  ctx: OrgMemContext,
-) => {
-  if (!ctx.email) throw new Error('Email is required to accept invitation');
-
-  const email = normalizeEmail(ctx.email);
-
-  const invitation = await prisma.orgInvitation.findFirst({
-    where: { orgId: input.orgId, token: input.token },
-  });
-  if (!invitation) throw new Error('Invitation not found');
-  if (normalizeEmail(invitation.email) !== email)
-    throw new Error('Invitation email does not match with user email');
-  if (!isPendingInvitation(invitation)) {
-    if (invitation.expiresAt <= now()) throw new Error('Invitation has expired');
-    if (invitation.revokedAt) throw new Error('Invitation has been revoked');
-    if (invitation.rejectedAt) throw new Error('Invitation has been rejected');
-    if (invitation.acceptedAt) return invitation; // idempotent: đã accept rồi thì trả luôn
-  }
-
-  // DB transaction chỉ xử lý DB
-  const { updatedInvitation, member } = await prisma.$transaction(async (tx) => {
-    const member = await tx.orgMember.upsert({
-      where: { orgId_userId: { orgId: input.orgId, userId: ctx.actorId } }, // cần unique index (orgId, userId)
-      create: { orgId: input.orgId, userId: ctx.actorId, role: invitation.role },
-      update: { role: invitation.role }, // policy: accept => sync role theo invitation
-    });
-
-    const updatedInvitation = await tx.orgInvitation.update({
-      where: { id: invitation.id },
-      data: { acceptedAt: now() },
-    });
-
-    return { updatedInvitation, member };
-  });
-
-  // Side-effect sau commit
-  try {
-    const tuples = buildOrganizationMemberTuples(member);
-    await openfgaClient.writeTuples(tuples);
-  } catch (err) {
-    console.error('OpenFGA writeTuples failed after accepting invitation', err);
-    // tuỳ hệ thống: có thể throw để client retry, hoặc không throw để không “block” user.
-  }
-
-  return updatedInvitation;
-};
-
-export const rejectOrgInvitation = async (
-  input: { token: string; orgId: string },
-  ctx: OrgMemContext,
-) => {
-  if (!ctx.email) throw new Error('Email is required to reject invitation');
-
-  const email = normalizeEmail(ctx.email);
-
-  const invitation = await prisma.orgInvitation.findFirst({
-    where: { orgId: input.orgId, token: input.token },
-  });
-  if (!invitation) throw new Error('Invitation not found');
-  if (normalizeEmail(invitation.email) !== email)
-    throw new Error('Invitation email does not match with user email');
-
-  if (invitation.acceptedAt) throw new Error('Invitation has already been accepted');
-  if (invitation.revokedAt) throw new Error('Invitation has been revoked');
-  if (invitation.rejectedAt) return invitation; // idempotent
-  if (invitation.expiresAt <= now()) throw new Error('Invitation has expired');
-
-  const result = await prisma.orgInvitation.update({
-    where: { id: invitation.id },
-    data: { rejectedAt: now() },
-  });
-
-  return result; // FIX: thiếu return ở code gốc
-};
+export const acceptOrgInvitation = async (input: { token: string }, ctx: OrgMemContext) => {};
+export const rejectOrgInvitation = async (input: { token: string }, ctx: OrgMemContext) => {};
 
 /** ===================== REMOVE / UPDATE ROLE (bản hợp lý) ===================== **/
 export const removeMemberFromOrg = async (

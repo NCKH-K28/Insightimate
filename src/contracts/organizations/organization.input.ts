@@ -15,7 +15,9 @@ export const ZOrgUpdateInput = ZOrganization.pick({
   name: true,
   description: true,
   logo: true,
-});
+})
+  .extend({ timezone: z.string() })
+  .partial();
 
 export type OrgInvitee = z.infer<typeof ZOrgInvitee>;
 export type OrgCreateInput = z.infer<typeof ZOrgCreateInput>;

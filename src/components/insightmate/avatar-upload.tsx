@@ -67,10 +67,12 @@ export default function AvatarUpload({
   const currentFile = files[0];
   const previewUrl = currentFile?.preview || defaultAvatar;
   const hasImage = Boolean(previewUrl) && !imageError;
+  const showRemoveBtn = currentFile || (defaultAvatar && !imageError);
 
   const handleRemove = () => {
     if (disabled) return;
     if (currentFile) removeFile(currentFile.id);
+    if (defaultAvatar) onFileChange?.(null);
     setImageError(false);
   };
 
@@ -132,7 +134,7 @@ export default function AvatarUpload({
           )}
         </div>
 
-        {currentFile && (
+        {showRemoveBtn && (
           <Button
             type='button'
             size='icon'

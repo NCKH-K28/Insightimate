@@ -20,7 +20,7 @@ export default function Page() {
       <div className='px-4'>
         <OrgInfo
           org={org}
-          onDelete={() => {
+          onDeleted={() => {
             window.location.href = '/orgs';
           }}
         />

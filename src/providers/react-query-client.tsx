@@ -45,12 +45,8 @@ export const queryClient = new QueryClient({
 
     mutations: {
       retry: (failureCount, error) => {
-        if (failureCount >= 2) return false;
-
-        const status = getStatus(error);
-        if (isNetworkError(error)) return true;
-        if (status === 429 || (status && status >= 500)) return true;
-        return false;
+        if (failureCount >= 3) return false;
+        return shouldRetry(error);
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
     },

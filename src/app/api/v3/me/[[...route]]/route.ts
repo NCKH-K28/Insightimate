@@ -8,6 +8,12 @@ import {
   acceptOrgInvitation,
   rejectOrgInvitation,
 } from '@/features/organization/server/org-member.service';
+import z from 'zod';
+import { zValidator } from '@hono/zod-validator';
+import { inviteToken } from '@/features/authz/server/invite-token';
+
+export const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
+export const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
 
 const meHono = new Hono().basePath('/api/v3/me');
 meHono.use(authenticatedHono);
@@ -37,46 +43,37 @@ meHono.get('/orgs/invitees', async (c) => {
   return NextResponse.json(result);
 });
 
-meHono.get('/orgs/:orgId/invite', async (c) => {
-  const orgId = c.req.param('orgId');
-  const token = c.req.query('token');
-  if (!token) {
-    return NextResponse.json({ error: 'Token is required' }, { status: 400 });
-  }
-
-  const invitation = await prisma.orgInvitation.findUnique({
-    where: { orgId, token },
-    include: { organization: true, inviter: true },
-  });
-  if (!invitation) {
-    return NextResponse.json({ error: 'Invitation not found' }, { status: 404 });
-  }
-
-  // is expired
-  const now = new Date();
-  const expiresAt = invitation.expiresAt;
-  if (expiresAt < now) {
-    return NextResponse.json({ error: 'Invitation has expired' }, { status: 400 });
-  }
-
-  return NextResponse.json({ data: ZOrgInviteItem.parse(invitation) });
+meHono.get('/orgs/invitees/:orgId', zValidator('json', ZOrgInviteAcceptInput), async (c) => {
+  throw new Error('Not implemented');
+  // const auth = await getAuthFromRequestHono(c);
+  // const { orgId } = c.req.param();
+  // const { token } = c.req.valid('json');
+  // const payload = await inviteToken.verify(token);
+  // if (payload.email !== auth.email) {
+  //   return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
+  // }
 });
 
-meHono.post('/orgs/:orgId/invite/accept', async (c) => {
+meHono.post('/orgs/invitees/accept', zValidator('json', ZOrgInviteAcceptInput), async (c) => {
   const auth = await getAuthFromRequestHono(c);
-  const orgId = c.req.param('orgId');
-  const token = c.req.query('token');
-  if (!token) return NextResponse.json({ error: 'Token is required' }, { status: 400 });
-  const data = await acceptOrgInvitation({ token, orgId }, { actorId: auth.userId });
+  const { token } = c.req.valid('json');
+  const payload = await inviteToken.verify(token);
+  if (payload.email !== auth.email) {
+    return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
+  }
+  const data = await acceptOrgInvitation({ token }, { actorId: auth.id });
   return NextResponse.json({ data });
 });
 
-meHono.post('/orgs/:orgId/invite/reject', async (c) => {
+meHono.post('/orgs/invitees/reject', zValidator('json', ZOrgInviteRejectInput), async (c) => {
   const auth = await getAuthFromRequestHono(c);
-  const orgId = c.req.param('orgId');
-  const token = c.req.query('token');
-  if (!token) return NextResponse.json({ error: 'Token is required' }, { status: 400 });
-  const data = await rejectOrgInvitation({ token, orgId }, { actorId: auth.userId });
+  const { token } = c.req.valid('json');
+  const payload = await inviteToken.verify(token);
+  if (payload.email !== auth.email) {
+    return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
+  }
+
+  const data = await rejectOrgInvitation({ token }, { actorId: auth.id });
   return NextResponse.json({ data });
 });
 
