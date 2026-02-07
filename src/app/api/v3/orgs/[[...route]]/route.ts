@@ -6,13 +6,16 @@ import {
   slugAvailable,
   updateOrg,
 } from '@/features/organization/server/org.service';
-import { listOrgMems } from '@/features/organization/server/org-member.service';
 import { authenticatedHono, getAuthFromRequestHono } from '@/lib/authn';
 import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 import { z } from 'zod';
 import { ZOrgUpdateInput } from '@/contracts/organizations/organization.input';
+import { httpExceptionFilterHono } from '@/lib/http/filters';
+import { ZOrgMemberInviteInput } from '@/contracts/organizations/organization.query';
+import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
+import { orgMemberService } from '@/features/organization/server/org-member.service';
 
 // == TODO: API for organizations ==
 // v GET /api/orgs (list organizations current user can access)
@@ -39,6 +42,7 @@ import { ZOrgUpdateInput } from '@/contracts/organizations/organization.input';
 // ========================== ORGANIZATIONS APIs ==========================
 const orgsHono = new Hono().basePath('/api/v3/orgs');
 orgsHono.use(authenticatedHono);
+orgsHono.onError(httpExceptionFilterHono);
 
 // == api/v3/orgs ==
 orgsHono.get('/', async (c) => {
@@ -93,11 +97,23 @@ orgsHono.post(
 
 // == api/v3/orgs/:orgId/members ==
 orgsHono.get('/:orgId/members', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const { userId: actorId } = await getAuthFromRequestHono(c);
   const { orgId } = c.req.param();
-  const result = await listOrgMems({ orgId }, { actorId: auth.id });
+  const result = await orgMemberService.list({ orgId }, { actorId });
   return c.json(result);
 });
+
+orgsHono.post(
+  '/:orgId/members/invite',
+  zValidator('json', ZOrgMemberInviteInput.omit({ orgId: true })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { orgId } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await orgInvitationService.bulkInvite({ ...input, orgId }, { actorId: auth.id });
+    return c.json(result);
+  },
+);
 
 // === api/v3/orgs/:orgId/invites ===
 

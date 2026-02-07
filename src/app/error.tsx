@@ -1,27 +1,18 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import get from 'lodash/get';
 import { Button } from '@/components/ui/button';
-import { AppError } from '@/lib/http/errors';
-
-const getErrorMessage = (error: Error & { digest?: string }): string | undefined => {
-  const resErr = get(error, 'response.data.error');
-  if (resErr && AppError.isAppError(resErr)) {
-    const appErr = AppError.from(resErr);
-    return appErr.message;
-  } else if (error.message) {
-    return error.message;
-  }
-};
+import { getApiError, getErrorMsg } from '@/lib/api/helper';
+import Link from 'next/link';
 
 type ErrorProps = { error: Error & { digest?: string }; reset: () => void };
 export default function Error({ error, reset }: ErrorProps) {
   useEffect(() => {}, [error]);
 
+  const apiError = useMemo(() => getApiError(error), [error]);
+
   const errorMessage = useMemo(() => {
-    const msg = getErrorMessage(error);
-    return msg || 'An unexpected error occurred. Please try again later.';
+    return getErrorMsg(error, 'An unexpected error occurred. Please try again later.');
   }, [error]);
 
   return (
@@ -29,15 +20,16 @@ export default function Error({ error, reset }: ErrorProps) {
       <div className='flex w-full max-w-md flex-col items-center rounded-lg border p-6 shadow'>
         <h2 className='text-2xl font-bold'>Something went wrong!</h2>
         <p className='mt-2 text-center text-sm text-muted-foreground'>{errorMessage}</p>
-        <Button
-          variant='outline'
-          className='mt-4'
-          onClick={() => {
-            reset();
-          }}
-        >
-          Try again
-        </Button>
+        <div className='mt-4 flex space-x-2'>
+          <Button variant='outline' onClick={reset}>
+            Try again
+          </Button>
+          {apiError && apiError.status === 404 && (
+            <Button asChild>
+              <Link href='/orgs'>Back to Orgs</Link>
+            </Button>
+          )}
+        </div>
       </div>
     </main>
   );

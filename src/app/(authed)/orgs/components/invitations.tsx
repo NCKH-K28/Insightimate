@@ -30,6 +30,7 @@ export const InvitationRow: React.FC<InvitationRowProps> = ({
   const org = invite.organization;
   const role = invite.role;
 
+  if (!org) throw new Error('Organization data is missing in the invitation.');
   return (
     <Card>
       <CardContent className='flex flex-col md:flex-row md:items-center md:justify-between gap-4'>

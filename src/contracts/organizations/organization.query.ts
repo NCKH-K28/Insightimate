@@ -58,7 +58,7 @@ export const ZOrgInviteItem = z.object({
 
 export const ZOrgMemberInviteInput = z.object({
   orgId: z.string(),
-  invites: z.array(z.object({ email: z.string().email(), role: ZOrgRole })),
+  invitees: z.array(z.object({ email: z.string().email(), role: ZOrgRole })),
 });
 
 export type OrgInviteItem = z.infer<typeof ZOrgInviteItem>;

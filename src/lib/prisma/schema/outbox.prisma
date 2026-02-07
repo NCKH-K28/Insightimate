@@ -1,0 +1,20 @@
+enum AuthzOutboxStatus {
+    PENDING
+    PROCESSING
+    DONE
+    FAILED
+}
+
+model AuthzOutbox {
+    id        String            @id @default(cuid())
+    type      String // "OPENFGA"
+    payload   Json
+    status    AuthzOutboxStatus @default(PENDING)
+    attempts  Int               @default(0)
+    nextRunAt DateTime          @default(now())
+    lastError String?
+    createdAt DateTime          @default(now())
+    updatedAt DateTime          @updatedAt
+
+    @@index([status, nextRunAt])
+}

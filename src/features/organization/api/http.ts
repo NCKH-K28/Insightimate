@@ -3,8 +3,13 @@ import {
   OrgCreateInput,
   OrgInvitationCreateInput,
 } from '@/contracts/organizations/organization.input';
-import { OrgInvitationItem, OrgItem } from '@/contracts/organizations/organization.query';
-import { OrgInvitation, OrgMember } from '@/contracts/organizations/organization';
+import {
+  OrgInvitationItem,
+  OrgItem,
+  OrgMemberInviteInput,
+  OrgMemberItem,
+} from '@/contracts/organizations/organization.query';
+import { OrgInvitation } from '@/contracts/organizations/organization';
 
 const getOrg = async (id: string, by: 'id' | 'slug' = 'id'): Promise<OrgItem> => {
   const path = by === 'slug' ? `/v3/orgs/${id}?by=slug` : `/v3/orgs/${id}`;
@@ -37,30 +42,28 @@ const leaveOrg = async (id: string): Promise<void> => {
   await axiosInstance.post(`/v3/me/orgs/${id}/leave`);
 };
 
-export const listOrgMembers = async (orgId: string): Promise<OrgMember[]> => {
+const listOrgMembers = async (orgId: string): Promise<OrgMemberItem[]> => {
   const resp = await axiosInstance.get(`/v3/orgs/${orgId}/members`);
-  return resp.data?.data ?? [];
+  const data = resp.data?.data ?? resp.data;
+  return data;
 };
 
-export const getOrgMember = async (orgId: string, userId: string): Promise<OrgMember> => {
-  const resp = await axiosInstance.get(`/v3/orgs/${orgId}/members/${userId}`);
-  return resp.data;
+const inviteOrgMembers = async (input: OrgMemberInviteInput): Promise<void> => {
+  await axiosInstance.post(`/v3/orgs/${input.orgId}/members/invite`, input);
 };
 
-export const listInvitations = async (orgId: string): Promise<OrgInvitationItem[]> => {
+const listInvitations = async (orgId: string): Promise<OrgInvitationItem[]> => {
   const resp = await axiosInstance.get(`/v3/orgs/${orgId}/invitations`);
   return resp.data?.data ?? [];
 };
 
-export const createOrgInvitation = async (
-  input: OrgInvitationCreateInput,
-): Promise<OrgInvitation> => {
+const createOrgInvitation = async (input: OrgInvitationCreateInput): Promise<OrgInvitation> => {
   const orgId = input.orgId;
   const resp = await axiosInstance.post(`/v3/orgs/${orgId}/invitations`, input);
   return resp.data;
 };
 
-export const listMyInvitations = async (): Promise<OrgInvitation[]> => {
+const listMyInvitations = async (): Promise<OrgInvitation[]> => {
   const resp = await axiosInstance.get('/v3/me/orgs/invitees');
   const data = resp.data?.data ?? [];
   return data as OrgInvitationItem[];
@@ -73,7 +76,7 @@ export const orgAPI = {
   delete: deleteOrg,
   update: updateOrg,
 
-  members: { list: listOrgMembers },
+  members: { list: listOrgMembers, invite: inviteOrgMembers },
 
   invitations: {
     list: listInvitations,

@@ -7,7 +7,7 @@ import { OrgCreateInput } from '@/contracts/organizations/organization.input';
 import { buildOrganizationTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients';
 import { OrgError } from '@/lib/http/errors';
-import { inviteMembers } from './org-member.service';
+import { orgInvitationService } from './org-invitation.service';
 
 type OrgContext = { actorId: string };
 
@@ -75,7 +75,7 @@ export const listOrgs = async (input: null, ctx: OrgContext) => {
 };
 
 export const createOrg = async (input: OrgCreateInput, context: { actorId: string }) => {
-  const { invitees: inviteesInput = [], ...orgInput } = input;
+  const { invitees, ...orgInput } = input;
   const org = { ...orgInput, id: genOrgId(), ownerId: context.actorId, settings: {} };
 
   const result = await prisma.$transaction(async (tx) => {
@@ -95,12 +95,11 @@ export const createOrg = async (input: OrgCreateInput, context: { actorId: strin
     return orgItem;
   });
 
-  await inviteMembers(
-    { orgId: result.id, invites: inviteesInput },
-    { actorId: context.actorId },
-  ).catch((err) => {
-    console.error('Failed to invite members after org creation:', err);
-  });
+  if (invitees && invitees.length > 0) {
+    await orgInvitationService
+      .bulkInvite({ orgId: result.id, invitees }, { actorId: context.actorId })
+      .catch(console.error);
+  }
 
   return result;
 };

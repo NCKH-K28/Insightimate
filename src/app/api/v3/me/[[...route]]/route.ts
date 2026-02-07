@@ -4,13 +4,10 @@ import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 import { NextResponse } from 'next/server';
 import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
-import {
-  acceptOrgInvitation,
-  rejectOrgInvitation,
-} from '@/features/organization/server/org-member.service';
-import z from 'zod';
+import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { inviteToken } from '@/features/authz/server/invite-token';
+import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 
 export const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
 export const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
@@ -61,7 +58,7 @@ meHono.post('/orgs/invitees/accept', zValidator('json', ZOrgInviteAcceptInput), 
   if (payload.email !== auth.email) {
     return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
   }
-  const data = await acceptOrgInvitation({ token }, { actorId: auth.id });
+  const data = await orgInvitationService.accept({ token }, { actorId: auth.id });
   return NextResponse.json({ data });
 });
 
@@ -73,7 +70,7 @@ meHono.post('/orgs/invitees/reject', zValidator('json', ZOrgInviteRejectInput), 
     return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
   }
 
-  const data = await rejectOrgInvitation({ token }, { actorId: auth.id });
+  const data = await orgInvitationService.reject({ token }, { actorId: auth.id });
   return NextResponse.json({ data });
 });
 

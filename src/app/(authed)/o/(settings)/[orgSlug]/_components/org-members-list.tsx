@@ -36,21 +36,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { OrgMemberItem } from '@/contracts/organizations/organization.query';
 
-type Role = 'ORG_ADMIN' | 'ORG_MEMBER' | 'ORG_OWNER';
-
+type Role = OrgMemberItem['role'];
 const ROLE_LABELS: Record<Role, string> = {
   ORG_OWNER: 'Owner',
   ORG_ADMIN: 'Admin',
   ORG_MEMBER: 'Member',
 };
 
-type Member = {
-  userId: string;
-  orgId: string;
-  role: Role;
-  user: { id: string; name: string; email: string; avatarURL?: string };
-};
+type Member = OrgMemberItem;
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -116,11 +112,9 @@ export function buildColumns({
       enableSorting: false,
       enableHiding: false,
     },
-
-    // Sort/filter theo user.name (string) để tránh sort object.
     {
       id: 'user',
-      accessorFn: (row) => row.user.name,
+      accessorFn: (row) => row.user?.name,
       header: ({ column }) => (
         <Button
           variant='ghost'
@@ -133,14 +127,12 @@ export function buildColumns({
       ),
       cell: ({ row }) => {
         const user = row.original.user;
+        if (!user) return <span className='text-muted-foreground'>Unknown User</span>;
         return (
           <div className='flex items-center gap-2'>
             <Avatar className='h-8 w-8'>
-              {user.avatarURL ? (
-                <AvatarImage src={user.avatarURL} alt={user.name} />
-              ) : (
-                <AvatarFallback>{getInitials(user.name)}</AvatarFallback>
-              )}
+              <AvatarImage src={user.avatar || undefined} alt={user.name} className='size-8' />
+              <AvatarFallback className='size-8'>{getInitials(user.name)}</AvatarFallback>
             </Avatar>
             <div className='min-w-0'>
               <div className='truncate font-medium'>{user.name}</div>
@@ -182,7 +174,7 @@ export function buildColumns({
 
 type OrgMembersListProps = {
   members: Member[];
-  roleOptions?: string[]; // giữ tương thích với code cũ
+  roleOptions?: string[];
   onRemoveMember?: (member: Member) => void;
   canRemove?: (member: Member) => boolean;
 };
@@ -337,3 +329,62 @@ export function OrgMembersList({
     </div>
   );
 }
+
+export const OrgMembersListSkeleton: React.FC = () => {
+  return (
+    <div className='w-full space-y-3'>
+      <div className='flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between'>
+        <Skeleton className='h-8 w-full sm:w-64 rounded-md' />
+        <Skeleton className='h-8 w-24 rounded-md' />
+      </div>
+
+      <div className='overflow-hidden rounded-md border'>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>
+                <Skeleton className='h-4 w-12 rounded-md' />
+              </TableHead>
+              <TableHead>
+                <Skeleton className='h-4 w-24 rounded-md' />
+              </TableHead>
+              <TableHead>
+                <Skeleton className='h-4 w-16 rounded-md' />
+              </TableHead>
+              <TableHead>
+                <Skeleton className='h-4 w-8 rounded-md' />
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+
+          <TableBody>
+            {Array.from({ length: 5 }).map((_, index) => (
+              <TableRow key={index}>
+                <TableCell>
+                  <Skeleton className='h-6 w-6 rounded-md' />
+                </TableCell>
+                <TableCell>
+                  <div className='flex flex-col gap-1'>
+                    <Skeleton className='h-4 w-32 rounded-md' />
+                    <Skeleton className='h-3 w-48 rounded-md' />
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-4 w-20 rounded-md' />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className='h-6 w-6 rounded-md' />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className='flex items-center justify-end space-x-2 py-2'>
+        <Skeleton className='h-8 w-20 rounded-md' />
+        <Skeleton className='h-8 w-20 rounded-md' />
+      </div>
+    </div>
+  );
+};
