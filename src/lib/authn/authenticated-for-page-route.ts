@@ -3,7 +3,7 @@ import type { NextApiRequest } from 'next';
 import cookie from 'cookie';
 import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/authn/session';
-import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors';
+import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors/auth-error';
 
 export async function getAuthFromRequest(req: NextApiRequest) {
   const token = req.cookies?.access_token ?? cookie.parse(req.headers.cookie ?? '').access_token;

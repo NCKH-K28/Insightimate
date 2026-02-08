@@ -1,10 +1,10 @@
 import z from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
-import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { loadPrincipal, projectResourceFactory } from '@/features/authz/server/pip';
 import { PROJECT_ACTIONS } from '@/contracts/projects';
-import { checkResourcesMapped } from '@/lib/auth/authz/cerbos';
+import { checkResourcesMapped } from '@/lib/authz/clients/cerbos';
 
 export const ZProjectFilter = z.object({
   q: z.string().optional(),

@@ -18,7 +18,8 @@ export const ZOrgItem = ZOrganization.extend({
 });
 
 const ZOrmMemberMe = z.object({
-  perms: z.enum(['delete', 'members:manage#admin', 'members:manage#member']).array().optional(),
+  isMe: z.boolean().optional(),
+  perms: z.enum(['delete', 'assign_role']).array().optional(),
 });
 export const ZOrgMemberItem = ZOrgMember.extend({
   user: ZPublicUser.optional(),

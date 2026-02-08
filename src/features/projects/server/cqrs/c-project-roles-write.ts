@@ -9,7 +9,7 @@ import {
   buildProjectRoleTuples,
   buildProjectActorTuples,
 } from '@/features/authz/api/tuple-factory';
-import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { prisma } from '@/lib/prisma';
 import { TupleKey } from '@openfga/sdk';
 import { genProjectRoleId } from '../../configs/id-generators';

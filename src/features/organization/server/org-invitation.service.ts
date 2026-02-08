@@ -7,6 +7,8 @@ import { ensureCan, ensureCanMany } from '../utils/authz';
 import { OrgError } from '@/lib/http/errors';
 import { OrgRole } from '@/contracts/organizations/organization';
 import { OrgInvitationItem } from '@/contracts/organizations/organization.query';
+import { orgMemberService } from './org-member.service';
+import { OrgInvitation } from '@prisma/client';
 
 const INVITE_EXPIRES_IN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -25,7 +27,7 @@ const buildExpiry = () => {
 };
 
 const buildInviteLink = (orgId: string, token: string) =>
-  `${serverConfig.appURL}/noities/invite?token=${encodeURIComponent(token)}`;
+  `${serverConfig.appURL}/invite?token=${encodeURIComponent(token)}`;
 
 type MailPayload = {
   token: string;
@@ -62,13 +64,13 @@ const sendOrgInvitationSafe = async (p: MailPayload) => {
 
 const getOrgOrThrow = async (orgId: string) => {
   const org = await prisma.organization.findUnique({ where: { id: orgId } });
-  if (!org) throw new OrgError('ORG_NOT_FOUND');
+  if (!org) throw new OrgError('ORG_NOT_FOUND', 'Organization not found');
   return org;
 };
 
 const getInviterOrThrow = async (actorId: string) => {
   const inviter = await prisma.user.findUnique({ where: { id: actorId } });
-  if (!inviter) throw new OrgError('ORG_INVITER_NOT_FOUND');
+  if (!inviter) throw new OrgError('ORG_INVITER_NOT_FOUND', 'Inviter not found');
   return inviter;
 };
 
@@ -76,7 +78,7 @@ const getInviteOrThrow = async (orgId: string, email: string) => {
   const invitation = await prisma.orgInvitation.findUnique({
     where: { orgId_email: { orgId, email } },
   });
-  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND');
+  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND', 'Invitation not found');
   return invitation;
 };
 
@@ -94,7 +96,7 @@ const ensureCanInviteRole = async (
 };
 
 type InviteResult = {
-  invitation: OrgInvitationItem;
+  invitation: OrgInvitation;
   outcome: 'SENT' | 'SKIPPED';
   reason: 'CREATED' | 'REFRESHED' | 'EXISTS_VALID';
 };
@@ -138,7 +140,7 @@ const invite = async (
     }
 
     if (existing.status === 'ACCEPTED') {
-      throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED');
+      throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED', 'Invitation already accepted');
     }
 
     const stillValid = existing.status === 'PENDING' && existing.expiresAt > now;
@@ -313,7 +315,7 @@ const preview = async (input: { token: string }, ctx: { actorId: string }) => {
     where: { orgId_email: { orgId, email } },
     include: { organization: true, inviter: true },
   });
-  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND');
+  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND', 'Invitation not found');
   return invitation;
 };
 
@@ -332,8 +334,20 @@ const resend = async (input: { orgId: string; email: string }, ctx: { actorId: s
   const orgId = input.orgId;
   const email = normalizeEmail(input.email);
   const org = await getOrgOrThrow(orgId);
-  const invitee = await getInviteOrThrow(orgId, email);
+  let invitee = await getInviteOrThrow(orgId, email);
   await ensureCanInviteRole(invitee.role, org, ctx);
+
+  // Check if expired, if so, refresh it
+  if (invitee.expiresAt < new Date()) {
+    const { expiresAt, exp } = buildExpiry();
+    const token = await inviteToken.generate({ sub: orgId, email, exp });
+
+    // Update DB with new token
+    invitee = await prisma.orgInvitation.update({
+      where: { orgId_email: { orgId, email } },
+      data: { token, expiresAt, status: 'PENDING' },
+    });
+  }
 
   const inviter = await getInviterOrThrow(ctx.actorId);
   await sendOrgInvitationSafe({
@@ -353,13 +367,33 @@ const accept = async (input: { token: string }, ctx: { actorId: string }) => {
   const invitation = await prisma.orgInvitation.findUnique({
     where: { orgId_email: { orgId, email } },
   });
-  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND');
-  if (invitation.status === 'ACCEPTED') throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED');
-  if (invitation.expiresAt < new Date()) throw new OrgError('ORG_INVITE_EXPIRED');
-  if (invitation.token !== input.token) throw new OrgError('ORG_INVALID_INVITE_TOKEN');
-  // call service to add member
+  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND', 'Invitation not found');
+  if (invitation.status === 'ACCEPTED')
+    throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED', 'Invitation already accepted');
+  if (invitation.expiresAt < new Date())
+    throw new OrgError('ORG_INVITE_EXPIRED', 'Invitation has expired');
+  if (invitation.token !== input.token)
+    throw new OrgError('ORG_INVALID_INVITE_TOKEN', 'Invalid invitation token');
 
-  throw new Error('Not implemented: add member on accept invite');
+  // Transaction: Mark accepted and add member
+  await prisma.$transaction(async (tx) => {
+    await tx.orgInvitation.update({
+      where: { orgId_email: { orgId, email } },
+      data: { status: 'ACCEPTED', acceptedAt: new Date() },
+    });
+
+    await orgMemberService.add(
+      {
+        orgId,
+        userId: ctx.actorId,
+        role: invitation.role,
+      },
+      ctx,
+      tx,
+    );
+  });
+
+  return { ok: true, orgId };
 };
 
 const reject = async (input: { token: string }, ctx: { actorId: string }) => {
@@ -370,14 +404,40 @@ const reject = async (input: { token: string }, ctx: { actorId: string }) => {
   const invitation = await prisma.orgInvitation.findUnique({
     where: { orgId_email: { orgId, email } },
   });
-  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND');
-  if (invitation.status === 'ACCEPTED') throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED');
-  if (invitation.expiresAt < new Date()) throw new OrgError('ORG_INVITE_EXPIRED');
-  if (invitation.token !== input.token) throw new OrgError('ORG_INVALID_INVITE_TOKEN');
+  if (!invitation) throw new OrgError('ORG_INVITE_NOT_FOUND', 'Invitation not found');
+  if (invitation.status === 'ACCEPTED')
+    throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED', 'Invitation already accepted');
+  if (invitation.expiresAt < new Date())
+    throw new OrgError('ORG_INVITE_EXPIRED', 'Invitation has expired');
+  if (invitation.token !== input.token)
+    throw new OrgError('ORG_INVALID_INVITE_TOKEN', 'Invalid invitation token');
 
   await prisma.orgInvitation.updateMany({
     where: { orgId, email, status: 'PENDING' },
     data: { status: 'REJECTED' },
+  });
+};
+
+const list = async (input: { orgId: string }, ctx: { actorId: string }) => {
+  const org = await getOrgOrThrow(input.orgId);
+  // Check permission to read members/invites
+  await ensureCan(
+    `members:read`,
+    { id: org.id, kind: 'org', attr: { orgId: org.id, ownerId: org.ownerId } },
+    ctx,
+  );
+
+  return prisma.orgInvitation.findMany({
+    where: { orgId: input.orgId, status: 'PENDING' },
+    orderBy: { createdAt: 'desc' },
+  });
+};
+
+const listMy = async (input: { email: string }) => {
+  return prisma.orgInvitation.findMany({
+    where: { email: normalizeEmail(input.email), status: 'PENDING' },
+    include: { organization: true, inviter: true },
+    orderBy: { createdAt: 'desc' },
   });
 };
 
@@ -389,4 +449,6 @@ export const orgInvitationService = {
   revoke,
   resend,
   preview,
+  list,
+  listMy,
 };

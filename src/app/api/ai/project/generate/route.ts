@@ -6,7 +6,7 @@ import aiStorage from '@/lib/s3/ai-storage';
 import { ZProjectImport, ZProjectDraft } from '@/contracts/projects';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 
-export const getFilePart = async (key: string): Promise<FilePart> => {
+const getFilePart = async (key: string): Promise<FilePart> => {
   const meta = await aiStorage.head(key);
   const downloadURL = await aiStorage.getDownloadURL(key);
   const mediaType = meta.ContentType || 'application/octet-stream';

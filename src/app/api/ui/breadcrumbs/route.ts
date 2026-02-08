@@ -28,7 +28,7 @@ const getIssueBreadcrumbs = async (issueId: string): Promise<Breadcrumb[]> => {
   }
 
   const project = issue.project;
-  const projectHref = `/wps/${project.workspaceId}/projects/${project.id}`;
+  const projectHref = `/o/${project.orgId}/projects/${project.id}`;
 
   const breadcrumbs: Breadcrumb[] = [];
 
@@ -73,7 +73,7 @@ const getProjectBreadcrumbs = async (projectId: string): Promise<Breadcrumb[]> =
   return [
     {
       label: project.name,
-      href: `/wps/${project.workspaceId}/projects/${project.id}`,
+      href: `/o/${project.orgId}/projects/${project.id}`,
       iconURL: project.avatar,
     },
   ];
@@ -96,7 +96,7 @@ const getSprintBreadcrumbs = async (sprintId: string): Promise<Breadcrumb[]> => 
   }
 
   const project = sprint.board.project;
-  const projectHref = `/wps/${project.workspaceId}/projects/${project.id}`;
+  const projectHref = `/o/${project.orgId}/projects/${project.id}`;
 
   return [
     {

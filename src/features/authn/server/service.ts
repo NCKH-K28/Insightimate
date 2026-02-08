@@ -1,10 +1,10 @@
 import { prisma } from '@/lib/prisma';
 
-import { verifyPassword, hashPassword } from '../lib/password';
+import { verifyPassword, hashPassword } from '../helper/password';
 import { generateToken } from '@/lib/authn/session';
 import serverConfig from '@/configs/server';
 import { AuthError } from '@/lib/http/errors';
-import { genUserId } from '../lib/id';
+import { genUserId } from '../helper/id';
 
 const signIn = async (input: { email: string; password: string }) => {
   const acc = await prisma.account.findUnique({ where: { email: input.email } });

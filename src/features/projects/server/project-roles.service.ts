@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import { ProjectRole, ProjectRoleCreateInput, ZProjectRole } from '@/contracts/projects';
-import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { prisma } from '@/lib/prisma';
 import { writeProjectRoles } from './cqrs/c-project-roles-write';
 import {

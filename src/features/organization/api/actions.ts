@@ -13,6 +13,10 @@ export const orgKeys = {
     all: (orgId: string) => [...orgKeys.detail({ id: orgId }), 'members'] as const,
     lists: (orgId: string) => [...orgKeys.members.all(orgId), 'list'] as const,
   },
+  invitations: {
+    all: (orgId: string) => [...orgKeys.detail({ id: orgId }), 'invitations'] as const,
+    lists: (orgId: string) => [...orgKeys.invitations.all(orgId), 'list'] as const,
+  },
 };
 
 export const listOrgsQueryOptions = () => {
@@ -47,10 +51,75 @@ export const listOrgMembersQueryOptions = (orgId: string) => {
   });
 };
 
+export const listOrgInvitationsQueryOptions = (orgId: string) => {
+  return queryOptions({
+    queryKey: orgKeys.invitations.lists(orgId),
+    queryFn: async () => orgAPI.invitations.list(orgId),
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const getOrgInvitationPreviewQueryOptions = (token: string) => {
+  return queryOptions({
+    queryKey: ['orgs', 'invitations', 'preview', token] as const,
+    queryFn: async () => orgAPI.invitations.preview(token),
+    staleTime: Infinity, // Token content doesn't change unless expired
+    enabled: token.length > 0,
+  });
+};
+
 export const inviteOrgMembersMutationOptions = (orgId: string) => {
   return mutationOptions({
     mutationFn: async (input: Omit<OrgMemberInviteInput, 'orgId'>) => {
       return orgAPI.members.invite({ orgId, ...input });
+    },
+  });
+};
+
+export const revokeOrgInvitationMutationOptions = (orgId: string) => {
+  return mutationOptions({
+    mutationFn: async (email: string) => {
+      return orgAPI.invitations.revoke(orgId, email);
+    },
+  });
+};
+
+export const resendOrgInvitationMutationOptions = (orgId: string) => {
+  return mutationOptions({
+    mutationFn: async (email: string) => {
+      return orgAPI.invitations.resend(orgId, email);
+    },
+  });
+};
+
+export const acceptOrgInvitationMutationOptions = () => {
+  return mutationOptions({
+    mutationFn: async (token: string) => {
+      return orgAPI.invitations.accept(token);
+    },
+  });
+};
+
+export const removeOrgMemberMutationOptions = (orgId: string) => {
+  return mutationOptions({
+    mutationFn: async (userId: string) => {
+      return orgAPI.members.remove(orgId, userId);
+    },
+  });
+};
+
+export const assignOrgMemberRoleMutationOptions = (orgId: string) => {
+  return mutationOptions({
+    mutationFn: async (input: { userId: string; role: string }) => {
+      return orgAPI.members.assign(orgId, input.userId, input.role);
+    },
+  });
+};
+
+export const leaveOrgMutationOptions = (orgId: string) => {
+  return mutationOptions({
+    mutationFn: async () => {
+      return orgAPI.me.leave(orgId);
     },
   });
 };

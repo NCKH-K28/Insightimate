@@ -50,7 +50,7 @@ const formatLocal = (d: Date, locale: string) => {
   }
 };
 
-export const buildQAPrompt = ({
+const buildQAPrompt = ({
   workspaceId,
   actorId,
   sources = [],

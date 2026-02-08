@@ -37,6 +37,7 @@ import {
 } from '@/components/ui/table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { OrgMemberItem } from '@/contracts/organizations/organization.query';
 
 type Role = OrgMemberItem['role'];
@@ -82,12 +83,18 @@ type BuildColumnsParams = {
   roleChoices: Role[];
   onRemoveMember?: (member: Member) => void;
   canRemove?: (member: Member) => boolean;
+  onAssignRole?: (member: Member, role: Role) => void;
+  canAssignRole?: (member: Member) => boolean;
+  isAssigningRole?: boolean;
 };
 
 export function buildColumns({
   roleChoices,
   onRemoveMember,
   canRemove,
+  onAssignRole,
+  canAssignRole,
+  isAssigningRole,
 }: BuildColumnsParams): ColumnDef<Member>[] {
   return [
     {
@@ -146,8 +153,60 @@ export function buildColumns({
     {
       accessorKey: 'role',
       header: 'Role',
-      cell: ({ row }) => ROLE_LABELS[row.original.role] ?? row.original.role,
-      // Cho phép filterValue là mảng roles
+      cell: ({ row }) => {
+        const member = row.original;
+        const currentRole = member.role;
+        const canEdit = canAssignRole?.(member);
+
+        if (!canEdit) {
+          const tooltipMessage = member._me
+            ? 'You cannot change your own role'
+            : currentRole === 'ORG_OWNER'
+              ? 'Owner role cannot be changed'
+              : "You don't have permission to change this member's role";
+
+          return (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className='cursor-not-allowed text-muted-foreground'>
+                    {ROLE_LABELS[currentRole] ?? currentRole}
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{tooltipMessage}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          );
+        }
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant='ghost'
+                className='h-8 w-full justify-start font-normal'
+                disabled={isAssigningRole}
+              >
+                {ROLE_LABELS[currentRole] ?? currentRole}
+                <ArrowUpDown className='ml-2 h-3 w-3 opacity-50' />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='start'>
+              {roleChoices.map((role) => (
+                <DropdownMenuItem
+                  key={role}
+                  onClick={() => onAssignRole?.(member, role)}
+                  disabled={role === currentRole || isAssigningRole}
+                >
+                  {ROLE_LABELS[role]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
       filterFn: (row, columnId, filterValue) => {
         if (!Array.isArray(filterValue) || filterValue.length === 0) return true;
         const role = row.getValue(columnId) as Role;
@@ -177,6 +236,9 @@ type OrgMembersListProps = {
   roleOptions?: string[];
   onRemoveMember?: (member: Member) => void;
   canRemove?: (member: Member) => boolean;
+  onAssignRole?: (member: Member, role: Role) => void;
+  canAssignRole?: (member: Member) => boolean;
+  isAssigningRole?: boolean;
 };
 
 export function OrgMembersList({
@@ -184,6 +246,9 @@ export function OrgMembersList({
   roleOptions,
   onRemoveMember,
   canRemove,
+  onAssignRole,
+  canAssignRole,
+  isAssigningRole,
 }: OrgMembersListProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -191,15 +256,23 @@ export function OrgMembersList({
   const [rowSelection, setRowSelection] = React.useState({});
 
   const roleChoices = React.useMemo<Role[]>(() => {
-    const fallback = Object.keys(ROLE_LABELS) as Role[];
-    if (!roleOptions || roleOptions.length === 0) return fallback;
-    const set = new Set(fallback);
-    return roleOptions.filter((r): r is Role => set.has(r as Role)) as Role[];
+    if (!roleOptions) return [];
+    return roleOptions.filter((r): r is Role =>
+      ['ORG_OWNER', 'ORG_ADMIN', 'ORG_MEMBER'].includes(r),
+    );
   }, [roleOptions]);
 
   const columns = React.useMemo(
-    () => buildColumns({ roleChoices, onRemoveMember, canRemove }),
-    [roleChoices, onRemoveMember, canRemove],
+    () =>
+      buildColumns({
+        roleChoices,
+        onRemoveMember,
+        canRemove,
+        onAssignRole,
+        canAssignRole,
+        isAssigningRole,
+      }),
+    [roleChoices, onRemoveMember, canRemove, onAssignRole, canAssignRole, isAssigningRole],
   );
 
   const table = useReactTable({

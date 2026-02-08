@@ -7,7 +7,7 @@ type Parsed =
   | { colId: string; type: 'top' | 'bottom' }
   | { colId: string; type: 'item'; itemId: string };
 
-export function parseColPath(path: string): Parsed | null {
+function parseColPath(path: string): Parsed | null {
   const m = path.match(/^\/cols\/([^/]+)\/items\/([^/]+)$/);
   if (!m) return null;
 

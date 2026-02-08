@@ -116,6 +116,82 @@ orgsHono.post(
 );
 
 // === api/v3/orgs/:orgId/invites ===
+orgsHono.get(
+  '/invitations/preview',
+  zValidator('query', z.object({ token: z.string() })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { token } = c.req.valid('query');
+    // Using auth.userId, assuming user is logged in as per (authed) route structure
+    const result = await orgInvitationService.preview({ token }, { actorId: auth.userId });
+    return c.json({ data: result });
+  },
+);
+
+orgsHono.get('/:orgId/invitations', async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId } = c.req.param();
+  const result = await orgInvitationService.list({ orgId }, { actorId: auth.userId });
+  return c.json({ data: result });
+});
+
+orgsHono.post(
+  '/invitations/accept',
+  zValidator('json', z.object({ token: z.string() })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { token } = c.req.valid('json');
+    const result = await orgInvitationService.accept({ token }, { actorId: auth.userId });
+    return c.json(result);
+  },
+);
+
+const ZInviteAction = z.object({ email: z.string().email() });
+
+orgsHono.post('/:orgId/invitations/revoke', zValidator('json', ZInviteAction), async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId } = c.req.param();
+  const { email } = c.req.valid('json');
+  await orgInvitationService.revoke({ orgId, email }, { actorId: auth.userId });
+  return c.json({ ok: true });
+});
+
+orgsHono.post('/:orgId/invitations/resend', zValidator('json', ZInviteAction), async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId } = c.req.param();
+  const { email } = c.req.valid('json');
+  await orgInvitationService.resend({ orgId, email }, { actorId: auth.userId });
+  return c.json({ ok: true });
+});
+
+const ZOrgRole = z.enum(['ORG_OWNER', 'ORG_ADMIN', 'ORG_MEMBER']);
+
+// == api/v3/orgs/:orgId/members/:userId ==
+orgsHono.patch(
+  '/:orgId/members/:userId',
+  zValidator('json', z.object({ role: ZOrgRole })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { orgId, userId } = c.req.param();
+    const { role } = c.req.valid('json');
+    const result = await orgMemberService.assign({ orgId, userId, role }, { actorId: auth.userId });
+    return c.json(result);
+  },
+);
+
+orgsHono.delete('/:orgId/members/me', async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId } = c.req.param();
+  await orgMemberService.leave({ orgId }, { actorId: auth.userId });
+  return c.json({ ok: true });
+});
+
+orgsHono.delete('/:orgId/members/:userId', async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { orgId, userId } = c.req.param();
+  await orgMemberService.remove({ orgId, userId }, { actorId: auth.userId });
+  return c.json({ ok: true });
+});
 
 export const GET = handle(orgsHono);
 export const POST = handle(orgsHono);

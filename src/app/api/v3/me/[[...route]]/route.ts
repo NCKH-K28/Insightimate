@@ -9,8 +9,8 @@ import { zValidator } from '@hono/zod-validator';
 import { inviteToken } from '@/features/authz/server/invite-token';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 
-export const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
-export const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
+const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
+const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
 
 const meHono = new Hono().basePath('/api/v3/me');
 meHono.use(authenticatedHono);
@@ -73,6 +73,93 @@ meHono.post('/orgs/invitees/reject', zValidator('json', ZOrgInviteRejectInput), 
   const data = await orgInvitationService.reject({ token }, { actorId: auth.id });
   return NextResponse.json({ data });
 });
+
+// == New endpoints for invite page ==
+// GET /api/v3/me/orgs/invite?token=xxx - Preview invitation
+meHono.get('/orgs/invite', zValidator('query', z.object({ token: z.string() })), async (c) => {
+  const auth = await getAuthFromRequestHono(c);
+  const { token } = c.req.valid('query');
+
+  try {
+    const payload = await inviteToken.verify(token);
+    const invitation = await orgInvitationService.preview({ token }, { actorId: auth.userId });
+
+    return c.json({
+      organization: {
+        id: invitation.organization.id,
+        name: invitation.organization.name,
+        logoURL: invitation.organization.logo,
+      },
+      invitation: {
+        email: invitation.email,
+        role: invitation.role,
+        expiresAt: invitation.expiresAt.toISOString(),
+      },
+      inviter: {
+        id: invitation.inviter.id,
+        name: invitation.inviter.name,
+        email: invitation.inviter.email,
+      },
+    });
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Failed to fetch invite info' },
+      400,
+    );
+  }
+});
+
+// POST /api/v3/me/orgs/:orgId/invite/accept?token=xxx
+meHono.post(
+  '/orgs/:orgId/invite/accept',
+  zValidator('query', z.object({ token: z.string() })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { token } = c.req.valid('query');
+    const { orgId } = c.req.param();
+
+    try {
+      const payload = await inviteToken.verify(token);
+      if (payload.sub !== orgId) {
+        return c.json({ error: 'Token does not match organization' }, 400);
+      }
+
+      const result = await orgInvitationService.accept({ token }, { actorId: auth.userId });
+      return c.json(result);
+    } catch (error) {
+      return c.json(
+        { error: error instanceof Error ? error.message : 'Failed to accept invite' },
+        400,
+      );
+    }
+  },
+);
+
+// POST /api/v3/me/orgs/:orgId/invite/reject?token=xxx
+meHono.post(
+  '/orgs/:orgId/invite/reject',
+  zValidator('query', z.object({ token: z.string() })),
+  async (c) => {
+    const auth = await getAuthFromRequestHono(c);
+    const { token } = c.req.valid('query');
+    const { orgId } = c.req.param();
+
+    try {
+      const payload = await inviteToken.verify(token);
+      if (payload.sub !== orgId) {
+        return c.json({ error: 'Token does not match organization' }, 400);
+      }
+
+      await orgInvitationService.reject({ token }, { actorId: auth.userId });
+      return c.json({ ok: true });
+    } catch (error) {
+      return c.json(
+        { error: error instanceof Error ? error.message : 'Failed to reject invite' },
+        400,
+      );
+    }
+  },
+);
 
 export const GET = handle(meHono);
 export const POST = handle(meHono);

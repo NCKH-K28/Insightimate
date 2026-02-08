@@ -7,7 +7,7 @@ const ZWsMember = z.object({
   userId: z.string(),
   user: z.object({ name: z.string(), avatarURL: z.string().optional() }),
 });
-export const ZWsActor = z.object({
+const ZWsActor = z.object({
   actorType: z.enum(['USER', 'TEAM']),
   actorId: z.string(),
   actor: z.object({

@@ -1,7 +1,7 @@
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';
-import { openfgaClient } from '@/lib/auth/authz/openfga';
+import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 

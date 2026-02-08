@@ -1,4 +1,4 @@
-// import { openfgaClient } from '@/lib/auth/authz/openfga';
+// import { openfgaClient } from '@/lib/authz/clients/openfga';
 // import { prisma } from '@/lib/prisma';
 // import { NextResponse } from 'next/server';
 
@@ -18,3 +18,4 @@
 //     return NextResponse.json({ error: 'Failed to fetch audit logs' }, { status: 500 });
 //   }
 // };
+export {};

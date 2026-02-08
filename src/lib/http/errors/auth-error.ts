@@ -25,3 +25,15 @@ export class AuthError extends AppError<AuthErrorCode> {
     return false;
   }
 }
+
+export class UnauthorizedError extends AuthError {
+  constructor(message = 'Unauthorized') {
+    super('AUTH_UNAUTHORIZED', message);
+  }
+}
+
+export class UserNotFoundError extends AuthError {
+  constructor(message = 'User not found') {
+    super('AUTH_UNKNOWN_ERROR', message);
+  }
+}

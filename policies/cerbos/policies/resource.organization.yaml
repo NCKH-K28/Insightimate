@@ -26,6 +26,13 @@ resourcePolicy:
         - org_owner
 
     # for organization.member
+    - actions: [members:read]
+      effect: EFFECT_ALLOW
+      derivedRoles:
+        - org_owner
+        - org_admin
+        - org_member
+
     - actions:
         - members:manage#member
       effect: EFFECT_ALLOW

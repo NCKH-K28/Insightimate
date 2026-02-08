@@ -39,7 +39,7 @@ const updateOrg = async (id: string, data: Partial<OrgCreateInput>): Promise<Org
 };
 
 const leaveOrg = async (id: string): Promise<void> => {
-  await axiosInstance.post(`/v3/me/orgs/${id}/leave`);
+  await axiosInstance.delete(`/v3/orgs/${id}/members/me`);
 };
 
 const listOrgMembers = async (orgId: string): Promise<OrgMemberItem[]> => {
@@ -52,9 +52,35 @@ const inviteOrgMembers = async (input: OrgMemberInviteInput): Promise<void> => {
   await axiosInstance.post(`/v3/orgs/${input.orgId}/members/invite`, input);
 };
 
+const removeMember = async (orgId: string, userId: string): Promise<void> => {
+  await axiosInstance.delete(`/v3/orgs/${orgId}/members/${userId}`);
+};
+
+const assignMemberRole = async (orgId: string, userId: string, role: string): Promise<void> => {
+  await axiosInstance.patch(`/v3/orgs/${orgId}/members/${userId}`, { role });
+};
+
 const listInvitations = async (orgId: string): Promise<OrgInvitationItem[]> => {
   const resp = await axiosInstance.get(`/v3/orgs/${orgId}/invitations`);
   return resp.data?.data ?? [];
+};
+
+const revokeInvitation = async (orgId: string, email: string): Promise<void> => {
+  await axiosInstance.post(`/v3/orgs/${orgId}/invitations/revoke`, { email });
+};
+
+const resendInvitation = async (orgId: string, email: string): Promise<void> => {
+  await axiosInstance.post(`/v3/orgs/${orgId}/invitations/resend`, { email });
+};
+
+const acceptInvitation = async (token: string): Promise<{ ok: boolean; orgId: string }> => {
+  const resp = await axiosInstance.post(`/v3/orgs/invitations/accept`, { token });
+  return resp.data;
+};
+
+const previewInvitation = async (token: string): Promise<OrgInvitationItem> => {
+  const resp = await axiosInstance.get(`/v3/orgs/invitations/preview?token=${token}`);
+  return resp.data?.data;
 };
 
 const createOrgInvitation = async (input: OrgInvitationCreateInput): Promise<OrgInvitation> => {
@@ -76,12 +102,21 @@ export const orgAPI = {
   delete: deleteOrg,
   update: updateOrg,
 
-  members: { list: listOrgMembers, invite: inviteOrgMembers },
+  members: {
+    list: listOrgMembers,
+    invite: inviteOrgMembers,
+    remove: removeMember,
+    assign: assignMemberRole,
+  },
 
   invitations: {
     list: listInvitations,
     create: createOrgInvitation,
     listMy: listMyInvitations,
+    revoke: revokeInvitation,
+    resend: resendInvitation,
+    accept: acceptInvitation,
+    preview: previewInvitation,
   },
 
   me: { leave: leaveOrg, invitees: listMyInvitations },

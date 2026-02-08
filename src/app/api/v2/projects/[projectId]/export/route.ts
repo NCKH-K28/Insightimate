@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import z from 'zod';
 
-export const ZProjectExport = z.object({
+const ZProjectExport = z.object({
   metadata: z.any(),
   project: z.object({
     id: z.string(),
