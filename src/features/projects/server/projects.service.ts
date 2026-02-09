@@ -92,12 +92,11 @@ const buildResolutionCreateManyData = (
 
 export const assertProjectKeyAvailable = async (
   tx: TxClient,
-  workspaceId: string,
+  orgId: string,
   key: string,
 ): Promise<void> => {
-  const exists = await tx.project.findUnique({
-    where: { workspaceId_key: { workspaceId, key } },
-  });
+  const orgId_key = { orgId, key };
+  const exists = await tx.project.findUnique({ where: { orgId_key } });
   if (exists) throw new Error(`Conflict: project key ${key} already exists`);
 };
 
@@ -151,7 +150,7 @@ const createDefaultBoard = async (
 type ProjectContext = { actorId: string };
 
 const listProjects = async (
-  params: { filter?: { workspaceId?: string } },
+  params: { filter?: { orgId?: string } },
   context: ProjectContext,
   _options?: { include?: { permissions: boolean } },
 ) => {
@@ -167,11 +166,11 @@ const listProjects = async (
   if (projectIds.length === 0) return ZProjectListRes.parse({ data: [], meta: { total: 0 } });
 
   const where: Prisma.ProjectWhereInput = { id: { in: projectIds } };
-  if (filter?.workspaceId) where.workspaceId = filter.workspaceId;
+  if (filter?.orgId) where.orgId = filter.orgId;
 
   const projects = await prisma.project.findMany({
     where,
-    include: { lead: true, workspace: true },
+    include: { lead: true, organization: true },
     orderBy: { createdAt: 'desc' },
   });
 
@@ -200,8 +199,8 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     throw new Error('Project lead must be the actor creating the project');
   }
 
-  const workspace = await prisma.workspace.findUnique({ where: { id: input.workspaceId } });
-  if (!workspace) throw new Error('Workspace not found');
+  const organization = await prisma.organization.findUnique({ where: { id: input.orgId } });
+  if (!organization) throw new Error('Organization not found');
 
   // const resource = workspaceResourceFactory(workspace);
   // await ensureCan('projects:create', resource, context); FIXME: BUG (loi khi tao project voi WS_AMDIN role)
@@ -226,7 +225,7 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
   const resolutions = buildResolutionCreateManyData(templateConfig);
 
   await prisma.$transaction(async (tx) => {
-    await assertProjectKeyAvailable(tx, project.workspaceId, project.key);
+    await assertProjectKeyAvailable(tx, project.orgId, project.key);
 
     const persisted = await tx.project.create({
       data: {
@@ -301,7 +300,7 @@ const updateProject = async (
 const deleteProject = async (projectId: string, context: ProjectContext) => {
   const exists = await prisma.project.findUnique({
     where: { id: projectId },
-    include: { workspace: true, actors: true },
+    include: { organization: true, actors: true },
   });
   if (!exists) throw new Error('Project not found');
 
@@ -360,7 +359,7 @@ const getProjectById = async (projectId: string, ctx: ProjectContext) => {
 
 const getProjectsFacets = async (
   _projectId: string,
-  _options: { workspaceId?: string } = {},
+  _options: { orgId?: string } = {},
   context: ProjectContext,
 ) => {
   const { objects } = await openfgaClient.listObjects({

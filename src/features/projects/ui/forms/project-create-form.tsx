@@ -3,39 +3,98 @@
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
+import { useFieldArray, useForm, UseFormReturn } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { toast } from 'sonner';
 import { Loader2, Plus } from 'lucide-react';
 
-import { useRouter } from 'next/navigation';
 import { useMutation } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
 import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/projects';
 import { createProjectMutationOptions } from '@/features/projects/api/actions';
-import get from 'lodash/get';
 import { z } from 'zod';
+import { getErrorMsg } from '@/lib/api/helper';
+import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 const ZCreateFormData = ZProjectCreateInput;
 type CreateFormData = z.infer<typeof ZCreateFormData>;
 
+const ProjectTypes = (props: { form: UseFormReturn<CreateFormData> }) => {
+  const { fields, append, remove } = useFieldArray({ control: props.form.control, name: 'types' });
+
+  return (
+    <div>
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <Input {...props.form.register(`types.${index}.name`)} />
+          <Button type='button' onClick={() => remove(index)}>
+            Remove
+          </Button>
+        </div>
+      ))}
+      <Button
+        type='button'
+        onClick={() => {
+          append({ name: '', description: '', hierarchy: 1, sequence: fields.length });
+        }}
+      >
+        Add Type
+      </Button>
+    </div>
+  );
+};
+
+const ProjectStatus = (props: { form: UseFormReturn<CreateFormData> }) => {
+  const { fields, append, remove } = useFieldArray({
+    control: props.form.control,
+    name: 'statuses',
+  });
+
+  return (
+    <div>
+      {fields.map((field, index) => (
+        <div key={field.id}>
+          <Input {...props.form.register(`statuses.${index}.name`)} />
+          <Button type='button' onClick={() => remove(index)}>
+            Remove
+          </Button>
+        </div>
+      ))}
+      <Button
+        type='button'
+        onClick={() => {
+          append({ name: '', description: '', category: 'TODO', sequence: fields.length });
+        }}
+      >
+        Add Status
+      </Button>
+    </div>
+  );
+};
+
+type Lead = { id: string; name: string; avatar?: string };
 type ProjectCreateFormProps = {
   onSuccess?: (data: { id: string }) => void;
   onValueChange?: (data: Partial<CreateFormData>) => void;
-  value: { workspaceId: string; leadId: string };
+  values: { leadId: string };
   defaultValue?: Partial<ProjectCreateInput>;
+  leadOptions: Lead[] | Promise<Lead[]>;
 };
-export function ProjectCreateForm(props: ProjectCreateFormProps) {
-  const router = useRouter();
+export function ProjectCreateForm({
+  onSuccess,
+  onValueChange,
+  values,
+  defaultValue,
+}: ProjectCreateFormProps) {
   const createProject = useMutation(createProjectMutationOptions());
 
   const form = useForm<CreateFormData>({
     resolver: zodResolver(ZCreateFormData),
     mode: 'onChange',
     defaultValues: {
-      leadId: props.value.leadId,
-      workspaceId: props.value.workspaceId,
+      leadId: values.leadId,
       name: '',
       key: '',
       description: '',
@@ -46,22 +105,16 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
   });
 
   const handleSubmit = form.handleSubmit(
-    async (data) => {
-      await toast
-        .promise(createProject.mutateAsync(data), {
-          loading: 'Creating project...',
+    (data) => {
+      return toast
+        .promise(createProject.mutateAsync(data, { onSuccess }), {
           success: 'Project created successfully!',
           error: (err) => {
-            //FIXME: cần chuẩn hóa lỗi từ backend
-            const msg = get(err, 'response.data.error', `Error creating project: ${err.message}`);
+            const msg = getErrorMsg(err, 'Failed to create project');
             return msg;
           },
         })
-        .unwrap()
-        .then((data) => {
-          router.push(`/wps/${data.workspaceId}/projects/${data.id}`);
-          form.reset();
-        });
+        .unwrap();
     },
     (error) => {
       console.error('Form validation errors:', error);
@@ -83,9 +136,26 @@ export function ProjectCreateForm(props: ProjectCreateFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className={cn('container mx-auto max-w-2xl', 'space-y-6')}>
-        <ProjectInfo form={form} />
-
-        <ProjectPermission form={form} />
+        <Tabs defaultValue='info' className='w-full'>
+          <TabsList>
+            <TabsTrigger value='info'>Info</TabsTrigger>
+            <TabsTrigger value='type'>Type</TabsTrigger>
+            <TabsTrigger value='field'>Field</TabsTrigger>
+            <TabsTrigger value='permission'>Permission</TabsTrigger>
+          </TabsList>
+          <TabsContent value='info'>
+            <ProjectInfo form={form} />
+          </TabsContent>
+          <TabsContent value='type'>
+            <ProjectTypes form={form} />
+          </TabsContent>
+          <TabsContent value='field'>
+            <ProjectField form={form} />
+          </TabsContent>
+          <TabsContent value='permission'>
+            <ProjectPermission form={form} />
+          </TabsContent>
+        </Tabs>
 
         <div
           className={cn(

@@ -13,7 +13,6 @@ import {
 
 import { AppHeader } from './components/app-header';
 import { OrgListPageHeader } from './components/org-list-page-header';
-import { InvitationsSection } from './components/invitations';
 import { OrgList, OrgListSkeleton } from './components/organizations';
 import { CreateOrgForm, CreateOrgFormData } from './components/create-org-form';
 import { useCreateOrg } from '@/hooks/org';
@@ -65,7 +64,6 @@ export default function Page() {
         </Dialog>
 
         <OrgListPageHeader onCreateOrgBtnClick={() => setCreateOrgDialogOpen(true)} />
-        <InvitationsSection />
 
         <Suspense fallback={<OrgListSkeleton />}>
           <OrgList />

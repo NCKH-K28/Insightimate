@@ -129,7 +129,7 @@ const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
           items={[
             {
               title: 'Projects',
-              url: `/o/${orgSlug}/projects`,
+              url: `/o/${orgSlug}/projs`,
               icon: FolderKanban,
             },
             {

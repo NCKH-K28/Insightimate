@@ -6,8 +6,8 @@ import { NextResponse } from 'next/server';
 import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
-import { inviteToken } from '@/features/authz/server/invite-token';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
+import { inviteToken } from '@/features/organization/server/invite-token';
 
 const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
 const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });

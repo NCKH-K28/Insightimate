@@ -3,7 +3,7 @@ import { XIcon, Maximize2Icon, Minimize2Icon } from 'lucide-react';
 
 import { Sidebar, SidebarContent, SidebarHeader, SidebarMenuButton } from '@/components/ui/sidebar';
 import { Separator } from '@/components/ui/separator';
-import ChatBot from '@/features/agents/ui/insight-chat-v2';
+// import ChatBot from '@/features/agents/ui/insight-chat-v2'; FIXME: lỗi worksacpe
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import {
@@ -42,7 +42,7 @@ function AppRightbar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const handleExpand = () => setIsExpanded(true);
   const handleCollapse = () => setIsExpanded(false);
 
-  const chatbotElm = React.useMemo(() => <ChatBot />, []);
+  const chatbotElm = React.useMemo(() => <></>, []);
 
   return (
     <>

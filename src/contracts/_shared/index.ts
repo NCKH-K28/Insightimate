@@ -12,3 +12,4 @@ export const isoDateString = z.preprocess(
 );
 
 // ===== Common Query Params =====
+export const ZIdString = z.string().trim().min(1, 'ID is required');

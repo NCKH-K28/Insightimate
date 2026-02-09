@@ -182,7 +182,7 @@ orgsHono.patch(
 orgsHono.delete('/:orgId/members/me', async (c) => {
   const auth = await getAuthFromRequestHono(c);
   const { orgId } = c.req.param();
-  await orgMemberService.leave({ orgId }, { actorId: auth.userId });
+  await orgMemberService.leave({ orgId, userId: auth.userId }, { actorId: auth.userId });
   return c.json({ ok: true });
 });
 
