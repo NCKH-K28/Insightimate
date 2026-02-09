@@ -4,6 +4,7 @@ import get from 'lodash/get';
 import set from 'lodash/set';
 
 const cerbosConfig = serverConfig.cerbos;
+// policy path: policies/cerbos
 
 // == Cerbos Client
 export const getCerbos = (): CerbosClient => {

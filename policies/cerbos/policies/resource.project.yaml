@@ -4,7 +4,7 @@ resourcePolicy:
   version: "default"
   importDerivedRoles:
     - common_derived_roles
-  resource: "project"
+  resource: "proj"
   rules:
     - actions: ["read", "list"]
       effect: EFFECT_ALLOW

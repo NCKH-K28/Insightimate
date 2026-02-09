@@ -1,35 +1,22 @@
-export class ProjectError extends Error {
-  constructor(message: string) {
-    super(message);
+import { AppError, AppErrorOptions } from './_base';
+
+export const PROJECT_ERROR_CODES = {
+  PROJECT_NOT_FOUND: 'PROJECT_NOT_FOUND',
+  PROJECT_ALREADY_EXISTS: 'PROJECT_ALREADY_EXISTS',
+  PROJECT_PERMISSION_DENIED: 'PROJECT_PERMISSION_DENIED',
+  PROJECT_INVALID_INPUT: 'PROJECT_INVALID_INPUT',
+} as const;
+
+export type ProjectErrorCode = (typeof PROJECT_ERROR_CODES)[keyof typeof PROJECT_ERROR_CODES];
+
+export class ProjectError extends AppError {
+  constructor(
+    code: ProjectErrorCode,
+    options: AppErrorOptions | string = { message: 'Project error' },
+  ) {
+    super(code, options);
     this.name = 'ProjectError';
     Object.setPrototypeOf(this, ProjectError.prototype);
-  }
-}
-
-export class ProjectConflictError extends ProjectError {
-  constructor(key: string) {
-    super(`Conflict: project key ${key} already exists`);
-    this.name = 'ProjectConflictError';
-  }
-}
-
-export class ProjectNotFoundError extends ProjectError {
-  constructor() {
-    super('Project not found');
-    this.name = 'ProjectNotFoundError';
-  }
-}
-
-export class ProjectPermissionError extends ProjectError {
-  constructor(action: string) {
-    super(`Permission denied to ${action} this project`);
-    this.name = 'ProjectPermissionError';
-  }
-}
-
-export class ProjectActorError extends ProjectError {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ProjectActorError';
+    Error.captureStackTrace?.(this, ProjectError);
   }
 }

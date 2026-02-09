@@ -25,7 +25,7 @@ export const ZListMeta = z.object({
 });
 
 // ---------- Permissions ----------
-export const ZProjectPermissions = z.record(ZProjectPermissionKey, z.boolean());
+export const ZProjectPermissions = z.record(z.string(), z.boolean());
 
 // ---------- Responses ----------
 export const ZProjectPermissionRes = z.object({
@@ -57,8 +57,16 @@ const ZIssueField = z.object({
   name: z.string().trim(),
   sequence: z.number(),
   description: z.string().trim().nullish(),
-  iconURL: z.string().trim().url().nullish(),
-  color: z.string().trim().nullish(),
+  iconURL: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((v) => (v === '' ? null : v)),
+  color: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((v) => (v === '' ? null : v)),
 });
 
 const ZIssueTypeField = ZIssueField.extend({ hierarchy: z.number() });
