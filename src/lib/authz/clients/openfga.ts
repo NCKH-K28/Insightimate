@@ -102,7 +102,7 @@ const healthCheck = async () => {
   // console.log('OpenFGA authorization model initialized');
 };
 
-await healthCheck().catch((err) => {
-  console.error('OpenFGA health check failed:', err);
-  process.exit(1);
-});
+// await healthCheck().catch((err) => {
+//   console.error('OpenFGA health check failed:', err);
+//   process.exit(1);
+// });

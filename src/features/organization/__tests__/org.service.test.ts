@@ -3,7 +3,11 @@ import { prisma } from '@/lib/prisma';
 import { ensureCan, accessibleOrgs, allowedOrgPerms } from '../utils/authz';
 import { openfgaClient } from '@/lib/authz/clients';
 import { orgInvitationService } from '../server/org-invitation.service';
-import { orgService } from '../server/org.service';
+import { orgService, slugAvailable } from '../server/org.service';
+
+vi.mock('server-only', () => {
+  return {};
+});
 
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({
@@ -36,7 +40,7 @@ vi.mock('@/lib/authz/clients', () => ({
   },
 }));
 
-vi.mock('./org-invitation.service', () => ({
+vi.mock('../server/org-invitation.service', () => ({
   orgInvitationService: {
     bulkInvite: vi.fn().mockResolvedValue(undefined),
   },
@@ -69,6 +73,7 @@ describe('OrgService', () => {
         slug: 'new-org',
         ownerId: 'user-1',
         invitees: [{ email: 'test@test.com', role: 'ORG_MEMBER' as const }],
+        logo: null,
       };
 
       vi.mocked(prisma.organization.findUnique).mockResolvedValue(null); // No slug conflict
@@ -85,7 +90,7 @@ describe('OrgService', () => {
     it('should throw if slug exists', async () => {
       vi.mocked(prisma.organization.findUnique).mockResolvedValue(mockOrg as any); // Slug conflict
 
-      const input = { name: 'New Org', slug: 'test-org', ownerId: 'user-1' };
+      const input = { name: 'New Org', slug: 'test-org', ownerId: 'user-1', logo: null };
 
       await expect(orgService.create(input, mockCtx)).rejects.toThrow(
         'Organization slug already exists',
@@ -111,7 +116,7 @@ describe('OrgService', () => {
   describe('list', () => {
     it('should return list of orgs', async () => {
       vi.mocked(accessibleOrgs).mockResolvedValue(['org-1', 'org-2']);
-      vi.mocked(prisma.organization.findMany).mockResolvedValue([mockOrg]);
+      vi.mocked(prisma.organization.findMany).mockResolvedValue([mockOrg] as any);
       vi.mocked(prisma.organization.count).mockResolvedValue(1);
       vi.mocked(prisma.orgMember.findMany).mockResolvedValue([
         { orgId: 'org-1', role: 'ORG_OWNER' },
@@ -129,5 +134,58 @@ describe('OrgService', () => {
       const result = await orgService.list(null, mockCtx);
       expect(result.data).toHaveLength(0);
     });
+  });
+
+  describe('update', () => {
+    it('should update org details', async () => {
+      const input = { name: 'Updated Name', logo: 'new-logo.png' };
+      const updatedOrg = { ...mockOrg, name: 'Updated Name', logo: 'new-logo.png' };
+
+      vi.mocked(prisma.organization.findUnique).mockResolvedValue(mockOrg as any); // Pre-check
+      vi.mocked(ensureCan).mockResolvedValue(undefined);
+      vi.mocked(prisma.organization.update).mockResolvedValue(updatedOrg as any);
+
+      const result = await orgService.update('org-1', input, mockCtx);
+
+      expect(prisma.organization.update).toHaveBeenCalledWith({
+        where: { id: 'org-1' },
+        data: expect.objectContaining({ name: 'Updated Name' }),
+        include: { owner: true },
+      });
+      expect(result.name).toBe('Updated Name');
+    });
+
+    it('should throw if org not found', async () => {
+      vi.mocked(prisma.organization.findUnique).mockResolvedValue(null);
+      await expect(orgService.update('org-1', {}, mockCtx)).rejects.toThrow(
+        'Organization not found',
+      );
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete org', async () => {
+      vi.mocked(prisma.organization.findUnique).mockResolvedValue(mockOrg as any);
+      vi.mocked(ensureCan).mockResolvedValue(undefined);
+      vi.mocked(prisma.organization.delete).mockResolvedValue(mockOrg as any);
+
+      await orgService.delete('org-1', mockCtx);
+
+      expect(prisma.organization.delete).toHaveBeenCalledWith({ where: { id: 'org-1' } });
+    });
+  });
+});
+
+describe('slugAvailable', () => {
+  it('should return true if slug is unique', async () => {
+    vi.mocked(prisma.organization.findUnique).mockResolvedValue(null);
+    const result = await slugAvailable('unique-slug');
+    expect(result).toBe(true);
+  });
+
+  it('should return false if slug exists', async () => {
+    vi.mocked(prisma.organization.findUnique).mockResolvedValue({ id: 'org-1' } as any);
+    const result = await slugAvailable('taken-slug');
+    expect(result).toBe(false);
   });
 });

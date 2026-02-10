@@ -4,6 +4,8 @@ import { ensureCan, allowedOrgsPerms } from '../utils/authz';
 import { enqueueFgaJob } from '../server/enqueue-fga-job';
 import { orgMemberService } from '../server/org-member.service';
 
+vi.mock('server-only', () => ({}));
+
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({
   prisma: {
@@ -33,9 +35,20 @@ vi.mock('../utils/authz', () => ({
   ensureCan: vi.fn(),
 }));
 
-vi.mock('./enqueue-fga-job', () => ({
+vi.mock('../server/enqueue-fga-job', () => ({
   enqueueFgaJob: vi.fn(),
   processFgaJob: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/authz/clients', () => ({
+  openfgaClient: {
+    writeTuples: vi.fn(),
+    deleteTuples: vi.fn(),
+  },
+  cerbosClient: {
+    checkResource: vi.fn(),
+    checkResources: vi.fn(),
+  },
 }));
 
 vi.mock('@/lib/logger', () => ({
@@ -137,6 +150,38 @@ describe('OrgMemberService', () => {
         member: newMember,
       });
       expect(result).toEqual(newMember);
+    });
+  });
+
+  describe('leave', () => {
+    it('should remove member and invites', async () => {
+      const member = {
+        id: 'mem-1',
+        userId: 'user-1',
+        orgId: 'org-1',
+        user: { email: 'test@test.com' },
+        role: 'ORG_MEMBER',
+      };
+
+      vi.mocked(prisma.orgMember.delete).mockResolvedValue(member as any);
+      vi.mocked(enqueueFgaJob).mockResolvedValue({ id: 'job-1' } as any);
+
+      // input userId matches actorId (user-1)
+      await orgMemberService.leave({ orgId: 'org-1', userId: 'user-1' }, mockCtx);
+
+      expect(prisma.orgMember.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { orgId_userId: { orgId: 'org-1', userId: 'user-1' } } }),
+      );
+      expect(prisma.orgInvitation.deleteMany).toHaveBeenCalledWith({
+        where: { orgId: 'org-1', email: 'test@test.com' },
+      });
+      expect(enqueueFgaJob).toHaveBeenCalled();
+    });
+
+    it('should throw if user tries to leave for another user', async () => {
+      await expect(
+        orgMemberService.leave({ orgId: 'org-1', userId: 'user-2' }, mockCtx),
+      ).rejects.toThrow('Cannot leave organization on behalf of another user');
     });
   });
 });

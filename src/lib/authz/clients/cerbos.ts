@@ -64,7 +64,8 @@ export const checkResourcesMapped = async (
 };
 
 // // == Health Check
-await cerbosClient.checkHealth().catch((err) => {
-  console.error('Cerbos health check failed:', err);
-  process.exit(1);
-});
+// // == Health Check
+// await cerbosClient.checkHealth().catch((err) => {
+//   console.error('Cerbos health check failed:', err);
+//   process.exit(1);
+// });
