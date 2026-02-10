@@ -11,9 +11,9 @@ import {
   ZProjectActorUpdateInput,
   ZProjectRoleCreateInput,
 } from '@/contracts/project';
-import { projectsService } from '@/features/projects_v3/server/projects.service';
-import { actorsService } from '@/features/projects_v3/server/actors.service';
-import { rolesService } from '@/features/projects_v3/server/roles.service';
+import { projectsService } from '@/features/project_v3/server/projects.service';
+import { actorsService } from '@/features/project_v3/server/actors.service';
+import { rolesService } from '@/features/project_v3/server/roles.service';
 
 const projsHono = new Hono().basePath('/api/v3/projs');
 projsHono.use(authenticatedHono);

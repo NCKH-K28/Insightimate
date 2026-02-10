@@ -1,7 +1,7 @@
 'use client';
 
 import { getMeQueryOptions } from '@/features/authn/api/actions';
-import { ProjectCreateForm } from '@/features/projects/ui/forms';
+import { ProjectCreateForm } from '@/features/project/ui/forms';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { redirect, useParams, usePathname } from 'next/navigation';
 import { Suspense } from 'react';

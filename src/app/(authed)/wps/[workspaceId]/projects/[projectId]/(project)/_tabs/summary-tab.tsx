@@ -9,10 +9,10 @@ import {
   PriorityCard,
   ProjectOverview,
   QuickStats,
-} from '@/features/projects/ui/components/summary';
+} from '@/features/project/ui/components/summary';
 
-import { fetchProjectSummaryQueryOptions } from '@/features/projects/api/actions';
-import { StatCard } from '@/features/projects/ui/components/summary';
+import { fetchProjectSummaryQueryOptions } from '@/features/project/api/actions';
+import { StatCard } from '@/features/project/ui/components/summary';
 
 const priorityChartData = [
   { priority: 'lowest', issues: 0 },

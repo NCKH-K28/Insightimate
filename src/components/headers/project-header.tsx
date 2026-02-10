@@ -2,8 +2,8 @@
 
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import { fetchProjectQueryOptions } from '@/features/projects/api/actions';
-import { ProjectActions } from '@/features/projects/ui/components/project-actions';
+import { fetchProjectQueryOptions } from '@/features/project/api/actions';
+import { ProjectActions } from '@/features/project/ui/components/project-actions';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';

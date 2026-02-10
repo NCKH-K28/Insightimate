@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import AIFilesInput from '../inputs/ai-files-input';
 import { MuilSelectors } from '@/features/agents/ui/selectors/muil-selectors';
 import { queryOptions, useMutation } from '@tanstack/react-query';
-import { searchProjectsQueryOptions } from '@/features/projects/api/actions';
+import { searchProjectsQueryOptions } from '@/features/project/api/actions';
 import { createSourceMutationOptions } from '@/features/agents/api/actions';
 import { toast } from 'sonner';
 import React from 'react';

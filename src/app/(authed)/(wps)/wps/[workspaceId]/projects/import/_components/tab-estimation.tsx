@@ -8,10 +8,10 @@ import { useFormContext } from 'react-hook-form';
 import isEqual from 'lodash/isEqual';
 import { ProjectImport } from '@/contracts/project';
 import { useAtom } from 'jotai';
-import { estimationTabsAtom } from '@/features/projects/state/project-import-atom';
+import { estimationTabsAtom } from '@/features/project/state/project-import-atom';
 import { EstimationReport } from './estimation-report/estimation-report-v2';
 import { insightAI } from '@/lib/insight-ai';
-import { projectToTextReport } from '@/features/projects/utils/project-to-text-report';
+import { projectToTextReport } from '@/features/project/utils/project-to-text-report';
 
 type EstimationReportType = any;
 type Estimation = {

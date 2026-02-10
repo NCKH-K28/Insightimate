@@ -4,7 +4,7 @@ import {
   listProjectMembersQueryOptions,
   listProjectRolesQueryOptions,
   updateProjectMembersMutationOptions,
-} from '@/features/projects/api/actions';
+} from '@/features/project/api/actions';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { AddTeamDialogButton } from '../buttons/add-team-dialog-button';

@@ -3,12 +3,12 @@ import { GripVertical } from 'lucide-react';
 
 import type { BoardIssueItem } from '@/contracts/boards/board.query';
 import { fieldToOption, IssueFieldSelectors } from '../../selectors/issue-field-selectors';
-import { unassignedUser, UserSelectors, userToOption } from '../../../../users/ui/user-selector';
+import { unassignedUser, UserSelectors, userToOption } from '../../../../user/ui/user-selector';
 import { cn } from '@/lib/utils';
 import {
   getProjectQueryOptions,
   listProjectMembersQueryOptions,
-} from '@/features/projects/api/actions';
+} from '@/features/project/api/actions';
 import { useMutation } from '@tanstack/react-query';
 import {
   deleteBoardIssueMutationOptions,

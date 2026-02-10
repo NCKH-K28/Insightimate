@@ -1,7 +1,7 @@
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';
-import { projectsService } from '@/features/projects/server/projects.service';
+import { projectsService } from '@/features/project/server/projects.service';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 

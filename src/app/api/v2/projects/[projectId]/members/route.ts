@@ -2,7 +2,7 @@ import { ZProjectActorAddInput } from '@/contracts/project';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';
-import { projectsService } from '@/features/projects/server/projects.service';
+import { projectsService } from '@/features/project/server/projects.service';
 import { NextResponse } from 'next/server';
 
 export const GET = middlewareHandler<{ projectId: string }>(

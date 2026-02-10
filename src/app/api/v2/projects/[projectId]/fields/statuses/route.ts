@@ -1,4 +1,4 @@
-import { projectsService } from '@/features/projects/server/projects.service';
+import { projectsService } from '@/features/project/server/projects.service';
 import { authenticated } from '@/lib/authn';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { NextResponse } from 'next/server';

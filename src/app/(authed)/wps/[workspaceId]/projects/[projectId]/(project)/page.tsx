@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useParams, usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
 import { BacklogTab, ListTab, GranttTab, CalendarTab, SummaryTab, KanbanTabV3 } from './_tabs';
 

@@ -1,4 +1,4 @@
-import { CreateProjectParams, TxClient } from '@/features/projects/server/types';
+import { CreateProjectParams, TxClient } from '@/features/project/server/types';
 import { genBoardId, genColumnId, genSprintId } from './id-generators';
 
 export const createDefaultBoard = async (

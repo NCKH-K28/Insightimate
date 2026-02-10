@@ -13,7 +13,7 @@ import {
   Maximize2,
   Minimize2,
 } from 'lucide-react';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { getBoardIssueQueryOptions } from '@/features/boards/api/actions';
 import { viewItem } from '@/features/foryou/api/actions';
 

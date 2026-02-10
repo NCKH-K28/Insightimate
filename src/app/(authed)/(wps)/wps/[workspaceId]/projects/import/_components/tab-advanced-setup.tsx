@@ -6,7 +6,7 @@ import {
   PrioritiesSetup,
   ActorsSetup,
   RolesSetup,
-} from '@/features/projects/ui/import';
+} from '@/features/project/ui/import';
 
 export default function AdvancedSetupTab() {
   return (

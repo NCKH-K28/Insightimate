@@ -20,15 +20,15 @@ import { Loader2 } from 'lucide-react';
 import {
   fetchProjectFacetsQueryOptions,
   listProjectsQueryOptions,
-} from '@/features/projects/api/actions';
+} from '@/features/project/api/actions';
 import { useProjectsQueryParams } from '@/hooks/use-projects-params';
-import { projectColumns } from '@/features/projects/ui/table/project-column';
+import { projectColumns } from '@/features/project/ui/table/project-column';
 import { Separator } from '@/components/ui/separator';
-import ImportProjectButton from '@/features/projects/ui/buttons/import-project-button';
+import ImportProjectButton from '@/features/project/ui/buttons/import-project-button';
 import { useSetAtom } from 'jotai';
-import { upsertProjectDraftAtom } from '@/features/projects/state/project-draft-atom';
+import { upsertProjectDraftAtom } from '@/features/project/state/project-draft-atom';
 import { createId } from '@paralleldrive/cuid2';
-import AICreateProjectButton from '@/features/projects/ui/buttons/ai-create-project';
+import AICreateProjectButton from '@/features/project/ui/buttons/ai-create-project';
 
 const ProjectsListToolbar = (props: { table: ReturnType<typeof useReactTable<ProjectItem>> }) => {
   const params = useParams<{ workspaceId: string }>();

@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
-import { genProjectActorId } from '@/features/projects/configs/id-generators';
+import { genProjectActorId } from '@/features/project/configs/id-generators';
 import { projectsService } from './projects.service';
 import { buildProjectActorTuples } from '@/lib/authz/tuple-factory';
 import { ProjectError, PROJECT_ERROR_CODES } from '@/lib/http/errors/proj.error';

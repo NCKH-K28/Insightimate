@@ -12,7 +12,7 @@ import {
   moveBoardIssueMutationOptions,
 } from '@/features/boards/api/actions';
 import { useMutation, useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { toast } from 'sonner';
 
 type KanbanTabProps = { params: { boardId: string; projectId: string; workspaceId: string } };

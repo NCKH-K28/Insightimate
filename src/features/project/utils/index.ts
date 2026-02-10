@@ -5,7 +5,7 @@ import {
   genIssuePriorityId,
   genIssueTypeId,
   genProjectRoleId,
-} from '@/features/projects/configs/id-generators';
+} from '@/features/project/configs/id-generators';
 
 type IdMap = Record<string, string>;
 export const mapIdStrict = (m: IdMap, id?: string | null, label = 'id') => {

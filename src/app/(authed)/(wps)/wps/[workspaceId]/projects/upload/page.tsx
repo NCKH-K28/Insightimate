@@ -1,8 +1,8 @@
 'use client';
 
 import { ProjectImport } from '@/contracts/project';
-import { defaultProject } from '@/features/projects/contants';
-import { upsertProjectDraftAtom } from '@/features/projects/state/project-draft-atom';
+import { defaultProject } from '@/features/project/contants';
+import { upsertProjectDraftAtom } from '@/features/project/state/project-draft-atom';
 import { useSetAtom } from 'jotai';
 import { createId } from '@paralleldrive/cuid2';
 import { useRouter } from 'next/navigation';

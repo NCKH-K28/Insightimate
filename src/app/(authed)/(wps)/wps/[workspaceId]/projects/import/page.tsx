@@ -18,10 +18,10 @@ import {
   contextsAtom,
   instructionAtom,
   projectAtom,
-} from '@/features/projects/state/project-import-atom';
+} from '@/features/project/state/project-import-atom';
 import { ContextOption } from './_components/contexts-bar';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { projectDraftByIdAtomFamily } from '@/features/projects/state/project-draft-atom';
+import { projectDraftByIdAtomFamily } from '@/features/project/state/project-draft-atom';
 import { useParams } from 'next/navigation';
 import axiosInstance from '@/lib/api/_client';
 import { useRouter } from 'next/navigation';

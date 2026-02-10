@@ -1,7 +1,7 @@
 import {
   listProjectRolesQueryOptions,
   writeProjectRolesMutationOptions,
-} from '@/features/projects/api/actions';
+} from '@/features/project/api/actions';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import React, { useMemo, useEffect } from 'react';
 import {

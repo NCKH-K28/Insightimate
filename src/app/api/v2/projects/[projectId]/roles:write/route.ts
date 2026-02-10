@@ -2,7 +2,7 @@ import { ZProjectRoleWriteInput } from '@/contracts/project';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';
-import { projectRolesService } from '@/features/projects/server/project-roles.service';
+import { projectRolesService } from '@/features/project/server/project-roles.service';
 import { NextResponse } from 'next/server';
 
 export const POST = middlewareHandler<{ projectId: string }>([authenticated], async (req) => {

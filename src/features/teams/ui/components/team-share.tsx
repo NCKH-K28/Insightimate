@@ -16,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { ZTeamMemberAddInput } from '@/contracts/teams';
 import { get } from 'lodash';
 import { TeamMemberActions } from './team-member-actionts';
-import { UserInvite } from '@/features/users/ui/user-invite';
+import { UserInvite } from '@/features/user/ui/user-invite';
 
 type TeamShareProps = { teamId: string };
 export function TeamShare({ teamId }: TeamShareProps) {

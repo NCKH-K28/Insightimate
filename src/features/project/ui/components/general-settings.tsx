@@ -1,4 +1,4 @@
-import { fetchProjectQueryOptions } from '@/features/projects/api/actions';
+import { fetchProjectQueryOptions } from '@/features/project/api/actions';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { UpdateProjectForm } from '../forms/update-project-form';
 

@@ -19,7 +19,7 @@ import {
   ZBoardColumnList,
   ZBoardIssueItem,
 } from '@/contracts/boards/board.query';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { toast } from 'sonner';
 import { MoveIssueInputV2 } from '@/contracts/boards/board.input';
 import { Skeleton } from '@/components/ui/skeleton';

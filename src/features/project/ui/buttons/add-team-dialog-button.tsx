@@ -1,7 +1,7 @@
 import {
   listProjectMembersQueryOptions,
   listProjectRolesQueryOptions,
-} from '@/features/projects/api/actions';
+} from '@/features/project/api/actions';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,

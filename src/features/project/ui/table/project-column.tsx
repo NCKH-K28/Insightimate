@@ -19,7 +19,7 @@ import get from 'lodash/get';
 import { usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { deleteProjectMutationOptions } from '@/features/projects/api/actions';
+import { deleteProjectMutationOptions } from '@/features/project/api/actions';
 import { toast } from 'sonner';
 
 const projectTypes: Record<ProjectType, string> = {

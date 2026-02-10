@@ -4,7 +4,7 @@ import {
   genColumnId,
   genColumnStatusId,
   genIssueStatusId,
-} from '@/features/projects/configs/id-generators';
+} from '@/features/project/configs/id-generators';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
 import { prisma } from '@/lib/prisma';

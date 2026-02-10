@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { CheckIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { useControlledState } from '@/hooks/use-controlled-state';
 
 export type IssueType = {

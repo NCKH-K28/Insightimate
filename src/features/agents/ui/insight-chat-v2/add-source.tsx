@@ -10,7 +10,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { MuilSelectors } from '@/features/agents/ui/selectors/muil-selectors';
 import { queryOptions } from '@tanstack/react-query';
-import { searchProjectsQueryOptions } from '@/features/projects/api/actions';
+import { searchProjectsQueryOptions } from '@/features/project/api/actions';
 import React from 'react';
 import { ContextOption } from './contexts-bar';
 

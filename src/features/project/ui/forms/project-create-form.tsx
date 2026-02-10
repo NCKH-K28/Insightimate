@@ -12,7 +12,7 @@ import { useMutation } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
 import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/project';
-import { createProjectMutationOptions } from '@/features/projects/api/actions';
+import { createProjectMutationOptions } from '@/features/project/api/actions';
 import { z } from 'zod';
 import { getErrorMsg } from '@/lib/api/helper';
 import { Input } from '@/components/ui/input';

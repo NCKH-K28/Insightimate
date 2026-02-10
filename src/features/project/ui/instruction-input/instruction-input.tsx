@@ -15,7 +15,7 @@ import {
 import { useAtom } from 'jotai';
 import { ContextOption, ContextsBar } from './contexts-bar';
 import { uploadFilePipe } from '@/lib/insight-ai/upload-file-pipe';
-import { contextsAtom, instructionAtom } from '@/features/projects/state/project-import-atom';
+import { contextsAtom, instructionAtom } from '@/features/project/state/project-import-atom';
 import { cn } from '@/lib/utils';
 
 // ================== Components ================== //

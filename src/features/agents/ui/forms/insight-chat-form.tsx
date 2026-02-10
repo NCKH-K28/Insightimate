@@ -4,7 +4,7 @@ import { useInsightChat } from '../../hooks/use-insight-chat';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { useMemo, useState } from 'react';
 
 const useDefaultContexts = () => {

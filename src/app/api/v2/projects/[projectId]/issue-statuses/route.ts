@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { httpExceptionFilter } from '@/lib/http/filters';
 import { prisma } from '@/lib/prisma';
-import { genIssueStatusId } from '@/features/projects/configs/id-generators';
+import { genIssueStatusId } from '@/features/project/configs/id-generators';
 
 type Context = { params: Promise<{ projectId: string }> };
 

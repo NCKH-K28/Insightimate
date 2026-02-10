@@ -9,7 +9,7 @@ import { ProjectImport } from '@/contracts/project';
 import QuickSetupTab from './tab-quick-setup';
 import AdvancedSetupTab from './tab-advanced-setup';
 import { usePathname, useRouter } from 'next/navigation';
-import { getDefaultProject } from '@/features/projects/contants';
+import { getDefaultProject } from '@/features/project/contants';
 
 // ================== Components ================== //
 

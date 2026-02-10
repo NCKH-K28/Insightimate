@@ -9,7 +9,7 @@ import {
 } from '@/contracts/project';
 import { addSeconds } from 'date-fns';
 import { Prisma } from '@prisma/client';
-import { templateConfigs } from '@/features/projects/configs/template';
+import { templateConfigs } from '@/features/project/configs/template';
 import { prisma } from '@/lib/prisma';
 import { checkResourcesMapped } from '@/lib/authz/clients/cerbos';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
@@ -23,7 +23,7 @@ import {
   genIssueStatusId,
   genIssueTypeId,
   genProjectRoleId,
-} from '@/features/projects/configs/id-generators';
+} from '@/features/project/configs/id-generators';
 import { projectResourceFactory, loadPrincipal } from '../utils/authz';
 import { IssueStatusCategory } from '@/contracts/issues';
 import { buildProjectTuples } from '@/lib/authz/tuple-factory';

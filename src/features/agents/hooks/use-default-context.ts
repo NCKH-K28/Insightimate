@@ -1,7 +1,7 @@
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import axiosInstance from '@/lib/api/_client';
 import { SprintItem } from '@/contracts/boards/board.query';
 

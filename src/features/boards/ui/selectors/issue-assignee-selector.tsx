@@ -5,9 +5,9 @@ import {
   updateBoardIssueMutationOptions,
 } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
-import { listProjectMembersQueryOptions } from '@/features/projects/api/actions';
+import { listProjectMembersQueryOptions } from '@/features/project/api/actions';
 import { Skeleton } from '@/components/ui/skeleton';
-import { unassignedUser, UserSelectors, userToOption } from '@/features/users/ui/user-selector';
+import { unassignedUser, UserSelectors, userToOption } from '@/features/user/ui/user-selector';
 
 const IssueFieldSkeleton = () => {
   return <Skeleton className='h-10 w-full rounded-md' />;

@@ -1,4 +1,4 @@
-import { searchProjects, ZProjectListInput } from '@/features/projects/server/cqrs/search-projects';
+import { searchProjects, ZProjectListInput } from '@/features/project/server/cqrs/search-projects';
 import { authenticatedV2, getAuthFromRequest } from '@/lib/authn';
 import { compose } from '@/lib/http/api-compose';
 

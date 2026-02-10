@@ -5,7 +5,7 @@ import {
   updateBoardIssueMutationOptions,
 } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { fieldToOption, IssueFieldSelectors } from './issue-field-selectors';
 import { Skeleton } from '@/components/ui/skeleton';
 

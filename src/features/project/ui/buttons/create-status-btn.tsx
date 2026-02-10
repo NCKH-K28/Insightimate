@@ -13,8 +13,8 @@ import React from 'react';
 import { PlusIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ZIssueStatusCreateInput } from '@/contracts/issues';
-import { CreateStatusForm } from '@/features/projects/ui/forms/create-status-form';
-import { projectApi } from '@/features/projects/api/http';
+import { CreateStatusForm } from '@/features/project/ui/forms/create-status-form';
+import { projectApi } from '@/features/project/api/http';
 
 type FormData = z.infer<typeof ZIssueStatusCreateInput>;
 

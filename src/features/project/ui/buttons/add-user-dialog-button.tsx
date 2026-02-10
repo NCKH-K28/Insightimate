@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { UserInvite } from '@/features/users/ui/user-invite';
+import { UserInvite } from '@/features/user/ui/user-invite';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { addProjectMemberMutationOptions, listProjectRolesQueryOptions } from '../../api/actions';

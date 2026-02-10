@@ -1,7 +1,7 @@
 import React from 'react';
 import { toast } from 'sonner';
 import { fieldToOption, IssueFieldSelectors } from '../../selectors/issue-field-selectors';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { useMutation } from '@tanstack/react-query';
 import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 

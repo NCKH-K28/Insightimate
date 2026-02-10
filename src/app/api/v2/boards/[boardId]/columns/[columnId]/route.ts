@@ -1,5 +1,5 @@
 import { ZColumnUpdatePatchInput } from '@/contracts/boards/column.input';
-import { genIssueStatusId } from '@/features/projects/configs/id-generators';
+import { genIssueStatusId } from '@/features/project/configs/id-generators';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
 import { prisma } from '@/lib/prisma';

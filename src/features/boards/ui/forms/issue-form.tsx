@@ -23,7 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 
 import { ZBoardIssueCreateInput } from '@/contracts/boards/board.input';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { IssueDateSelectors } from '../selectors/issue-date-selectors';
 import { IssueFieldOption, IssueFieldSelectors } from '../selectors/issue-field-selectors';
 import { IssueType, IssueTypeSelectors } from '../selectors/issue-type-selectors';

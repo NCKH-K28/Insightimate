@@ -2,7 +2,7 @@ import { middlewareHandler } from '@/lib/http/api-handler';
 import { authenticated } from '@/lib/authn/guards';
 import { NextResponse } from 'next/server';
 import { getAuthFromRequest } from '@/lib/authn';
-import { projectRolesService } from '@/features/projects/server/project-roles.service';
+import { projectRolesService } from '@/features/project/server/project-roles.service';
 
 export const GET = middlewareHandler<{ projectId: string }>(
   [authenticated],

@@ -5,7 +5,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/comp
 import { useFormContext } from 'react-hook-form';
 import { Textarea } from '@/components/ui/textarea';
 import { ProjectImport } from '@/contracts/project';
-import { ProjectIconSelect } from '@/features/projects/ui/forms/project-icon-selecte';
+import { ProjectIconSelect } from '@/features/project/ui/forms/project-icon-selecte';
 
 export default function QuickSetupTab() {
   const form = useFormContext<ProjectImport>();

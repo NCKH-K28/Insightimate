@@ -1,7 +1,7 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { IssuesTable } from '@/features/projects/ui/import/issues-table';
+import { IssuesTable } from '@/features/project/ui/import/issues-table';
 import { Calculator, ClipboardList } from 'lucide-react';
 import EstimationsTab from './tab-estimation';
 

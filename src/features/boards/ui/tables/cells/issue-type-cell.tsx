@@ -2,7 +2,7 @@ import React from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { updateBoardIssueMutationOptions } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
-import { getProjectQueryOptions } from '@/features/projects/api/actions';
+import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { IssueFieldSelectors, fieldToOption } from '../../selectors/issue-field-selectors';
 import { BoardIssueList } from '@/contracts/boards/board.query';
 import { ColumnDef } from '@tanstack/react-table';
