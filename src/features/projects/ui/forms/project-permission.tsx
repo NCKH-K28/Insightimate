@@ -12,7 +12,7 @@ import {
   PROJECT_ROLE_PERMISSION_KEYS,
   ProjectCreateInput,
   ProjectRoleCreateInput,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 
 type ProjectRole = Omit<ProjectRoleCreateInput, 'projectId' | 'createdAt' | 'updatedAt'> & {
   id: string;

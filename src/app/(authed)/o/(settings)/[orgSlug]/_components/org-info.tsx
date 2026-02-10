@@ -4,8 +4,8 @@ import { useMutation } from '@tanstack/react-query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 
-import { ZOrgUpdateInput } from '@/contracts/organizations/organization.input';
-import { OrgItem } from '@/contracts/organizations/organization.query';
+import { ZOrgUpdateInput } from '@/contracts/organization/organization.input';
+import { OrgItem } from '@/contracts/organization/organization.query';
 
 import AvatarUpload from '@/components/insightmate/avatar-upload';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';

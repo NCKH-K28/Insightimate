@@ -3,7 +3,7 @@ import { allowedOrgsPerms, ensureCan } from '../utils/authz';
 import { Prisma } from '@prisma/client';
 import { logger } from '@/lib/logger';
 import { enqueueFgaJob, processFgaJob } from './enqueue-fga-job';
-import { OrgRole } from '@/contracts/organizations/organization';
+import { OrgRole } from '@/contracts/organization/organization';
 
 type OrgMemContext = { actorId: string };
 

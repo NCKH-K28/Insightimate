@@ -1,6 +1,6 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { orgAPI } from './http';
-import { OrgMemberInviteInput } from '@/contracts/organizations/organization.query';
+import { OrgMemberInviteInput } from '@/contracts/organization/organization.query';
 
 export const orgKeys = {
   all: ['orgs'] as const,

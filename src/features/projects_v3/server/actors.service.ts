@@ -3,14 +3,7 @@ import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { genProjectActorId } from '@/features/projects/configs/id-generators';
 import { projectsService } from './projects.service';
 import { buildProjectActorTuples } from '@/lib/authz/tuple-factory';
-
-class ProjectError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ProjectError';
-    Object.setPrototypeOf(this, ProjectError.prototype);
-  }
-}
+import { ProjectError, PROJECT_ERROR_CODES } from '@/lib/http/errors/proj.error';
 
 type ActorContext = { actorId: string };
 
@@ -53,7 +46,11 @@ const addProjectActor = async (
     const exists = await tx.projectActor.findFirst({
       where: { projectId: input.projectId, actorId: input.actorId, actorType: input.actorType },
     });
-    if (exists) throw new ProjectError('Actor already a member of this project');
+    if (exists)
+      throw new ProjectError(
+        PROJECT_ERROR_CODES.PROJECT_ALREADY_EXISTS,
+        'Actor already a member of this project',
+      );
     const actor = await tx.projectActor.create({
       data: {
         id: genProjectActorId(),
@@ -79,9 +76,13 @@ const removeProjectActor = async (
 
   return await prisma.$transaction(async (tx) => {
     const exists = await tx.projectActor.findUnique({ where: { id: actorId } });
-    if (!exists) throw new ProjectError('Project member not found');
+    if (!exists)
+      throw new ProjectError(PROJECT_ERROR_CODES.PROJECT_NOT_FOUND, 'Project member not found');
     if (exists.projectId !== projectId)
-      throw new ProjectError('Project member does not belong to this project');
+      throw new ProjectError(
+        PROJECT_ERROR_CODES.PROJECT_INVALID_INPUT,
+        'Project member does not belong to this project',
+      );
 
     const actor = await tx.projectActor.delete({ where: { id: actorId } });
     const tuples = buildProjectActorTuples(actor);
@@ -102,9 +103,13 @@ const updateProjectActor = async (
       where: { id: actorId },
       include: { role: { include: { actors: true } } },
     });
-    if (!exists) throw new ProjectError('Project member not found');
+    if (!exists)
+      throw new ProjectError(PROJECT_ERROR_CODES.PROJECT_NOT_FOUND, 'Project member not found');
     if (exists.projectId !== projectId)
-      throw new ProjectError('Project member does not belong to this project');
+      throw new ProjectError(
+        PROJECT_ERROR_CODES.PROJECT_INVALID_INPUT,
+        'Project member does not belong to this project',
+      );
 
     const actor = await tx.projectActor.update({
       where: { id: actorId },

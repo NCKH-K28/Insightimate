@@ -35,7 +35,7 @@ import {
 } from '@tanstack/react-table';
 import { MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { OrgInvitationItem } from '@/contracts/organizations/organization.query';
+import { OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export const ROLE_LABELS: Record<string, string> = {

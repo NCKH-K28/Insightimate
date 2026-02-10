@@ -1,4 +1,4 @@
-import { PROJECT_ROLE_PERMISSION_KEYS, type ProjectImport } from '@/contracts/projects';
+import { PROJECT_ROLE_PERMISSION_KEYS, type ProjectImport } from '@/contracts/project';
 
 type PermissionKey = (typeof PROJECT_ROLE_PERMISSION_KEYS)[number];
 type ProjectRole = Omit<ProjectImport['roles'][number], 'createdAt' | 'updatedAt'> & { id: string };

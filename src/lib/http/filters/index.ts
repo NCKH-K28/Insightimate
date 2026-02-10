@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { AppErrorJSON, AuthError, OrgError, OrgErrorCode } from '../errors';
-import { ProjectError, ProjectErrorCode } from '../errors/project.error';
+import { ProjectError, ProjectErrorCode } from '../errors/proj.error';
 import { ErrorHandler } from 'hono';
 import { ContentfulStatusCode } from 'hono/utils/http-status';
 

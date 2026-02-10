@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { orgService } from './org.service';
 import { prisma } from '@/lib/prisma';
 import { ensureCan, accessibleOrgs, allowedOrgPerms } from '../utils/authz';
 import { openfgaClient } from '@/lib/authz/clients';
-import { orgInvitationService } from './org-invitation.service';
+import { orgInvitationService } from '../server/org-invitation.service';
+import { orgService } from '../server/org.service';
 
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({

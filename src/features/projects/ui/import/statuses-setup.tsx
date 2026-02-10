@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { ChevronDown, ChevronRight, Plus, Trash2, GripVertical, CheckCircle2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getContrastHexColor } from '@/lib/colord';
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 
 const StatusesSetup = () => {
   const form = useFormContext<ProjectImport>();

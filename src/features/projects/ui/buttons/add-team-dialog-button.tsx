@@ -27,7 +27,7 @@ import React from 'react';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { ProjectActorAddInput, ZProjectActorAddInput } from '@/contracts/projects';
+import { ProjectActorAddInput, ZProjectActorAddInput } from '@/contracts/project';
 import { Loader2 } from 'lucide-react';
 
 export const ProjectRoleSelector = (props: {

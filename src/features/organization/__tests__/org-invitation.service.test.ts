@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { orgInvitationService } from './org-invitation.service';
 import { prisma } from '@/lib/prisma';
-import { inviteToken } from './invite-token';
-import { orgMemberService } from './org-member.service';
 import { transporter } from '@/lib/mail-sender';
 import { ensureCan, ensureCanMany } from '../utils/authz';
+import { inviteToken } from '../server/invite-token';
+import { orgMemberService } from '../server/org-member.service';
+import { orgInvitationService } from '../server/org-invitation.service';
 
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({

@@ -21,7 +21,7 @@ import {
 import { Loader, PlusIcon, XIcon } from 'lucide-react';
 import { useFieldArray, useForm } from 'react-hook-form';
 import z from 'zod';
-import { OrgMemberItem } from '@/contracts/organizations/organization.query';
+import { OrgMemberItem } from '@/contracts/organization/organization.query';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Form,

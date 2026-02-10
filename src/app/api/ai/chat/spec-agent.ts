@@ -2,7 +2,7 @@
 import { ModelMessage, generateObject, FilePart } from 'ai';
 import { google } from '@ai-sdk/google';
 import { z } from 'zod';
-import { ZProjectImport, ZProjectDraft } from '@/contracts/projects';
+import { ZProjectImport, ZProjectDraft } from '@/contracts/project';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 
 // Nếu bạn có sẵn applyPatch trong codebase thì dùng cái đó.

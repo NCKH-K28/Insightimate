@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { loadPrincipal, projectResourceFactory } from '@/features/authz/server/pip';
-import { PROJECT_ACTIONS } from '@/contracts/projects';
+import { PROJECT_ACTIONS } from '@/contracts/project';
 import { checkResourcesMapped } from '@/lib/authz/clients/cerbos';
 
 export const ZProjectFilter = z.object({

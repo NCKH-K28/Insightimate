@@ -4,7 +4,7 @@ import {
   ProjectRoleWriteInput,
   ZProjectRole,
   ZProjectRoleUpdateInput,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import {
   buildProjectRoleTuples,
   buildProjectActorTuples,

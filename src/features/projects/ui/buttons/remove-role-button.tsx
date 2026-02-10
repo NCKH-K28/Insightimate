@@ -19,7 +19,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Trash2Icon } from 'lucide-react';
-import type { ProjectRole } from '@/contracts/projects';
+import type { ProjectRole } from '@/contracts/project';
 
 export type RemoveRoleAction = 'transient' | 'delete';
 

@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 import { DataTable, DataTableToolbar, DataTablePagination } from '@/components/table';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
-import { ProjectImport, ProjectItem } from '@/contracts/projects';
+import { ProjectImport, ProjectItem } from '@/contracts/project';
 import { Loader2 } from 'lucide-react';
 import {
   fetchProjectFacetsQueryOptions,

@@ -2,7 +2,7 @@ import React, { useMemo, useCallback } from 'react';
 import { useFormContext, useWatch, useFieldArray } from 'react-hook-form';
 import { Plus, Users, User, X, Users2 } from 'lucide-react';
 
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {

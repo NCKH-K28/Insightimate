@@ -2,14 +2,14 @@ import axiosInstance from '@/lib/api/_client';
 import {
   OrgCreateInput,
   OrgInvitationCreateInput,
-} from '@/contracts/organizations/organization.input';
+} from '@/contracts/organization/organization.input';
 import {
   OrgInvitationItem,
   OrgItem,
   OrgMemberInviteInput,
   OrgMemberItem,
-} from '@/contracts/organizations/organization.query';
-import { OrgInvitation } from '@/contracts/organizations/organization';
+} from '@/contracts/organization/organization.query';
+import { OrgInvitation } from '@/contracts/organization/organization';
 
 const getOrg = async (id: string, by: 'id' | 'slug' = 'id'): Promise<OrgItem> => {
   const path = by === 'slug' ? `/v3/orgs/${id}?by=slug` : `/v3/orgs/${id}`;

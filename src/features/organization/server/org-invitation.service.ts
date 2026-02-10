@@ -5,8 +5,8 @@ import { transporter } from '@/lib/mail-sender';
 import serverConfig from '@/configs/server';
 import { ensureCan, ensureCanMany } from '../utils/authz';
 import { OrgError } from '@/lib/http/errors';
-import { OrgRole } from '@/contracts/organizations/organization';
-import { OrgInvitationItem } from '@/contracts/organizations/organization.query';
+import { OrgRole } from '@/contracts/organization/organization';
+import { OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { orgMemberService } from './org-member.service';
 import { OrgInvitation } from '@prisma/client';
 

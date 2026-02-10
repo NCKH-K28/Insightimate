@@ -1,4 +1,4 @@
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 
 type UserPublic = { id: string; name: string; email: string };
 type Project = ProjectImport;

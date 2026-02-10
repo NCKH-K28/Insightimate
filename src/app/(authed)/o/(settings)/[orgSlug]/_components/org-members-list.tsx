@@ -38,7 +38,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { OrgMemberItem } from '@/contracts/organizations/organization.query';
+import { OrgMemberItem } from '@/contracts/organization/organization.query';
 
 type Role = OrgMemberItem['role'];
 const ROLE_LABELS: Record<Role, string> = {

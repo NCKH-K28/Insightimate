@@ -1,6 +1,6 @@
 import z from 'zod';
 import { ZIssue, ZIssuePriority, ZIssueResolution, ZIssueStatus, ZIssueType } from './issue';
-import { ZUserPublic } from '../users';
+import { ZUserPublic } from '../user';
 
 export const ZIssueFilter = z.object({
   search: z.string().min(1).optional(),

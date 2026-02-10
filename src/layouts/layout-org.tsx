@@ -7,7 +7,7 @@ import { Sparkles } from 'lucide-react';
 
 import { useParamsRequired } from '@/hooks/next-navigation';
 import axiosInstance from '@/lib/api/_client';
-import { OrgItem } from '@/contracts/organizations/organization.query';
+import { OrgItem } from '@/contracts/organization/organization.query';
 
 import AppLeftbar from '@/layouts/app-leftbar';
 import AppRightbar from '@/layouts/app-rightbar';

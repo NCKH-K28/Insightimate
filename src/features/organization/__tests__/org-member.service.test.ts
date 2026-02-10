@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { orgMemberService } from './org-member.service';
 import { prisma } from '@/lib/prisma';
 import { ensureCan, allowedOrgsPerms } from '../utils/authz';
-import { enqueueFgaJob } from './enqueue-fga-job';
+import { enqueueFgaJob } from '../server/enqueue-fga-job';
+import { orgMemberService } from '../server/org-member.service';
 
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({

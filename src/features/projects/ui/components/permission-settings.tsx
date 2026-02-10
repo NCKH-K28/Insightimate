@@ -9,7 +9,7 @@ import {
   ProjectRolePermissionKey,
   ProjectRoleWriteInput,
   ZProjectRoleWriteInput,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import { cn } from '@/lib/utils';
 import {
   Table,

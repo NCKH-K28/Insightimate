@@ -3,7 +3,7 @@ import { atom } from 'jotai';
 import { atomWithStorage, createJSONStorage, RESET } from 'jotai/utils';
 import { atomFamily } from 'jotai-family';
 
-import type { ProjectImport } from '@/contracts/projects';
+import type { ProjectImport } from '@/contracts/project';
 
 const STORAGE_KEY = 'cap1.projectDrafts.v1';
 const DEFAULT_TTL_MS = 60 * 60 * 1000; // 1h

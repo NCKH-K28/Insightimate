@@ -13,7 +13,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown, Plus, User, UserMinus } from 'lucide-react';
-import { UserPublic } from '@/contracts/users';
+import { UserPublic } from '@/contracts/user';
 
 export type UserSelectValue = UserPublic | null;
 

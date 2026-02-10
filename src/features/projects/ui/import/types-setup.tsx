@@ -9,7 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { getContrastHexColor } from '@/lib/colord';
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 
 const TypesSetup = () => {
   const form = useFormContext<ProjectImport>();

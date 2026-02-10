@@ -1,5 +1,5 @@
 // Custom hook cho state management
-import { ProjectRole as BaseRole } from '@/contracts/projects';
+import { ProjectRole as BaseRole } from '@/contracts/project';
 import { useEffect, useMemo, useState } from 'react';
 
 export type RoleAction = 'create' | 'update' | 'delete' | `delete:${string}#transient`;

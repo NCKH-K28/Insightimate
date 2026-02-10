@@ -1,5 +1,5 @@
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
-import { ProjectQueryParams } from '@/contracts/projects';
+import { ProjectQueryParams } from '@/contracts/project';
 import { projectApi } from './http';
 import { ProjectListInput } from '../server/cqrs/search-projects';
 

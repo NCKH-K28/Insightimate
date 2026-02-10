@@ -3,7 +3,7 @@ import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';
 import { projectsService } from '@/features/projects/server/projects.service';
 import { NextResponse } from 'next/server';
-import { ZProjectUpdateInput } from '@/contracts/projects';
+import { ZProjectUpdateInput } from '@/contracts/project';
 
 export const GET = middlewareHandler<{ projectId: string }>(
   [authenticated],

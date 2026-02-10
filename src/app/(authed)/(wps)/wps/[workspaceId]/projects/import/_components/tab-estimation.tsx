@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { PlusIcon, XIcon } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
 import isEqual from 'lodash/isEqual';
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 import { useAtom } from 'jotai';
 import { estimationTabsAtom } from '@/features/projects/state/project-import-atom';
 import { EstimationReport } from './estimation-report/estimation-report-v2';

@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import z from 'zod';
 import merge from 'lodash/merge';
 import { Prisma } from '@prisma/client';
-import { ZProjectItem } from '@/contracts/projects';
+import { ZProjectItem } from '@/contracts/project';
 
 type Context = { actorId: string };
 

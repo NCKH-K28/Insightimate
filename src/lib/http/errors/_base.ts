@@ -1,5 +1,5 @@
-export type AppErrorCode = string;
 type Meta = Record<string, unknown>;
+export type AppErrorCode = string;
 export type AppErrorJSON<TCode extends AppErrorCode = AppErrorCode> = {
   code: TCode;
   message: string;
@@ -67,5 +67,7 @@ export class AppError<TCode extends AppErrorCode = AppErrorCode> extends Error {
 export const normalizeAppError = (err: unknown): AppError => {
   if (err instanceof AppError) return err;
   if (AppError.isAppError(err)) return AppError.fromJSON(err);
-  return new AppError('UNKNOWN_ERROR', { message: String(err) });
+  if (err instanceof Error) return new AppError('UNKNOWN_ERROR', { message: err.message });
+  if (typeof err === 'string') return new AppError('UNKNOWN_ERROR', { message: err });
+  return new AppError('UNKNOWN_ERROR', { message: 'Unknown error' });
 };

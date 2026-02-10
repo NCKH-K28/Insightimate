@@ -2,7 +2,7 @@ import { Form } from '@/components/ui/form';
 import { ProjectInfo } from './project-info';
 import { cn } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
-import { ZProjectUpdateInput } from '@/contracts/projects';
+import { ZProjectUpdateInput } from '@/contracts/project';
 import z from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/ui/button';

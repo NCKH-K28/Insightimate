@@ -1,8 +1,8 @@
 import { getOrgQueryOptions, listOrgsQueryOptions } from '@/features/organization/api/actions';
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 import { orgAPI } from '@/features/organization/api/http';
-import { OrgCreateInput } from '@/contracts/organizations/organization.input';
-import { OrgItem } from '@/contracts/organizations/organization.query';
+import { OrgCreateInput } from '@/contracts/organization/organization.input';
+import { OrgItem } from '@/contracts/organization/organization.query';
 import get from 'lodash/get';
 
 export const useOrgs = () => {

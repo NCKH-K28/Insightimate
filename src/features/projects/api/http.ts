@@ -9,7 +9,7 @@ import {
   ProjectPermissionUpdateInput,
   ProjectQueryParams,
   ProjectRole,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import { PathParams, baseApi } from '@/lib/api/_client';
 import { type ProjectListOutput, type ProjectListInput } from '../server/cqrs/search-projects'; // FIXME: remove circular dependency
 

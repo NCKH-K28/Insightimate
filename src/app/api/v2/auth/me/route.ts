@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';
 import { compose } from '@/lib/http/api-compose';
 import { getZodBody, zodBodyPipe } from '@/lib/http/zod-pipes';
-import { ZUserPublic } from '@/contracts/users';
+import { ZUserPublic } from '@/contracts/user';
 
 export const GET = middlewareHandler([authenticated], async (req) => {
   const auth = await getAuthFromRequest(req);

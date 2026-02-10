@@ -6,7 +6,7 @@ import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import ProjectInfoPanel from './_components/panel-project-infor';
-import { ProjectImport, ZProjectDraft, ZProjectImport } from '@/contracts/projects';
+import { ProjectImport, ZProjectDraft, ZProjectImport } from '@/contracts/project';
 import ProjectPreviewPanel from './_components/panel-project-preview';
 import { useAtom, useAtomValue } from 'jotai';
 import React, { useEffect } from 'react';

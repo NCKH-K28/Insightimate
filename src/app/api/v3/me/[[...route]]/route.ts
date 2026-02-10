@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 import { NextResponse } from 'next/server';
-import { ZOrgInviteItem } from '@/contracts/organizations/organization.query';
+import { ZOrgInviteItem } from '@/contracts/organization/organization.query';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';

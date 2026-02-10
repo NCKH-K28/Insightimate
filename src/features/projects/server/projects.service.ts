@@ -6,7 +6,7 @@ import {
   ZProject,
   ZProjectItem,
   ZProjectListRes,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import { addSeconds } from 'date-fns';
 import { Prisma } from '@prisma/client';
 import { templateConfigs } from '../configs/template';

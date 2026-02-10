@@ -21,7 +21,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { buildColumns } from './columns';
 import { RowItem } from './types';
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 import { Input } from '@/components/ui/input';
 import { useNoMemoTable } from '@/hooks/use-nomemo-table';
 

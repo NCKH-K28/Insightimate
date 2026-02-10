@@ -30,7 +30,7 @@ import {
   PROJECT_ROLE_PERMISSION_KEYS,
   ProjectRolePermissionKey,
   ZProjectRoleCreateInput,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import z from 'zod';
 
 const ZAddRoleForm = ZProjectRoleCreateInput;

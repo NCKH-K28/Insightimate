@@ -1,4 +1,4 @@
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 
 export type FormValues = ProjectImport;
 export type Option = {

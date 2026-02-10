@@ -1,4 +1,4 @@
-import { ZProjectCreateInput, ZProjectQueryParams } from '@/contracts/projects';
+import { ZProjectCreateInput, ZProjectQueryParams } from '@/contracts/project';
 import { middlewareHandler } from '@/lib/http/api-handler';
 import { getAuthFromRequest } from '@/lib/authn';
 import { authenticated } from '@/lib/authn/guards';

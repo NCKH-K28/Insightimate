@@ -10,7 +10,7 @@ import {
   ZProjectActorAddInput,
   ZProjectActorUpdateInput,
   ZProjectRoleCreateInput,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import { projectsService } from '@/features/projects_v3/server/projects.service';
 import { actorsService } from '@/features/projects_v3/server/actors.service';
 import { rolesService } from '@/features/projects_v3/server/roles.service';

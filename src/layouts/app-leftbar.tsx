@@ -26,7 +26,7 @@ import {
 import { NavMain } from './nav-main';
 import { useQuery } from '@tanstack/react-query';
 import NavUser from './nav-user';
-import { OrgItem } from '@/contracts/organizations/organization.query';
+import { OrgItem } from '@/contracts/organization/organization.query';
 import OrgSwitcher from './org-switcher';
 import { Separator } from '@/components/ui/separator';
 import { listOrgsQueryOptions } from '@/features/organization/api/actions';

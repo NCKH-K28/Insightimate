@@ -1,5 +1,5 @@
 'use client';
-import { PROJECT_ROLE_PERMISSION_KEYS, ProjectImport, ZProjectImport } from '@/contracts/projects';
+import { PROJECT_ROLE_PERMISSION_KEYS, ProjectImport, ZProjectImport } from '@/contracts/project';
 import React from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 import RolesMatrix from './roles-matrix';

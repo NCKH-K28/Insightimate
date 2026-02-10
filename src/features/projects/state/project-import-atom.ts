@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import { ZProjectImport } from '@/contracts/projects';
+import { ZProjectImport } from '@/contracts/project';
 import { z } from 'zod';
 
 // === Define Zod schemas for the context state ===

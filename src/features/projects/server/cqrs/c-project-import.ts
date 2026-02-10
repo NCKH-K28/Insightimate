@@ -2,7 +2,7 @@ import {
   PROJECT_ROLE_PERMISSION_KEYS,
   ProjectImport,
   ZProjectImportWithLogic,
-} from '@/contracts/projects';
+} from '@/contracts/project';
 import { ProjectContext } from '../types';
 import { prisma } from '@/lib/prisma';
 import { remapProjectImportIds } from '../../utils';

@@ -3,7 +3,7 @@ import { google } from '@ai-sdk/google';
 import { NextRequest } from 'next/server';
 import { toJSONSchema, z } from 'zod';
 import aiStorage from '@/lib/s3/ai-storage';
-import { ZProjectImport, ZProjectDraft } from '@/contracts/projects';
+import { ZProjectImport, ZProjectDraft } from '@/contracts/project';
 import { ZJsonPatchOp } from '@/lib/jsonpatch';
 
 const getFilePart = async (key: string): Promise<FilePart> => {

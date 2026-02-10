@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { isoString, ZIdString } from '../_shared';
-import { ZUserPublic } from '../users';
+import { ZUserPublic } from '../user';
 
 // ---------- Actions / Permission keys ----------
 export const PROJECT_ACTIONS = ['view', 'create', 'update', 'delete', 'manage-roles'] as const;

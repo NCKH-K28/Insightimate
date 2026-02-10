@@ -1,5 +1,5 @@
 import { ZIssue, ZIssuePriority, ZIssueStatus, ZIssueType } from '@/contracts/issues';
-import { ZProjectRole } from '@/contracts/projects';
+import { ZProjectRole } from '@/contracts/project';
 import { compose } from '@/lib/http/api-compose';
 import { prisma } from '@/lib/prisma';
 import { NextResponse } from 'next/server';

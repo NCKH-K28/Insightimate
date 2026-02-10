@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ZUserPublic } from '../users';
+import { ZUserPublic } from '../user';
 import { ZWorkspace, ZWorkspaceOwner, ZWorkspacePermissions, ZWorkspaceRole } from './workspace';
 
 export const ZWorkspaceFilter = z.object({

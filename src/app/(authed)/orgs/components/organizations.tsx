@@ -11,7 +11,7 @@ import { useRouterRequired } from '@/hooks/next-navigation';
 import { Card, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
-import type { OrgItem } from '@/contracts/organizations/organization.query';
+import type { OrgItem } from '@/contracts/organization/organization.query';
 import { Role, OrgAvatar, RoleBadge, StatItem, formatRelative } from './org-shared';
 import { useOrgsSuspense } from '@/hooks/org';
 

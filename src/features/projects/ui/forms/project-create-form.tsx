@@ -11,7 +11,7 @@ import { Loader2, Plus } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { ProjectPermission } from './project-permission';
 import { ProjectInfo } from './project-info';
-import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/projects';
+import { ProjectCreateInput, ZProjectCreateInput } from '@/contracts/project';
 import { createProjectMutationOptions } from '@/features/projects/api/actions';
 import { z } from 'zod';
 import { getErrorMsg } from '@/lib/api/helper';

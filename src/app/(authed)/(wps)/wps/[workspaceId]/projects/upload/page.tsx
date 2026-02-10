@@ -1,6 +1,6 @@
 'use client';
 
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 import { defaultProject } from '@/features/projects/contants';
 import { upsertProjectDraftAtom } from '@/features/projects/state/project-draft-atom';
 import { useSetAtom } from 'jotai';

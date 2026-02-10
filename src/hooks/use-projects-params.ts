@@ -1,6 +1,6 @@
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import qs from 'qs';
-import { ProjectQueryParams, ZProjectQueryParams } from '@/contracts/projects';
+import { ProjectQueryParams, ZProjectQueryParams } from '@/contracts/project';
 import React from 'react';
 
 const projectQs = {

@@ -15,7 +15,7 @@ import {
   revokeOrgInvitationMutationOptions,
   leaveOrgMutationOptions,
 } from '@/features/organization/api/actions';
-import { OrgMemberItem, OrgInvitationItem } from '@/contracts/organizations/organization.query';
+import { OrgMemberItem, OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { useParamsRequired } from '@/hooks/next-navigation';
 import { useMutation, useQuery, useQueryClient, useSuspenseQuery } from '@tanstack/react-query';
 

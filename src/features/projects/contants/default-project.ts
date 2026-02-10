@@ -1,5 +1,5 @@
 // project-default.ts (constants/)
-import type { ProjectImport } from '@/contracts/projects';
+import type { ProjectImport } from '@/contracts/project';
 import { getDefaultRoles } from './default-roles';
 
 const ICONS = {

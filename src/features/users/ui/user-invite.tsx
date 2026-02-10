@@ -33,7 +33,7 @@ import { DialogTrigger } from '@radix-ui/react-dialog';
 import debounce from 'lodash/debounce';
 import { useQuery } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { UserPublic } from '@/contracts/users';
+import { UserPublic } from '@/contracts/user';
 import { searchInviteCandidatesQueryOptions } from '@/features/authz/api/actions';
 
 export type UserInviteProps = {

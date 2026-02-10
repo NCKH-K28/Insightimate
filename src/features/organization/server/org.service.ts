@@ -1,9 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { accessibleOrgs, allowedOrgPerms, ensureCan } from '../utils/authz';
-import { ZOrgItem } from '@/contracts/organizations/organization.query';
-import { ORG_ACTIONS } from '@/contracts/organizations/organization';
+import { ZOrgItem } from '@/contracts/organization/organization.query';
+import { ORG_ACTIONS } from '@/contracts/organization/organization';
 import { genOrgId } from '../utils/id';
-import { OrgCreateInput } from '@/contracts/organizations/organization.input';
+import { OrgCreateInput } from '@/contracts/organization/organization.input';
 import { buildOrganizationTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients';
 import { OrgError } from '@/lib/http/errors';

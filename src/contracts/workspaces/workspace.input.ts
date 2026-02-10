@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ZWorkspace, ZWorkspaceRole } from './workspace';
-import { ZProjectCreateInput } from '../projects';
+import { ZProjectCreateInput } from '../project';
 
 export const ZWorkspaceCreateInput = z.object({ name: ZWorkspace.shape.name });
 export const ZWorkspaceUpdateInput = z.object({ name: ZWorkspace.shape.name.optional() });

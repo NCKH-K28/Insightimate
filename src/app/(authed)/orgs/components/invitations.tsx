@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 
-import type { OrgInvitationItem } from '@/contracts/organizations/organization.query';
+import type { OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { OrgAvatar, RoleBadge, formatRelative } from './org-shared';
 import { listOrgsInviteesQueryOptions } from '@/features/organization/api/actions';
 

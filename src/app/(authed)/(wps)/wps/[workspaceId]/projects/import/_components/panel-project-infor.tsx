@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 
 import { Loader2, Settings, Zap } from 'lucide-react';
 import { useFormContext } from 'react-hook-form';
-import { ProjectImport } from '@/contracts/projects';
+import { ProjectImport } from '@/contracts/project';
 import QuickSetupTab from './tab-quick-setup';
 import AdvancedSetupTab from './tab-advanced-setup';
 import { usePathname, useRouter } from 'next/navigation';

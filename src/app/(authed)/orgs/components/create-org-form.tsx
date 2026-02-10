@@ -7,7 +7,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { ZOrgCreateInput as ZRawCreateOrgFormData } from '@/contracts/organizations/organization.input';
+import { ZOrgCreateInput as ZRawCreateOrgFormData } from '@/contracts/organization/organization.input';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useFieldArray, useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';

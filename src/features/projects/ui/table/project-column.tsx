@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 import { DataTableHeader } from '@/components/table';
-import { ProjectItem, ProjectType } from '@/contracts/projects';
+import { ProjectItem, ProjectType } from '@/contracts/project';
 
 import { ProjectActions } from './project-actions';
 import get from 'lodash/get';

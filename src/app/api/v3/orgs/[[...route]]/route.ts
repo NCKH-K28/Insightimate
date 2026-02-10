@@ -11,9 +11,9 @@ import { zValidator } from '@hono/zod-validator';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
 import { z } from 'zod';
-import { ZOrgUpdateInput } from '@/contracts/organizations/organization.input';
+import { ZOrgUpdateInput } from '@/contracts/organization/organization.input';
 import { httpExceptionFilterHono } from '@/lib/http/filters';
-import { ZOrgMemberInviteInput } from '@/contracts/organizations/organization.query';
+import { ZOrgMemberInviteInput } from '@/contracts/organization/organization.query';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 import { orgMemberService } from '@/features/organization/server/org-member.service';
 
