@@ -5,10 +5,6 @@ import { openfgaClient } from '@/lib/authz/clients';
 import { orgInvitationService } from '../server/org-invitation.service';
 import { orgService, slugAvailable } from '../server/org.service';
 
-vi.mock('server-only', () => {
-  return {};
-});
-
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({
   prisma: {

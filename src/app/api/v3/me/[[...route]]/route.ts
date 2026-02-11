@@ -8,12 +8,38 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 import { inviteToken } from '@/features/organization/server/invite-token';
+import { ZUserPublic } from '@/contracts/user';
 
 const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
 const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
 
 const meHono = new Hono().basePath('/api/v3/me');
 meHono.use(authenticatedHono);
+
+meHono.get('/', async (c) => {
+  const { userId } = await getAuthFromRequestHono(c);
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) throw new Error('User not found');
+  const result = ZUserPublic.parse(user);
+  return c.json(result);
+});
+
+const ZMeUpdateInput = ZUserPublic.omit({ id: true, email: true });
+meHono.put('/', zValidator('json', ZMeUpdateInput), async (c) => {
+  const { userId } = await getAuthFromRequestHono(c);
+  const input = ZMeUpdateInput.parse(await c.req.json());
+  const user = await prisma.user.update({ where: { id: userId }, data: input });
+  const result = ZUserPublic.parse(user);
+  return c.json(result);
+});
+
+meHono.patch('/', zValidator('json', ZMeUpdateInput), async (c) => {
+  const { userId } = await getAuthFromRequestHono(c);
+  const input = ZMeUpdateInput.parse(await c.req.json());
+  const user = await prisma.user.update({ where: { id: userId }, data: input });
+  const result = ZUserPublic.parse(user);
+  return c.json(result);
+});
 
 meHono.get('/orgs/invitees', async (c) => {
   const auth = await getAuthFromRequestHono(c);

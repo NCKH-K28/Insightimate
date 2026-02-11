@@ -1,6 +1,7 @@
-import { isAuthed } from '@/lib/utils/api';
 import { queryOptions } from '@tanstack/react-query';
 import { authApi } from './http';
+
+const isAuthed = () => true; // FIXME: imple use me
 
 type Me = { id: string; email: string; name: string; avatar?: string };
 export const getMeQueryOptions = () => {

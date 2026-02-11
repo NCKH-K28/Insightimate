@@ -39,7 +39,7 @@ export function IssueStarButton({
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch('/api/v2/auth/me');
+        const res = await fetch('/api/v2/me');
         const data = await res.json();
         setUserId(data.id); // <-- userId tự gán ở đây
       } catch (err) {

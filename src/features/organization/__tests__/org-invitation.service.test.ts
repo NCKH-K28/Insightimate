@@ -23,14 +23,14 @@ vi.mock('@/lib/prisma', () => ({
   },
 }));
 
-vi.mock('./invite-token', () => ({
+vi.mock('../server/invite-token', () => ({
   inviteToken: {
     generate: vi.fn(),
     verify: vi.fn(),
   },
 }));
 
-vi.mock('./org-member.service', () => ({
+vi.mock('../server/org-member.service', () => ({
   orgMemberService: {
     add: vi.fn(),
   },
@@ -52,6 +52,8 @@ vi.mock('@/configs/server', () => ({
   default: {
     appURL: 'http://localhost:3000',
     jwt: { inviteSecret: 'secret' },
+    cerbos: { apiURL: 'http://localhost:3592' },
+    openFGA: { apiURL: 'http://localhost:8080', storeID: '01H4MK430V7K0H2VF1N0000000' },
   },
 }));
 

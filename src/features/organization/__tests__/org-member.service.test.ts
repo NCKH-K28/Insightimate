@@ -4,8 +4,6 @@ import { ensureCan, allowedOrgsPerms } from '../utils/authz';
 import { enqueueFgaJob } from '../server/enqueue-fga-job';
 import { orgMemberService } from '../server/org-member.service';
 
-vi.mock('server-only', () => ({}));
-
 // Mock dependencies
 vi.mock('@/lib/prisma', () => ({
   prisma: {
