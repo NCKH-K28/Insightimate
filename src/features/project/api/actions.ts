@@ -3,9 +3,9 @@ import { ProjectQueryParams } from '@/contracts/project';
 import { projectApi } from './http';
 import { ProjectListInput } from '../server/cqrs/search-projects';
 
-export const getProjectQueryOptions = (params: { projectId: string }) => {
+export const getProjectQueryOptions = (params: { projId: string }) => {
   return queryOptions({
-    queryKey: ['projects', params.projectId],
+    queryKey: ['projects', params.projId],
     queryFn: async () => projectApi.get(params),
     staleTime: 1000 * 60 * 5,
   });
@@ -45,9 +45,9 @@ export const fetchRecentProjectsQueryOptions = () =>
     select: (res) => res.data,
   });
 
-export const fetchProjectQueryOptions = (params: { projectId: string }) => {
+export const fetchProjectQueryOptions = (params: { projId: string }) => {
   return queryOptions({
-    queryKey: ['projects', params.projectId],
+    queryKey: ['projects', params.projId],
     queryFn: async () => projectApi.get(params),
     staleTime: 1000 * 60 * 5,
   });
@@ -61,22 +61,22 @@ export const createProjectMutationOptions = () => {
   });
 };
 
-export const updateProjectMutationOptions = (params: { projectId: string }) => {
+export const updateProjectMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
     mutationKey: ['projects', params, 'update'],
     mutationFn: (data: Parameters<typeof projectApi.update>[1]) => projectApi.update(params, data),
     // onSuccess: (_, variables) => {
     //   queryClient.invalidateQueries({ queryKey: ['projects'] });
     //   queryClient.invalidateQueries({ queryKey: ['projects', 'facets'] });
-    //   queryClient.invalidateQueries({ queryKey: ['projects', { projectId: variables.id }] });
+    //   queryClient.invalidateQueries({ queryKey: ['projects', { projId: variables.id }] });
     // },
     meta: {
-      invalidateQueries: [['projects'], ['projects', params.projectId], ['projects', 'facets']],
+      invalidateQueries: [['projects'], ['projects', params.projId], ['projects', 'facets']],
     },
   });
 };
 
-export const deleteProjectMutationOptions = (params: { projectId: string }) => {
+export const deleteProjectMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
     mutationKey: ['projects', params, 'delete'],
     mutationFn: () => projectApi.delete(params),
@@ -89,7 +89,7 @@ export const deleteProjectMutationOptions = (params: { projectId: string }) => {
   });
 };
 
-export const fetchProjectPermissionsQueryOptions = (params: { projectId: string }) => {
+export const fetchProjectPermissionsQueryOptions = (params: { projId: string }) => {
   return queryOptions({
     queryKey: ['projects', params, 'permissions'],
     queryFn: async () => projectApi.permission.get(params),
@@ -97,7 +97,7 @@ export const fetchProjectPermissionsQueryOptions = (params: { projectId: string 
   });
 };
 
-export const createProjectRoleMutationOptions = (params: { projectId: string }) => {
+export const createProjectRoleMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
     mutationKey: ['projects', params, 'permissions', 'create'],
     mutationFn: (data: Parameters<typeof projectApi.permission.create>[1]) =>
@@ -109,7 +109,7 @@ export const createProjectRoleMutationOptions = (params: { projectId: string }) 
   });
 };
 
-export const listProjectRolesQueryOptions = (params: { projectId: string }) => {
+export const listProjectRolesQueryOptions = (params: { projId: string }) => {
   return queryOptions({
     queryKey: ['projects', params, 'roles'],
     queryFn: async () => projectApi.role.list(params),
@@ -118,7 +118,7 @@ export const listProjectRolesQueryOptions = (params: { projectId: string }) => {
   });
 };
 
-export const writeProjectRolesMutationOptions = (params: { projectId: string }) => {
+export const writeProjectRolesMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
     mutationKey: ['projects', params, 'roles', 'write'],
     mutationFn: (data: Parameters<typeof projectApi.role.write>[1]) =>
@@ -134,7 +134,7 @@ export const writeProjectRolesMutationOptions = (params: { projectId: string }) 
 };
 
 // project actors
-export const listProjectActorsQueryOptions = (params: { projectId: string }) => {
+export const listProjectActorsQueryOptions = (params: { projId: string }) => {
   return queryOptions({
     queryKey: ['projects', params, 'actors'],
     queryFn: async () => projectApi.actors.list(params),
@@ -143,53 +143,53 @@ export const listProjectActorsQueryOptions = (params: { projectId: string }) => 
   });
 };
 
-export const listProjectMembersQueryOptions = (params: { projectId: string }) => {
+export const listProjectMembersQueryOptions = (params: { projId: string }) => {
   return queryOptions({
-    queryKey: ['projects', params.projectId, 'actors'],
-    queryFn: async () => projectApi.member.list(params),
+    queryKey: ['projects', params.projId, 'actors'],
+    queryFn: async () => projectApi.actors.list(params),
     select: (res) => res.data,
     staleTime: 1000 * 60 * 5,
   });
 };
 
-export const addProjectMemberMutationOptions = (params: { projectId: string }) => {
+export const addProjectMemberMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
-    mutationKey: ['projects', params, 'members', 'add'],
-    mutationFn: (data: Parameters<typeof projectApi.member.add>[1]) =>
-      projectApi.member.add(params, data),
-    meta: { invalidateQueries: [['projects', params.projectId, 'actors']] },
+    mutationKey: ['projects', params, 'actors', 'add'],
+    mutationFn: (data: Parameters<typeof projectApi.actors.create>[1]) =>
+      projectApi.actors.create(params, data),
+    meta: { invalidateQueries: [['projects', params.projId, 'actors']] },
   });
 };
 
-export const deleteProjectMembersMutationOptions = (params: { projectId: string }) => {
+export const deleteProjectMembersMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
-    mutationKey: ['projects', params, 'members', 'delete'],
-    mutationFn: ([memberId]: [string]) => projectApi.member.remove({ ...params, memberId }),
-    meta: { invalidateQueries: [['projects', params.projectId, 'actors']] },
+    mutationKey: ['projects', params, 'actors', 'delete'],
+    mutationFn: ([actorId]: [string]) => projectApi.actors.delete({ ...params, actorId }),
+    meta: { invalidateQueries: [['projects', params.projId, 'actors']] },
   });
 };
 
-export const updateProjectMembersMutationOptions = (params: { projectId: string }) => {
+export const updateProjectMembersMutationOptions = (params: { projId: string }) => {
   return mutationOptions({
-    mutationKey: ['projects', params, 'members', 'update'],
+    mutationKey: ['projects', params, 'actors', 'update'],
     mutationFn: ([{ id, ...data }]: [
-      { id: string } & Parameters<typeof projectApi.member.update>[1],
-    ]) => projectApi.member.update({ ...params, memberId: id }, data),
-    meta: { invalidateQueries: [['projects', params.projectId, 'actors']] },
+      { id: string } & Parameters<typeof projectApi.actors.update>[1],
+    ]) => projectApi.actors.update({ ...params, actorId: id }, data),
+    meta: { invalidateQueries: [['projects', params.projId, 'actors']] },
   });
 };
 
-export const listProjectStatusesQueryOptions = (params: { projectId: string }) => {
+export const listProjectStatusesQueryOptions = (params: { projId: string }) => {
   return queryOptions({
-    queryKey: ['projects', params.projectId, 'fields', 'statuses'],
+    queryKey: ['projects', params.projId, 'fields', 'statuses'],
     queryFn: async () => projectApi.fields.statuses.list(params),
     staleTime: 1000 * 60 * 5,
   });
 };
 
-export const fetchProjectSummaryQueryOptions = (params: { projectId: string }) => {
+export const fetchProjectSummaryQueryOptions = (params: { projId: string }) => {
   return queryOptions({
-    queryKey: ['projects', params.projectId, 'summary'],
+    queryKey: ['projects', params.projId, 'summary'],
     queryFn: async () => projectApi.summary.get(params),
     staleTime: 1000 * 60 * 1,
   });

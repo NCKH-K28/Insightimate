@@ -78,9 +78,9 @@ type Lead = { id: string; name: string; avatar?: string };
 type ProjectCreateFormProps = {
   onSuccess?: (data: { id: string }) => void;
   onValueChange?: (data: Partial<CreateFormData>) => void;
-  values: { leadId: string };
+  values: { leadId: string; orgId: string };
   defaultValue?: Partial<ProjectCreateInput>;
-  leadOptions: Lead[] | Promise<Lead[]>;
+  leadOptions?: Lead[] | Promise<Lead[]>;
 };
 export function ProjectCreateForm({
   onSuccess,
@@ -94,6 +94,7 @@ export function ProjectCreateForm({
     resolver: zodResolver(ZCreateFormData),
     mode: 'onChange',
     defaultValues: {
+      orgId: values.orgId,
       leadId: values.leadId,
       name: '',
       key: '',
@@ -150,7 +151,7 @@ export function ProjectCreateForm({
             <ProjectTypes form={form} />
           </TabsContent>
           <TabsContent value='field'>
-            <ProjectField form={form} />
+            <ProjectStatus form={form} />
           </TabsContent>
           <TabsContent value='permission'>
             <ProjectPermission form={form} />

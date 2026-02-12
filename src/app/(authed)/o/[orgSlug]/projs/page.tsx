@@ -1,14 +1,36 @@
-'use client';
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { CreateProjectDialog } from '@/features/project/ui/create-project-dialog';
+import { redirect } from 'next/navigation';
+import { headers } from 'next/headers';
 
-export default function Page() {
-  const [open, setOpen] = useState(false);
+import { auth } from '@/lib/auth';
+import { orgService } from '@/features/organization/server/org.service';
+import { projectsService } from '@/features/project_v3/server/projects.service';
+import { ProjectsTable } from '@/features/project/ui/table/projects-table';
+
+type PageProps = { params: Promise<{ orgSlug: string }> };
+
+export default async function Page({ params }: PageProps) {
+  const { orgSlug } = await params;
+
+  const session = await auth.api.getSession({ headers: await headers() });
+  if (!session?.user) redirect('/login');
+
+  const actorId = session.user.id;
+  const org = await orgService.get({ id: orgSlug, by: 'slug' }, { actorId });
+
+  const result = await projectsService.list(
+    { filter: { orgId: org.id } },
+    { actorId },
+    { include: { permissions: true } },
+  );
+
   return (
-    <div>
-      <Button onClick={() => setOpen(true)}>Create Project</Button>
-      <CreateProjectDialog open={open} onOpenChange={setOpen} values={{ leadId: '' }} />
+    <div className='container mx-auto py-6 space-y-6'>
+      <div>
+        <h1 className='text-2xl font-bold tracking-tight'>Projects</h1>
+        <p className='text-muted-foreground'>Manage your organization&apos;s projects</p>
+      </div>
+
+      <ProjectsTable initialData={result.data} orgId={org.id} />
     </div>
   );
 }

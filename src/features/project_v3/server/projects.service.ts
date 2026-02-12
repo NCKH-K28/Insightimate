@@ -325,6 +325,40 @@ const deleteProject = async (projectId: string, context: ProjectContext) => {
   return { id: projectId };
 };
 
+const getFacets = async (params: { filter?: { orgId?: string } }, context: ProjectContext) => {
+  const { objects } = await openfgaClient.listObjects({
+    user: `user:${context.actorId}`,
+    type: 'proj',
+    relation: 'read',
+  });
+  const projectIds = objects.map((obj) => obj.replace('proj:', ''));
+  if (projectIds.length === 0) return { types: [], leads: [] };
+
+  const where: Prisma.ProjectWhereInput = { id: { in: projectIds } };
+  if (params.filter?.orgId) where.orgId = params.filter.orgId;
+
+  const [typeRows, leadRows] = await Promise.all([
+    prisma.project.groupBy({ by: ['type'], where, _count: { _all: true } }),
+    prisma.project.groupBy({ by: ['leadId'], where, _count: { _all: true } }),
+  ]);
+
+  const leadIds = leadRows.map((r) => r.leadId);
+  const leads = await prisma.user.findMany({
+    where: { id: { in: leadIds } },
+    select: { id: true, name: true, email: true, avatar: true },
+  });
+  const leadMap = new Map(leads.map((l) => [l.id, l]));
+
+  return {
+    types: typeRows.map((r) => ({ value: r.type, label: r.type, count: r._count._all })),
+    leads: leadRows.map((r) => ({
+      value: r.leadId,
+      label: leadMap.get(r.leadId) || null,
+      count: r._count._all,
+    })),
+  };
+};
+
 const getProjectById = async (projectId: string, ctx: ProjectContext) => {
   const project = await prisma.project.findUnique({
     where: { id: projectId },
@@ -356,4 +390,5 @@ export const projectsService = {
   update: updateProject,
   delete: deleteProject,
   getById: getProjectById,
+  getFacets,
 };

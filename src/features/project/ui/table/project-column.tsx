@@ -181,7 +181,7 @@ export const projectColumns = [
           </span>
         </div>
         <Link
-          href={`/wps/${row.original.workspaceId}/projects/${row.original.id}`}
+          href={`/o/${row.original.orgId}/projs/${row.original.id}`}
           className='font-semibold text-foreground hover:text-blue-600 transition-colors duration-200 line-clamp-1'
         >
           {row.original.name}

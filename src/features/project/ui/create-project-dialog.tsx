@@ -4,7 +4,7 @@ import { ProjectCreateForm } from './forms';
 type CreateProjectDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  values: { leadId: string };
+  values: { leadId: string; orgId: string };
 };
 
 export function CreateProjectDialog({ open, onOpenChange, values }: CreateProjectDialogProps) {

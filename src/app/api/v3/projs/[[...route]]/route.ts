@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { authenticatedHono, getAuthFromRequestHono } from '@/lib/authn';
+import { authenticatedGuard, getUserAndThrow } from '@/lib/auth';
 import { httpExceptionFilterHono } from '@/lib/http/filters';
 import { handle } from 'hono/vercel';
 import { zValidator } from '@hono/zod-validator';
@@ -16,7 +16,7 @@ import { actorsService } from '@/features/project_v3/server/actors.service';
 import { rolesService } from '@/features/project_v3/server/roles.service';
 
 const projsHono = new Hono().basePath('/api/v3/projs');
-projsHono.use(authenticatedHono);
+projsHono.use(authenticatedGuard);
 projsHono.onError(httpExceptionFilterHono);
 
 // ========================== PROJECT CRUD APIs ==========================
@@ -31,7 +31,7 @@ const ZListProjectsQuery = z.object({
 });
 
 projsHono.get('/', zValidator('query', ZListProjectsQuery), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { orgId, includePermissions } = c.req.valid('query');
   const result = await projectsService.list(
     { filter: { orgId } },
@@ -43,15 +43,27 @@ projsHono.get('/', zValidator('query', ZListProjectsQuery), async (c) => {
 
 // POST /api/v3/projs - Create project
 projsHono.post('/', zValidator('json', ZProjectCreateInput), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const input = c.req.valid('json');
   const result = await projectsService.create(input, { actorId: auth.id });
   return c.json(result);
 });
 
+// ========================== FACETS API ==========================
+
+// GET /api/v3/projs/facets - Get project facets
+const ZFacetsQuery = z.object({ orgId: z.string().optional() });
+
+projsHono.get('/facets', zValidator('query', ZFacetsQuery), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { orgId } = c.req.valid('query');
+  const result = await projectsService.getFacets({ filter: { orgId } }, { actorId: auth.id });
+  return c.json(result);
+});
+
 // GET /api/v3/projs/:projId - Get project by ID
 projsHono.get('/:projId', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const result = await projectsService.getById(projId, { actorId: auth.id });
   return c.json(result);
@@ -59,7 +71,7 @@ projsHono.get('/:projId', async (c) => {
 
 // PATCH /api/v3/projs/:projId - Update project
 projsHono.patch('/:projId', zValidator('json', ZProjectUpdateInput), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const input = c.req.valid('json');
   const result = await projectsService.update(projId, input, { actorId: auth.id });
@@ -68,7 +80,7 @@ projsHono.patch('/:projId', zValidator('json', ZProjectUpdateInput), async (c) =
 
 // DELETE /api/v3/projs/:projId - Delete project
 projsHono.delete('/:projId', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const result = await projectsService.delete(projId, { actorId: auth.id });
   return c.json(result);
@@ -78,7 +90,7 @@ projsHono.delete('/:projId', async (c) => {
 
 // GET /api/v3/projs/:projId/actors - List actors in project
 projsHono.get('/:projId/actors', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
 
   // Authorization: Ensure caller has access to the project before listing actors
@@ -93,7 +105,7 @@ projsHono.post(
   '/:projId/actors',
   zValidator('json', ZProjectActorAddInput.omit({ projectId: true })),
   async (c) => {
-    const auth = await getAuthFromRequestHono(c);
+    const auth = await getUserAndThrow(c);
     const { projId } = c.req.param();
     const input = c.req.valid('json');
     const result = await actorsService.addProjectActor(
@@ -109,7 +121,7 @@ projsHono.patch(
   '/:projId/actors/:actorId',
   zValidator('json', ZProjectActorUpdateInput.omit({ id: true })),
   async (c) => {
-    const auth = await getAuthFromRequestHono(c);
+    const auth = await getUserAndThrow(c);
     const { projId, actorId } = c.req.param();
     const input = c.req.valid('json');
     const result = await actorsService.updateProjectActor(
@@ -122,7 +134,7 @@ projsHono.patch(
 
 // DELETE /api/v3/projs/:projId/actors/:actorId - Remove actor from project
 projsHono.delete('/:projId/actors/:actorId', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId, actorId } = c.req.param();
   const result = await actorsService.removeProjectActor(
     { projectId: projId, actorId },
@@ -135,7 +147,7 @@ projsHono.delete('/:projId/actors/:actorId', async (c) => {
 
 // GET /api/v3/projs/:projId/roles - List roles in project
 projsHono.get('/:projId/roles', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const result = await rolesService.listProjectRoles(projId, { actorId: auth.id });
   return c.json(result);
@@ -146,7 +158,7 @@ projsHono.post(
   '/:projId/roles',
   zValidator('json', ZProjectRoleCreateInput.omit({ projectId: true })),
   async (c) => {
-    const auth = await getAuthFromRequestHono(c);
+    const auth = await getUserAndThrow(c);
     const { projId } = c.req.param();
     const input = c.req.valid('json');
     const result = await rolesService.createProjectRole(
@@ -159,7 +171,7 @@ projsHono.post(
 
 // GET /api/v3/projs/:projId/roles/:roleId - Get role by ID
 projsHono.get('/:projId/roles/:roleId', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { roleId } = c.req.param();
   const result = await rolesService.getProjectRoleById(roleId, { actorId: auth.id });
   return c.json(result);
@@ -167,7 +179,7 @@ projsHono.get('/:projId/roles/:roleId', async (c) => {
 
 // DELETE /api/v3/projs/:projId/roles/:roleId - Delete role
 projsHono.delete('/:projId/roles/:roleId', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const auth = await getUserAndThrow(c);
   const { roleId } = c.req.param();
   const result = await rolesService.deleteProjectRole(roleId, { actorId: auth.id });
   return c.json(result);
@@ -175,6 +187,7 @@ projsHono.delete('/:projId/roles/:roleId', async (c) => {
 
 export const GET = handle(projsHono);
 export const POST = handle(projsHono);
+export const PUT = handle(projsHono);
 export const PATCH = handle(projsHono);
 export const DELETE = handle(projsHono);
 export const OPTIONS = handle(projsHono);

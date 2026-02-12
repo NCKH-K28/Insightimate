@@ -13,8 +13,8 @@ import {
 import { PathParams, baseApi } from '@/lib/api/_client';
 import { type ProjectListOutput, type ProjectListInput } from '../server/cqrs/search-projects'; // FIXME: remove circular dependency
 
-const BasePrj = `v2/projects` as const;
-const PrjItem = `${BasePrj}/{projectId}` as const;
+const BasePrj = `v3/projs` as const;
+const PrjItem = `${BasePrj}/{projId}` as const;
 
 const PrjIssues = `${PrjItem}/issues` as const;
 const PrjIssueItem = `${PrjIssues}/{issueId}` as const;
@@ -54,13 +54,6 @@ const PrjEndpoints = {
     write: `${PrjItem}/roles:write`,
   },
 
-  member: {
-    list: `${PrjItem}/members`,
-    add: `${PrjItem}/members`,
-    remove: `${PrjItem}/members/{memberId}`,
-    update: `${PrjItem}/members/{memberId}`,
-  },
-
   actors: {
     list: `${PrjItem}/actors`,
     create: `${PrjItem}/actors`,
@@ -86,7 +79,7 @@ const PrjEndpoints = {
 
 export const projectApi = {
   search: (input?: ProjectListInput) => {
-    const url = `v2/projects/search`;
+    const url = `v3/projs/search`;
     return baseApi.get<ProjectListOutput>(url, undefined, { params: input });
   },
   list: (params?: ProjectQueryParams) =>
@@ -125,21 +118,12 @@ export const projectApi = {
     write: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.role.write, data, ctx),
   },
 
-  member: {
-    list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.member.list, ctx),
-    add: (ctx: PrjCtx, data: ProjectActorAddInput) =>
-      baseApi.post(PrjEndpoints.member.add, data, ctx),
-    remove: (ctx: PrjCtx & { memberId: string }) => baseApi.delete(PrjEndpoints.member.remove, ctx),
-    update: (ctx: PrjCtx & { memberId: string }, data: { roleId: string }) =>
-      baseApi.patch(PrjEndpoints.member.update, data, ctx),
-  },
-
   actors: {
     list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.actors.list, ctx),
     create: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.actors.create, data, ctx),
     delete: (ctx: PrjCtx & { actorId: string }) => baseApi.delete(PrjEndpoints.actors.delete, ctx),
     update: (ctx: PrjCtx & { actorId: string }, data: any) =>
-      baseApi.put(PrjEndpoints.actors.update, data, ctx),
+      baseApi.patch(PrjEndpoints.actors.update, data, ctx),
   },
 
   issueStatuses: {
