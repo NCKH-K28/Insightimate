@@ -29,10 +29,11 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ZSignUpInput } from '@/contracts/auth/auth.input';
-import { signUpMutationOptions } from '../../api/actions';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { InsightmateLogoFull } from '@/components/icons/insightmate';
+import { authClient } from '@/lib/auth-client';
+import { getErrorMsg } from '@/lib/api/helper';
 
 const ZFormData = ZSignUpInput.extend({
   confirmPassword: ZSignUpInput.shape.password,
@@ -45,7 +46,16 @@ type SignUpFormProps = { redirectTo?: string };
 
 export function SignUpForm(props: SignUpFormProps) {
   const router = useRouter();
-  const signUp = useMutation(signUpMutationOptions());
+  const signUp = useMutation({
+    mutationFn: async (data: Parameters<typeof authClient.signUp.email>[0]) => {
+      const result = await authClient.signUp.email(data);
+      if (result.error) throw result.error;
+      return result;
+    },
+    onSuccess: () => {
+      if (props.redirectTo) router.push(props.redirectTo);
+    },
+  });
 
   const form = useForm({
     resolver: zodResolver(ZFormData),
@@ -57,13 +67,7 @@ export function SignUpForm(props: SignUpFormProps) {
       .promise(signUp.mutateAsync(data), {
         loading: 'Creating your account.. .',
         success: 'Account created successfully!  You can now sign in.',
-        error: (err) => {
-          if (err instanceof AxiosError) {
-            const status = err.response?.status;
-            if (status === 409) return 'User with this email already exists';
-          }
-          return err instanceof Error ? err.message : 'An unexpected error occurred';
-        },
+        error: (err) => getErrorMsg(err),
       })
       .unwrap()
       .then(() => {

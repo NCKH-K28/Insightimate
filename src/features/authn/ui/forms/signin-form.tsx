@@ -26,14 +26,15 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { useMutation } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { ZSignInInput } from '@/contracts/auth/auth.input';
 
-import { signInMutationOptions } from '../../api/actions';
 import { GoogleIcon } from '@/components/icons/google-icon';
 import { FacebookIcon } from '@/components/icons/facebook-icon';
 import { InsightmateLogoFull } from '@/components/icons/insightmate';
+import { authClient } from '@/lib/auth-client';
+import { useMutation } from '@tanstack/react-query';
+import { getErrorMsg } from '@/lib/api/helper';
 
 const ZFormData = ZSignInInput;
 
@@ -41,7 +42,16 @@ type SignInFormProps = { redirectTo?: string };
 
 export function SignInForm(props: SignInFormProps) {
   const router = useRouter();
-  const signIn = useMutation(signInMutationOptions());
+  const signIn = useMutation({
+    mutationFn: async (data: Parameters<typeof authClient.signIn.email>[0]) => {
+      const result = await authClient.signIn.email(data);
+      if (result.error) throw result.error;
+      return result;
+    },
+    onSuccess: () => {
+      if (props.redirectTo) router.push(props.redirectTo);
+    },
+  });
 
   const form = useForm({
     resolver: zodResolver(ZFormData),
@@ -49,23 +59,7 @@ export function SignInForm(props: SignInFormProps) {
   });
 
   const handleSubmit = form.handleSubmit(async (data) => {
-    await toast
-      .promise(signIn.mutateAsync(data), {
-        loading: 'Signing in.. .',
-        success: 'Signed in successfully! Redirecting...',
-        error: (err) => {
-          if (err instanceof AxiosError) {
-            const status = err.response?.status;
-            if (status === 401) return 'Invalid email or password';
-            return 'An error occurred during sign in';
-          }
-          return 'An unexpected error occurred';
-        },
-      })
-      .unwrap()
-      .then(() => {
-        if (props.redirectTo) router.push(props.redirectTo);
-      });
+    await toast.promise(signIn.mutateAsync(data), { error: (err) => getErrorMsg(err) }).unwrap();
   });
 
   const handleGoogleSignIn = () => {

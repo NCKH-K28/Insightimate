@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest, NextFetchEvent } from 'next/server';
+import { getSessionCookie } from 'better-auth/cookies';
 import serverConfig from './configs/server';
 
 /** =========================
@@ -110,18 +111,18 @@ const AuthGuard: ProxyChainHandler = {
     // Không áp auth cho API
     if (isApiRoute(pathname)) return NextResponse.next();
 
-    const token = tokenOf(request);
+    const session = getSessionCookie(request);
     const isAuthPage = AUTH_ROUTES.has(pathname);
     const needsAuth = isProtected(pathname);
 
-    if (!token && needsAuth) {
+    if (!session && needsAuth) {
       const url = request.nextUrl.clone();
       url.pathname = '/signin';
       url.searchParams.set('from', request.nextUrl.pathname + request.nextUrl.search);
       return NextResponse.redirect(url);
     }
 
-    if (token && isAuthPage) {
+    if (session && isAuthPage) {
       const url = request.nextUrl.clone();
       url.pathname = '/orgs';
       url.search = '';

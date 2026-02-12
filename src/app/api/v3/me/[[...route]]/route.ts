@@ -1,4 +1,3 @@
-import { authenticatedHono, getAuthFromRequestHono } from '@/lib/authn';
 import { prisma } from '@/lib/prisma';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
@@ -9,43 +8,42 @@ import { zValidator } from '@hono/zod-validator';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 import { inviteToken } from '@/features/organization/server/invite-token';
 import { ZUserPublic } from '@/contracts/user';
+import { authenticatedGuard, getUserAndThrow } from '@/lib/auth';
 
 const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
 const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is required') });
 
 const meHono = new Hono().basePath('/api/v3/me');
-meHono.use(authenticatedHono);
+meHono.use(authenticatedGuard);
 
 meHono.get('/', async (c) => {
-  const { userId } = await getAuthFromRequestHono(c);
-  const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new Error('User not found');
+  const user = await getUserAndThrow(c);
   const result = ZUserPublic.parse(user);
   return c.json(result);
 });
 
 const ZMeUpdateInput = ZUserPublic.omit({ id: true, email: true });
 meHono.put('/', zValidator('json', ZMeUpdateInput), async (c) => {
-  const { userId } = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
   const input = ZMeUpdateInput.parse(await c.req.json());
-  const user = await prisma.user.update({ where: { id: userId }, data: input });
-  const result = ZUserPublic.parse(user);
+  const updatedUser = await prisma.user.update({ where: { id: user.id }, data: input });
+  const result = ZUserPublic.parse(updatedUser);
   return c.json(result);
 });
 
 meHono.patch('/', zValidator('json', ZMeUpdateInput), async (c) => {
-  const { userId } = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
   const input = ZMeUpdateInput.parse(await c.req.json());
-  const user = await prisma.user.update({ where: { id: userId }, data: input });
-  const result = ZUserPublic.parse(user);
+  const updatedUser = await prisma.user.update({ where: { id: user.id }, data: input });
+  const result = ZUserPublic.parse(updatedUser);
   return c.json(result);
 });
 
 meHono.get('/orgs/invitees', async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
 
   const now = new Date();
-  const where = { email: auth.email, expiresAt: { gt: now } };
+  const where = { email: user.email, expiresAt: { gt: now } };
   const invitations = await prisma.orgInvitation.findMany({
     where,
     select: {
@@ -78,21 +76,21 @@ meHono.get('/orgs/invitees/:orgId', zValidator('json', ZOrgInviteAcceptInput), a
 });
 
 meHono.post('/orgs/invitees/accept', zValidator('json', ZOrgInviteAcceptInput), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
   const { token } = c.req.valid('json');
   const payload = await inviteToken.verify(token);
-  if (payload.email !== auth.email) {
+  if (payload.email !== user.email) {
     return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
   }
-  const data = await orgInvitationService.accept({ token }, { actorId: auth.id });
+  const data = await orgInvitationService.accept({ token }, { actorId: user.id });
   return NextResponse.json({ data });
 });
 
 meHono.post('/orgs/invitees/reject', zValidator('json', ZOrgInviteRejectInput), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
   const { token } = c.req.valid('json');
   const payload = await inviteToken.verify(token);
-  if (payload.email !== auth.email) {
+  if (payload.email !== user.email) {
     return NextResponse.json({ error: 'Invalid invitation token' }, { status: 400 });
   }
 
@@ -103,12 +101,12 @@ meHono.post('/orgs/invitees/reject', zValidator('json', ZOrgInviteRejectInput), 
 // == New endpoints for invite page ==
 // GET /api/v3/me/orgs/invite?token=xxx - Preview invitation
 meHono.get('/orgs/invite', zValidator('query', z.object({ token: z.string() })), async (c) => {
-  const auth = await getAuthFromRequestHono(c);
+  const user = await getUserAndThrow(c);
   const { token } = c.req.valid('query');
 
   try {
     const payload = await inviteToken.verify(token);
-    const invitation = await orgInvitationService.preview({ token }, { actorId: auth.userId });
+    const invitation = await orgInvitationService.preview({ token }, { actorId: user.id });
 
     return c.json({
       organization: {
