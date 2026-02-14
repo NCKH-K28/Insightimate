@@ -10,12 +10,13 @@ model Organization {
     updatedAt DateTime  @updatedAt @map("updated_at")
     removedAt DateTime? @map("removed_at")
 
-    owner       User            @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-    members     OrgMember[]     @relation("OrganizationMembers")
-    teams       Team[]          @relation("OrganizationTeams")
-    invitations OrgInvitation[] @relation("OrganizationInvitations")
-    plans       Plan[]          @relation("OrganizationPlans")
-    projects    Project[]       @relation("OrganizationProjects")
+    owner          User            @relation("OrganizationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+    members        OrgMember[]     @relation("OrganizationMembers")
+    teams          Team[]          @relation("OrganizationTeams")
+    invitations    OrgInvitation[] @relation("OrganizationInvitations")
+    plans          Plan[]          @relation("OrganizationPlans")
+    projects       Project[]       @relation("OrganizationProjects")
+    activityEvents ActivityEvent[] @relation("OrganizationActivityEvents")
 
     @@map("organizations")
 }

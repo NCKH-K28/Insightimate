@@ -35,6 +35,9 @@ model User {
     comments Comment[] @relation("UserComments")
     aiAgents AIAgent[] @relation("UserAIAgents")
 
+    // Activity Feed
+    activityEventsAsActor ActivityEvent[] @relation("UserActivityEventsAsActor")
+
     @@map("users")
 }
 

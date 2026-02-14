@@ -28,6 +28,7 @@ import { projectResourceFactory, loadPrincipal } from '../utils/authz';
 import { IssueStatusCategory } from '@/contracts/issues';
 import { buildProjectTuples } from '@/lib/authz/tuple-factory';
 import { ProjectError } from '@/lib/http/errors';
+import { emitActivity } from '@/features/activity/server/emit-activity';
 
 // =============================== HELPERS
 type TxClient = Prisma.TransactionClient;
@@ -258,6 +259,18 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     await openfgaClient.writeTuples(tuples);
   });
 
+  // --- activity feed ---
+  emitActivity({
+    orgId: project.orgId,
+    projectId: project.id,
+    actorId: context.actorId,
+    action: 'CREATED',
+    entity: 'PROJECT',
+    entityId: project.id,
+    entityKey: project.key,
+    entityTitle: project.name,
+  });
+
   return project;
 };
 
@@ -279,13 +292,32 @@ const updateProject = async (
   const perm = results[exists.id]?._actions || [];
   if (!perm['update']) throw new ProjectError('PROJECT_PERMISSION_DENIED', 'Permission denied');
 
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const updated = await tx.project.update({
       where: { id: projectId },
       data: { ...input, updatedAt: new Date().toISOString() },
     });
     return ZProject.parse(updated);
   });
+
+  // --- activity feed ---
+  const changes = Object.keys(input)
+    .filter((k) => (input as any)[k] !== (exists as any)[k])
+    .map((k) => ({ field: k, old: (exists as any)[k], new: (input as any)[k] }));
+
+  emitActivity({
+    orgId: exists.orgId,
+    projectId: exists.id,
+    actorId: context.actorId,
+    action: 'UPDATED',
+    entity: 'PROJECT',
+    entityId: exists.id,
+    entityKey: exists.key,
+    entityTitle: exists.name,
+    changes,
+  });
+
+  return result;
 };
 
 const deleteProject = async (projectId: string, context: ProjectContext) => {
@@ -303,6 +335,21 @@ const deleteProject = async (projectId: string, context: ProjectContext) => {
   if (!perm['delete']) throw new ProjectError('PROJECT_PERMISSION_DENIED', 'Permission denied');
 
   await prisma.$transaction(async (tx) => {
+    // --- activity feed (emit before cascade deletes related data) ---
+    await tx.activityEvent.create({
+      data: {
+        orgId: exists.orgId,
+        projectId: null, // project is about to be deleted
+        actorId: context.actorId,
+        actorType: 'USER',
+        action: 'DELETED',
+        entity: 'PROJECT',
+        entityId: projectId,
+        entityKey: exists.key,
+        entityTitle: exists.name,
+      },
+    });
+
     const project = await tx.project.delete({
       where: { id: projectId },
       include: { roles: { include: { actors: true } } },

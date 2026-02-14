@@ -3,6 +3,7 @@ import { ZBoardIssueItem } from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import LexRank from '@/lib/utils/lexorank-num';
 import Decimal from 'decimal.js';
+import { emitActivity } from '@/features/activity/server/emit-activity';
 
 const ranker = LexRank.create({ precision: 10, initialRank: 1, stepSize: 1 });
 
@@ -268,7 +269,7 @@ export const moveInColumn = async (
       resolvedAt = nextStatus.category === 'DONE' ? new Date() : null;
     }
 
-    return tx.boardIssue.update({
+    const result = await tx.boardIssue.update({
       where: { issueId: params.issueId },
       data: {
         rank: newRank,
@@ -284,6 +285,35 @@ export const moveInColumn = async (
           : {}),
       },
     });
+
+    if (nextStatusId !== srcStatusId) {
+      // --- activity feed ---
+      // Fetch project/org info
+      const boardIssue = await tx.boardIssue.findUnique({
+        where: { issueId: params.issueId },
+        include: {
+          board: { select: { project: { select: { id: true, orgId: true, key: true } } } },
+          issue: { select: { key: true, summary: true } },
+        },
+      });
+
+      if (boardIssue) {
+        emitActivity({
+          orgId: boardIssue.board.project.orgId,
+          projectId: boardIssue.board.project.id,
+          actorId: 'system', // FIXME: need actorId in moveInColumn args
+          actorType: 'USER',
+          action: 'STATUS_CHANGED',
+          entity: 'ISSUE',
+          entityId: params.issueId,
+          entityKey: boardIssue.issue.key,
+          entityTitle: boardIssue.issue.summary,
+          changes: [{ field: 'statusId', old: srcStatusId, new: nextStatusId }],
+        });
+      }
+    }
+
+    return result;
   });
 };
 
@@ -323,6 +353,24 @@ export const moveBoardIssue = async (
         data: { sprintId: input.to.parentId, rank: destRanks.newRank },
       });
       if (!updated) throw new Error('Failed to update issue rank');
+      if (!updated) throw new Error('Failed to update issue rank');
+
+      // --- activity feed ---
+      const project = await prisma.project.findFirst({
+        where: { board: { id: params.boardId } },
+      });
+      if (project) {
+        emitActivity({
+          orgId: project.orgId,
+          projectId: project.id,
+          actorId: 'system', // FIXME: missing actorId
+          action: 'MOVED',
+          entity: 'ISSUE',
+          entityId: params.issueId,
+          changes: [{ field: 'sprintId', new: input.to.parentId }],
+        });
+      }
+
       return updated;
     }
     throw new Error('Invalid parent field');

@@ -17,6 +17,7 @@ import {
 } from './cqrs/board-sprint';
 import merge from 'lodash/merge';
 import { genIssueId } from '@/features/project/configs/id-generators';
+import { emitActivity } from '@/features/activity/server/emit-activity';
 
 const getById = async (id: string) => {
   const board = await prisma.board.findUnique({
@@ -58,8 +59,12 @@ const addIssue = async (
   boardId: string,
   input: BoardIssueCreateInput,
   context: { actorId: string },
+  context: { actorId: string },
 ) => {
-  const board = await prisma.board.findUnique({ where: { id: boardId } });
+  const board = await prisma.board.findUnique({
+    where: { id: boardId },
+    include: { project: true },
+  });
   if (!board) throw new Error('Board not found');
 
   if (input.sprintId) {
@@ -144,6 +149,19 @@ const addIssue = async (
     } catch (err) {
       console.log(err);
     }
+
+    // --- activity feed (v2) ---
+    emitActivity({
+      orgId: board.project.organizationId || '', // FIXME: project->org relation should be loaded
+      projectId,
+      actorId: context.actorId,
+      action: 'CREATED',
+      entity: 'ISSUE',
+      entityId: issue.id,
+      entityKey: issue.key,
+      entityTitle: issue.summary,
+      metadata: { issueType: type.name, priority: priority.name },
+    });
 
     return Object.assign({}, boardIssue, issue);
   });
@@ -309,6 +327,30 @@ const updateIssue = async (
     console.log(err);
   }
 
+  // --- activity feed (v2) ---
+  const changes: Record<string, any>[] = [];
+  if (input.summary) changes.push({ field: 'summary', new: input.summary });
+  if (input.statusId) changes.push({ field: 'statusId', new: input.statusId });
+  if (input.priorityId) changes.push({ field: 'priorityId', new: input.priorityId });
+  if (input.assigneeId) changes.push({ field: 'assigneeId', new: input.assigneeId });
+
+  if (changes.length > 0) {
+    const project = await prisma.project.findUnique({ where: { id: projectId } });
+    if (project) {
+      emitActivity({
+        orgId: project.orgId,
+        projectId,
+        actorId: context.actorId,
+        action: 'UPDATED',
+        entity: 'ISSUE',
+        entityId: issue.id,
+        entityKey: issue.key,
+        entityTitle: issue.summary,
+        changes,
+      });
+    }
+  }
+
   return { ...boardIssue, ...issue };
 };
 
@@ -318,10 +360,26 @@ const deleteIssue = async (
 ) => {
   const boardIssue = await prisma.boardIssue.findFirst({
     where: { boardId: params.boardId, issueId: params.issueId },
+    include: {
+      issue: { select: { id: true, key: true, summary: true, projectId: true } },
+      board: { include: { project: true } },
+    },
   });
   if (!boardIssue) throw new Error('Board issue not found');
 
   await prisma.$transaction(async (tx) => {
+    // --- activity feed (v2) ---
+    emitActivity({
+      orgId: boardIssue.board.project.orgId,
+      projectId: boardIssue.issue.projectId,
+      actorId: context.actorId,
+      action: 'DELETED',
+      entity: 'ISSUE',
+      entityId: params.issueId,
+      entityKey: boardIssue.issue.key,
+      entityTitle: boardIssue.issue.summary,
+    });
+
     await tx.boardIssue.delete({
       where: { issueId: params.issueId },
     });

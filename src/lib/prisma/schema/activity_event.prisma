@@ -1,55 +1,59 @@
-// enum ActivityAction {
-//   CREATED
-//   UPDATED
-//   DELETED
-//   MOVED
-//   ASSIGNED
-//   UNASSIGNED
-//   COMMENTED
-//   LOGGED_TIME
-//   STATUS_CHANGED
-//   SPRINT_STARTED
-//   SPRINT_CLOSED
-// }
+enum ActivityAction {
+    CREATED
+    UPDATED
+    DELETED
+    MOVED
+    ASSIGNED
+    UNASSIGNED
+    COMMENTED
+    LOGGED_TIME
+    STATUS_CHANGED
+    SPRINT_STARTED
+    SPRINT_CLOSED
+    MEMBER_ADDED
+    MEMBER_REMOVED
+    ROLE_CHANGED
+}
 
-// enum ActivityEntity {
-//   PROJECT
-//   ISSUE
-//   SPRINT
-//   COMMENT
-//   TEAM
-// }
+enum ActivityEntity {
+    PROJECT
+    ISSUE
+    SPRINT
+    COMMENT
+    TEAM
+    ORGANIZATION
+}
 
-// model ActivityEvent {
-//   id        String  @id @default(cuid())
-//   orgId     String  @map("org_id")
-//   projectId String? @map("project_id")
+model ActivityEvent {
+    id        String  @id @default(cuid())
+    orgId     String  @map("org_id")
+    projectId String? @map("project_id")
 
-//   actorId   String? @map("actor_id")
-//   actorName String? @map("actor_name")
-//   actorType String  @default("USER") @map("actor_type")
+    actorId   String? @map("actor_id")
+    actorName String? @map("actor_name")
+    actorType String  @default("USER") @map("actor_type")
 
-//   action   ActivityAction
-//   entity   ActivityEntity
-//   entityId String         @map("entity_id")
+    action   ActivityAction
+    entity   ActivityEntity
+    entityId String         @map("entity_id")
 
-//   entityKey   String? @map("entity_key")
-//   entityTitle String? @map("entity_title")
+    entityKey   String? @map("entity_key")
+    entityTitle String? @map("entity_title")
 
-//   changes  Json? @db.Json
-//   metadata Json? @db.Json
+    changes  Json? @db.Json
+    metadata Json? @db.Json
 
-//   groupKey  String?  @map("group_key")
-//   createdAt DateTime @default(now()) @map("created_at")
+    groupKey  String?  @map("group_key")
+    createdAt DateTime @default(now()) @map("created_at")
 
-//   // Relations
-//   organization Organization @relation("OrganizationActivityEvents", fields: [orgId], references: [id], onDelete: Cascade)
-//   project      Project?     @relation("ProjectActivityEvents", fields: [projectId], references: [id], onDelete: Cascade)
-//   actor        User?        @relation("UserActivityEventsAsActor", fields: [actorId], references: [id], onDelete: SetNull)
+    // Relations
+    organization Organization @relation("OrganizationActivityEvents", fields: [orgId], references: [id], onDelete: Cascade)
+    project      Project?     @relation("ProjectActivityEvents", fields: [projectId], references: [id], onDelete: Cascade)
+    actor        User?        @relation("UserActivityEventsAsActor", fields: [actorId], references: [id], onDelete: SetNull)
 
-//   @@index([orgId, createdAt])
-//   @@index([projectId, createdAt])
-//   @@index([actorId, createdAt])
-//   @@index([entity, entityId, createdAt])
-//   @@map("activity_events")
-// }
+    @@index([orgId, createdAt])
+    @@index([projectId, createdAt])
+    @@index([actorId, createdAt])
+    @@index([entity, entityId, createdAt])
+    @@map("activity_events")
+}

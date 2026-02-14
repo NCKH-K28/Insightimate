@@ -4,6 +4,7 @@ import { genProjectActorId } from '@/features/project/configs/id-generators';
 import { projectsService } from './projects.service';
 import { buildProjectActorTuples } from '@/lib/authz/tuple-factory';
 import { ProjectError, PROJECT_ERROR_CODES } from '@/lib/http/errors/proj.error';
+import { emitActivity } from '@/features/activity/server/emit-activity';
 
 type ActorContext = { actorId: string };
 
@@ -62,6 +63,30 @@ const addProjectActor = async (
     });
     const tuples = buildProjectActorTuples(actor);
     await openfgaClient.writeTuples(tuples);
+
+    // --- activity feed ---
+    const project = await tx.project.findUnique({
+      where: { id: input.projectId },
+      select: { orgId: true, key: true, name: true },
+    });
+    if (project) {
+      emitActivity({
+        orgId: project.orgId,
+        projectId: input.projectId,
+        actorId: context.actorId,
+        action: 'MEMBER_ADDED',
+        entity: 'PROJECT',
+        entityId: input.projectId,
+        entityKey: project.key,
+        entityTitle: project.name,
+        metadata: {
+          targetActorId: input.actorId,
+          targetActorType: input.actorType,
+          roleId: input.roleId,
+        },
+      });
+    }
+
     return actor;
   });
 };
@@ -87,6 +112,26 @@ const removeProjectActor = async (
     const actor = await tx.projectActor.delete({ where: { id: actorId } });
     const tuples = buildProjectActorTuples(actor);
     await openfgaClient.deleteTuples(tuples);
+
+    // --- activity feed ---
+    const project = await tx.project.findUnique({
+      where: { id: projectId },
+      select: { orgId: true, key: true, name: true },
+    });
+    if (project) {
+      emitActivity({
+        orgId: project.orgId,
+        projectId,
+        actorId: context.actorId,
+        action: 'MEMBER_REMOVED',
+        entity: 'PROJECT',
+        entityId: projectId,
+        entityKey: project.key,
+        entityTitle: project.name,
+        metadata: { targetActorId: actor.actorId, targetActorType: actor.actorType },
+      });
+    }
+
     return actor;
   });
 };
@@ -120,6 +165,26 @@ const updateProjectActor = async (
     const writeTuples = buildProjectActorTuples(actor);
     const deleteTuples = buildProjectActorTuples(exists);
     await openfgaClient.write({ writes: writeTuples, deletes: deleteTuples });
+
+    // --- activity feed ---
+    const project = await tx.project.findUnique({
+      where: { id: projectId },
+      select: { orgId: true, key: true, name: true },
+    });
+    if (project) {
+      emitActivity({
+        orgId: project.orgId,
+        projectId,
+        actorId: context.actorId,
+        action: 'ROLE_CHANGED',
+        entity: 'PROJECT',
+        entityId: projectId,
+        entityKey: project.key,
+        entityTitle: project.name,
+        changes: [{ field: 'roleId', old: exists.roleId, new: roleId }],
+        metadata: { targetActorId: actor.actorId, targetActorType: actor.actorType },
+      });
+    }
 
     return actor;
   });

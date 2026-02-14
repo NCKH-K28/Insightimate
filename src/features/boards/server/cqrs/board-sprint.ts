@@ -9,6 +9,7 @@ import { validateBoardSprint } from '@/lib/validators';
 import { ZBoardSprint } from '@/contracts/boards/board';
 import { Prisma } from '@prisma/client';
 import { listIssuesWithDescendants, sumStoryPoints } from './q-sprint-summary';
+import { emitActivity } from '@/features/activity/server/emit-activity';
 
 interface SprintContext {
   boardId: string;
@@ -252,10 +253,29 @@ export const startBoardSprint = async (ctx: SprintContext) => {
       const issues = await listIssuesWithDescendants(ctx.sprintId);
       const committedPoints = sumStoryPoints(issues);
 
-      return tx.sprint.update({
+      const updated = await tx.sprint.update({
         where: { id: ctx.sprintId },
         data: { state: SPRINT_STATE.ACTIVE, committedPoints },
       });
+
+      // --- activity feed ---
+      const project = await prisma.project.findFirst({
+        where: { board: { id: ctx.boardId } },
+      });
+      if (project) {
+        emitActivity({
+          orgId: project.orgId,
+          projectId: project.id,
+          actorId: 'system', // FIXME: missing actorId
+          action: 'SPRINT_STARTED',
+          entity: 'SPRINT',
+          entityId: ctx.sprintId,
+          entityTitle: sprint.name,
+          changes: [{ field: 'state', old: SPRINT_STATE.FUTURE, new: SPRINT_STATE.ACTIVE }],
+        });
+      }
+
+      return updated;
     },
     { isolationLevel: 'Serializable' },
   );
@@ -347,10 +367,29 @@ export const completeBoardSprint = async (
         await handleIncompleteIssues(tx, ctx, input.effect);
       }
 
-      return tx.sprint.update({
+      const updated = await tx.sprint.update({
         where: { id: ctx.sprintId },
         data: { state: SPRINT_STATE.CLOSED },
       });
+
+      // --- activity feed ---
+      const project = await prisma.project.findFirst({
+        where: { board: { id: ctx.boardId } },
+      });
+      if (project) {
+        emitActivity({
+          orgId: project.orgId,
+          projectId: project.id,
+          actorId: 'system', // FIXME: missing actorId
+          action: 'SPRINT_CLOSED',
+          entity: 'SPRINT',
+          entityId: ctx.sprintId,
+          entityTitle: sprint.name,
+          changes: [{ field: 'state', old: SPRINT_STATE.ACTIVE, new: SPRINT_STATE.CLOSED }],
+        });
+      }
+
+      return updated;
     },
     { isolationLevel: 'Serializable' },
   );
