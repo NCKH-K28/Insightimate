@@ -20,7 +20,7 @@ import {
   genProjectId,
   genSprintId,
 } from '../configs/id-generators';
-import { buildProjectActorTuples, buildProjectTuples } from '@/features/authz/api/tuple-factory';
+import { buildProjectActorTuples, buildProjectTuples } from '@/lib/authz/tuple-factory';
 import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
 import { listStatuses } from './project-field.service';
 import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';

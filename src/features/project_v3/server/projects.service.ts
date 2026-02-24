@@ -262,7 +262,7 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     // --- authz ---
     const tuples = buildProjectTuples({
       ...project,
-      roles: roles.map((r) => ({ ...r, actors: [] })),
+      roles: roles.map((r) => ({ ...r, id: r.id as string, actors: [] })),
       permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
     });
     await openfgaClient.writeTuples(tuples);
@@ -440,6 +440,40 @@ const getProjectById = async (projectId: string, ctx: ProjectContext) => {
   return ZProjectItem.parse({ ...project, boardId: project.board?.id });
 };
 
+const listStatuses = async (projectId: string, ctx: ProjectContext) => {
+  await getProjectById(projectId, ctx); // Auth check
+  const statuses = await prisma.issueStatus.findMany({
+    where: { projectId },
+    orderBy: { sequence: 'asc' },
+  });
+  return { items: statuses, total: statuses.length };
+};
+
+const createStatus = async (projectId: string, input: any, ctx: ProjectContext) => {
+  await updateProject(projectId, {}, ctx); // Auth check: requires update permission
+  const id = input?.id ?? genIssueStatusId();
+  const { name, description, iconURL, color, category, sequence } = input;
+  const newStatus = await prisma.issueStatus.create({
+    data: {
+      id,
+      projectId,
+      name,
+      description,
+      iconURL,
+      color,
+      category,
+      sequence: sequence ?? 0,
+    },
+  });
+  return newStatus;
+};
+
+const deleteStatus = async (projectId: string, statusId: string, ctx: ProjectContext) => {
+  await updateProject(projectId, {}, ctx); // Auth check: requires update permission
+  await prisma.issueStatus.delete({ where: { id: statusId, projectId } });
+  return { message: 'Issue status deleted successfully' };
+};
+
 export const projectsService = {
   list: listProjects,
   create: createProject,
@@ -447,4 +481,7 @@ export const projectsService = {
   delete: deleteProject,
   getById: getProjectById,
   getFacets,
+  listStatuses,
+  createStatus,
+  deleteStatus,
 };

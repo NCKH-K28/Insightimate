@@ -59,7 +59,6 @@ const addIssue = async (
   boardId: string,
   input: BoardIssueCreateInput,
   context: { actorId: string },
-  context: { actorId: string },
 ) => {
   const board = await prisma.board.findUnique({
     where: { id: boardId },

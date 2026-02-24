@@ -16,7 +16,7 @@ import { ProjectItem, ProjectType } from '@/contracts/project';
 
 import { ProjectActions } from './project-actions';
 import get from 'lodash/get';
-import { usePathname, useRouter } from 'next/navigation';
+import { useParams, usePathname, useRouter } from 'next/navigation';
 import { useMemo } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { deleteProjectMutationOptions } from '@/features/project/api/actions';
@@ -70,7 +70,7 @@ const ProjectActionsCell = (props: { project: ProjectItem }) => {
     return `${base}/projects/${project.id}`;
   }, [project.id, pathname]);
 
-  const deleteProject = useMutation(deleteProjectMutationOptions({ projectId: project.id }));
+  const deleteProject = useMutation(deleteProjectMutationOptions({ projId: project.id }));
 
   const navToEdit = () => router.push(`${settingsPath}#general`, { scroll: true });
   const navToInvite = () => router.push(`${settingsPath}#members`, { scroll: true });
@@ -96,6 +96,28 @@ const ProjectActionsCell = (props: { project: ProjectItem }) => {
         invite: hasPerm('invite', perm),
       }}
     />
+  );
+};
+
+const ProjectNameCell = ({ project }: { project: ProjectItem }) => {
+  const params = useParams<{ orgSlug: string }>();
+  if (!params) throw new Error('Params is undefined');
+  const { orgSlug } = params;
+
+  return (
+    <div className='flex flex-row gap-1'>
+      <div className='flex items-center gap-2'>
+        <span className='text-xs font-mono text-muted-foreground bg-gray-100 px-2 py-0.5 rounded border border-gray-200'>
+          {project.key}
+        </span>
+      </div>
+      <Link
+        href={`/o/${orgSlug}/projs/${project.id}`}
+        className='font-semibold text-foreground hover:text-blue-600 transition-colors duration-200 line-clamp-1'
+      >
+        {project.name}
+      </Link>
+    </div>
   );
 };
 
@@ -173,21 +195,7 @@ export const projectColumns = [
     id: 'project',
     size: 250,
     header: ({ column }) => <DataTableHeader title='Project' column={column} />,
-    cell: ({ row }) => (
-      <div className='flex flex-row gap-1'>
-        <div className='flex items-center gap-2'>
-          <span className='text-xs font-mono text-muted-foreground bg-gray-100 px-2 py-0.5 rounded border border-gray-200'>
-            {row.original.key}
-          </span>
-        </div>
-        <Link
-          href={`/o/${row.original.orgId}/projs/${row.original.id}`}
-          className='font-semibold text-foreground hover:text-blue-600 transition-colors duration-200 line-clamp-1'
-        >
-          {row.original.name}
-        </Link>
-      </div>
-    ),
+    cell: ({ row }) => <ProjectNameCell project={row.original} />,
   }),
 
   // Improved Type badge

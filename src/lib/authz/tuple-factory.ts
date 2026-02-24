@@ -84,7 +84,7 @@ export const buildProjectRoleTuples = (input: ProjRoleInput): TupleKey[] => {
   // the role itself
   tuples.push({ user: asProjRole(input.id), relation: R.CHILD, object: asProj(input.projectId) });
 
-  // // permissions granted to this role
+  // permissions granted to this role
   // input.permissions.forEach((perm) => {
   //   tuples.push({
   //     user: asProjRole(input.id),
@@ -108,12 +108,14 @@ export const buildProjectTuples = (input: ProjInput): TupleKey[] => {
   // project lead
   tuples.push({ user: asUser(input.leadId), relation: 'PROJ_LEAD', object: asProj(input.id) });
 
-  // // project permissions
-  // input.permissions.forEach((perm) => ({
-  //   user: asProj(input.id),
-  //   relation: R.PARENT,
-  //   object: asProjPerm(input.id, perm),
-  // }));
+  // project permissions
+  // input.permissions.forEach((perm) => {
+  //   tuples.push({
+  //     user: asProj(input.id),
+  //     relation: R.PARENT,
+  //     object: asProjPerm(input.id, perm),
+  //   });
+  // });
 
   // project roles
   input.roles.flatMap(buildProjectRoleTuples).forEach((t) => tuples.push(t));

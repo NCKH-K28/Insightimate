@@ -15,8 +15,8 @@ import { ConfigTree, buildApi } from '@/lib/api/_buildapi';
 import { ZIssueFacets } from '@/contracts/issues';
 
 // ========== URL FACTORY ==========
-const BoardListURL = 'v2/boards' as const;
-const BoardItemURL = 'v2/boards/{boardId}' as const;
+const BoardListURL = 'v3/boards' as const;
+const BoardItemURL = 'v3/boards/{boardId}' as const;
 const IssueListURL = `${BoardItemURL}/issues` as const;
 const IssueItemURL = `${IssueListURL}/{issueId}` as const;
 

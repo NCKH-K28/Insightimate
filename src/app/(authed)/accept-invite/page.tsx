@@ -13,11 +13,11 @@ import {
   AlertCircle,
 } from 'lucide-react';
 
-import {
-  acceptInviteMutionOptions,
-  getInviteInfoQueryOptions,
-  rejectInviteMutionOptions,
-} from '@/features/authz/api/actions';
+// import {
+//   acceptInviteMutionOptions,
+//   getInviteInfoQueryOptions,
+//   rejectInviteMutionOptions,
+// } from '@/features/authz/api/actions';
 import {
   acceptOrgInvitationMutationOptions,
   getOrgInvitationPreviewQueryOptions,
@@ -46,11 +46,7 @@ export default function InvitePage() {
   const isTokenPresent = token !== undefined && token.length > 0;
 
   // Workspace Invite
-  const wsInfo = useQuery({
-    ...getInviteInfoQueryOptions(token || ''),
-    enabled: isTokenPresent,
-    retry: false,
-  });
+  const wsInfo = { isPending: false, isSuccess: false, isError: false, data: null };
 
   // Org Invite
   const orgInfo = useQuery({
@@ -59,8 +55,8 @@ export default function InvitePage() {
     retry: false,
   });
 
-  const acceptWsInvite = useMutation(acceptInviteMutionOptions(token));
-  const rejectWsInvite = useMutation(rejectInviteMutionOptions(token));
+  const acceptWsInvite = { isPending: false, mutateAsync: async () => {} };
+  const rejectWsInvite = { isPending: false, mutateAsync: async () => {} };
 
   const acceptOrgInvite = useMutation({
     ...acceptOrgInvitationMutationOptions(),

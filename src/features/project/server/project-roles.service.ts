@@ -6,7 +6,7 @@ import { writeProjectRoles } from './cqrs/c-project-roles-write';
 import {
   buildProjectRoleTuples,
   buildProjectActorTuples,
-} from '@/features/authz/api/tuple-factory';
+} from '@/lib/authz/tuple-factory';
 import { projectsService } from './projects.service';
 
 const genProjectRoleId = () => `role_${createId()}`;

@@ -17,7 +17,9 @@ const Wrapper = React.memo(
     const params = useParams<{ projectId: string; workspaceId: string; boardId: string }>();
     if (!params) throw new Error('Params not found');
 
-    const { data: project, isPending } = useQuery(getProjectQueryOptions(params));
+    const { data: project, isPending } = useQuery(
+      getProjectQueryOptions({ projId: params.projectId }),
+    );
     if (isPending) return <div>Loading...</div>;
     if (!project) return <div>Project not found</div>;
     const boardId = project.boardId;
@@ -66,9 +68,7 @@ export default function ProjectWithViewModePage() {
   const params = useParams<{ projectId: string; workspaceId: string }>();
   if (!params) throw new Error('Params not found');
 
-  const { data: projectForView } = useQuery(
-    getProjectQueryOptions({ projectId: params.projectId }),
-  );
+  const { data: projectForView } = useQuery(getProjectQueryOptions({ projId: params.projectId }));
 
   useEffect(() => {
     if (!projectForView?.id) return;

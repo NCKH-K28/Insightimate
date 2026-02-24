@@ -14,6 +14,8 @@ import {
 import { projectsService } from '@/features/project_v3/server/projects.service';
 import { actorsService } from '@/features/project_v3/server/actors.service';
 import { rolesService } from '@/features/project_v3/server/roles.service';
+import { exportService } from '@/features/project_v3/server/export.service';
+import { prisma } from '@/lib/prisma';
 
 const projsHono = new Hono().basePath('/api/v3/projs');
 projsHono.use(authenticatedGuard);
@@ -83,6 +85,109 @@ projsHono.delete('/:projId', async (c) => {
   const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const result = await projectsService.delete(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// GET /api/v3/projs/:projId/summary - Project summary stats
+projsHono.get('/:projId/summary', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+
+  // Authorization: ensure caller can read the project
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+
+  const projectId = project.id;
+
+  const totalIssues = await prisma.issue.count({ where: { projectId } });
+
+  const statusCounts = await prisma.issue.groupBy({
+    by: ['statusId'],
+    where: { projectId },
+    _count: { _all: true },
+  });
+
+  const statuses = await prisma.issueStatus.findMany({
+    where: { projectId },
+    select: { id: true, name: true, color: true, sequence: true, category: true },
+    orderBy: { sequence: 'asc' },
+  });
+
+  const categoryCounts: Record<string, number> = { TODO: 0, IN_PROGRESS: 0, DONE: 0 };
+
+  const statusData = statuses.map((s) => {
+    const grp = statusCounts.find((g) => g.statusId === s.id);
+    const count = grp?._count?._all ?? 0;
+    if (s.category && Object.prototype.hasOwnProperty.call(categoryCounts, s.category)) {
+      categoryCounts[s.category] += count;
+    }
+    return { status: s.id, label: s.name, value: count, fill: s.color || null };
+  });
+
+  const priorityCounts = await prisma.issue.groupBy({
+    by: ['priorityId'],
+    where: { projectId },
+    _count: { _all: true },
+  });
+
+  const priorities = await prisma.issuePriority.findMany({
+    where: { projectId },
+    select: { id: true, name: true, iconURL: true, sequence: true },
+    orderBy: { sequence: 'asc' },
+  });
+
+  const priorityData = priorities.map((p) => {
+    const grp = priorityCounts.find((g) => g.priorityId === p.id);
+    return {
+      priority: p.id,
+      label: p.name,
+      value: grp?._count?._all ?? 0,
+      icon: p.iconURL ?? null,
+    };
+  });
+
+  const leadObj = project.leadId
+    ? await prisma.user.findUnique({
+        where: { id: project.leadId },
+        select: { id: true, name: true, email: true },
+      })
+    : null;
+
+  const projectOverview = {
+    workspace: null,
+    lead: leadObj ? (leadObj.name ?? leadObj.email ?? null) : null,
+    startDate: project.createdAt ?? null,
+    version: null,
+  };
+
+  const [backlog, bugs, activeSprints] = await Promise.all([
+    prisma.issue.count({ where: { projectId, archived: false } }),
+    prisma.issue.count({
+      where: { projectId, type: { name: { equals: 'Bug', mode: 'insensitive' } } },
+    }),
+    prisma.sprint.count({ where: { board: { projectId }, state: 'ACTIVE' } }),
+  ]);
+
+  return c.json({
+    totalIssues,
+    todo: categoryCounts.TODO,
+    inProgress: categoryCounts.IN_PROGRESS,
+    done: categoryCounts.DONE,
+    statusData,
+    priorityData,
+    quickStats: { backlog, bugs, activeSprints },
+    projectOverview,
+  });
+});
+
+// GET /api/v3/projs/:projId/export - Export project data
+projsHono.get('/:projId/export', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+
+  const result = await exportService.exportProject(projId, { actorId: auth.id });
+
+  const filename = `project-${result.project.key || result.project.id}-export.json`;
+  c.header('Content-Disposition', `attachment; filename="${filename}"`);
   return c.json(result);
 });
 
@@ -182,6 +287,37 @@ projsHono.delete('/:projId/roles/:roleId', async (c) => {
   const auth = await getUserAndThrow(c);
   const { roleId } = c.req.param();
   const result = await rolesService.deleteProjectRole(roleId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== PROJECT ISSUE STATUSES APIs ==========================
+
+// GET /api/v3/projs/:projId/issue-statuses - List issue statuses
+projsHono.get('/:projId/issue-statuses', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.listStatuses(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// POST /api/v3/projs/:projId/issue-statuses - Create issue status
+projsHono.post('/:projId/issue-statuses', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const input = await c.req.json();
+  const result = await projectsService.createStatus(projId, input, { actorId: auth.id });
+  return c.json(result, 201);
+});
+
+// DELETE /api/v3/projs/:projId/issue-statuses - Delete issue status
+projsHono.delete('/:projId/issue-statuses', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const statusId = c.req.query('statusId');
+  if (!statusId) {
+    return c.json({ error: 'Status ID is required' }, 400);
+  }
+  const result = await projectsService.deleteStatus(projId, statusId, { actorId: auth.id });
   return c.json(result);
 });
 

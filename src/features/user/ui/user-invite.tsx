@@ -34,7 +34,7 @@ import debounce from 'lodash/debounce';
 import { useQuery } from '@tanstack/react-query';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { UserPublic } from '@/contracts/user';
-import { searchInviteCandidatesQueryOptions } from '@/features/authz/api/actions';
+import { searchUsersQueryOptions } from '@/features/user/api/actions';
 
 export type UserInviteProps = {
   roleOptions?: { value: string; label: string }[];
@@ -69,9 +69,7 @@ export const UserInvite = (props: UserInviteProps) => {
 
   const setSearchDebounced = React.useMemo(() => debounce(setSearch, 300), [setSearch]);
 
-  const { data: users, isPending } = useQuery(
-    searchInviteCandidatesQueryOptions(search, props.params),
-  );
+  const { data: users, isPending } = useQuery(searchUsersQueryOptions(search, props.params as any));
 
   const [selectedUsers, setSelectedUsers] = React.useState<UserPublic[]>([]);
 

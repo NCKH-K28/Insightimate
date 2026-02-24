@@ -27,7 +27,9 @@ const ProjectHeader = () => {
   const params = useParams<{ projectId: string }>();
   if (!params) throw new Error('ProjectHeader must be used within a route with projectId param');
 
-  const { data: project, isPending } = useSuspenseQuery(fetchProjectQueryOptions(params));
+  const { data: project, isPending } = useSuspenseQuery(
+    fetchProjectQueryOptions({ projId: params.projectId }),
+  );
 
   if (isPending) return <ProjectHeaderSkeleton />;
   if (!project) throw new Error('Project not found');
@@ -36,7 +38,7 @@ const ProjectHeader = () => {
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-space-between gap-2'>
         <Avatar className='rounded-lg h-12 w-12'>
-          <AvatarImage src={project.avatar} alt={project.name} />
+          <AvatarImage src={project.avatar || undefined} alt={project.name} />
           <AvatarFallback>
             {project.name ? project.name.charAt(0).toUpperCase() : 'P'}
           </AvatarFallback>
@@ -63,7 +65,7 @@ const ProjectHeader = () => {
                 label: 'Export Project',
                 onClick: () => {
                   //TODO: show a proper file save dialog
-                  fetch(`/api/v2/projects/${params.projectId}/export`).then((res) => {
+                  fetch(`/api/v3/projs/${params.projectId}/export`).then((res) => {
                     if (!res.ok) {
                       alert('Failed to export project');
                       return;

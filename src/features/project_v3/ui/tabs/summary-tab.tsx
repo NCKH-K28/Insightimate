@@ -9,10 +9,9 @@ import {
   PriorityCard,
   ProjectOverview,
   QuickStats,
+  StatCard,
 } from '@/features/project/ui/components/summary';
-
 import { fetchProjectSummaryQueryOptions } from '@/features/project/api/actions';
-import { StatCard } from '@/features/project/ui/components/summary';
 
 const priorityChartData = [
   { priority: 'lowest', issues: 0 },
@@ -22,13 +21,13 @@ const priorityChartData = [
   { priority: 'highest', issues: 0 },
 ];
 
-export const SummaryTab: React.FC<{
-  params: { projectId: string; workspaceId: string; boardId: string };
-}> = ({ params }) => {
-  const { projectId } = params;
+type SummaryTabProps = { params: { projId: string; boardId: string } };
+
+export function SummaryTab({ params }: SummaryTabProps) {
+  const { projId } = params;
 
   const { data, isLoading, isError } = useQuery({
-    ...fetchProjectSummaryQueryOptions({ projId: projectId }),
+    ...fetchProjectSummaryQueryOptions({ projId }),
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
   });
@@ -84,6 +83,4 @@ export const SummaryTab: React.FC<{
       </aside>
     </div>
   );
-};
-
-export default SummaryTab;
+}

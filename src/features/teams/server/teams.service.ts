@@ -4,7 +4,7 @@ import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { createId } from '@paralleldrive/cuid2';
 import { TeamCreateInput, TeamUpdateInput, ZTeamItem } from '@/contracts/teams';
 import { workspaceService } from '@/features/workspaces/server/service';
-import { buildTeamMemberTuples, buildTeamTuples } from '@/features/authz/api/tuple-factory';
+import { buildTeamMemberTuples, buildTeamTuples } from '@/lib/authz/tuple-factory';
 
 type TeamServiceContext = { actorId: string };
 

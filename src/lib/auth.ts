@@ -4,7 +4,10 @@ import { prisma } from '@/lib/prisma';
 import { createMiddleware } from 'hono/factory';
 import { Context } from 'hono';
 
+import serverConfig from '@/configs/server';
+
 export const auth = betterAuth({
+  baseURL: serverConfig.appURL,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
   emailAndPassword: { enabled: true },
   basePath: '/api/v3/auth',

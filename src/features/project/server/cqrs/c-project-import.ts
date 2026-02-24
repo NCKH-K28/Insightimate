@@ -7,7 +7,7 @@ import { ProjectContext } from '../types';
 import { prisma } from '@/lib/prisma';
 import { remapProjectImportIds } from '../../utils';
 import { assertProjectKeyAvailable } from '../projects.service';
-import { buildProjectTuples } from '@/features/authz/api/tuple-factory';
+import { buildProjectTuples } from '@/lib/authz/tuple-factory';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { createDefaultBoard } from '@/features/boards/server/cqrs';
 import { genIssueResolutionId } from '../../configs/id-generators';
