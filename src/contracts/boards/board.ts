@@ -2,7 +2,11 @@ import z from 'zod';
 import { isoDateString, isoString } from '../_shared';
 import { ZIssue } from '../issues/issue';
 
-const ZRankDecimal = z.preprocess((v) => (typeof v === 'string' ? parseFloat(v) : v), z.number());
+const ZRankDecimal = z.preprocess(
+  (v: any) =>
+    typeof v?.toNumber === 'function' ? v.toNumber() : typeof v === 'string' ? parseFloat(v) : v,
+  z.number(),
+);
 
 /** Core schemas */
 export const ZBoard = z.object({

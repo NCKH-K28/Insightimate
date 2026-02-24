@@ -96,14 +96,10 @@ const addIssue = async (
   return prisma.$transaction(async (tx) => {
     const projectId = board.projectId;
     if (!projectId) throw new Error('Project not found');
-    const {
-      key: pKey,
-      issueCounter,
-      workspaceId,
-    } = await tx.project.update({
+    const { key: pKey, issueCounter } = await tx.project.update({
       where: { id: board.projectId },
       data: { issueCounter: { increment: 1 } },
-      select: { key: true, issueCounter: true, workspaceId: true },
+      select: { key: true, issueCounter: true },
     });
 
     let hierarchy: number | undefined = undefined;
@@ -151,23 +147,6 @@ const addIssue = async (
     const boardIssue = await tx.boardIssue.create({
       data: { boardId: board.id, issueId: issue.id, rank: 0, sprintId: sprintId || null },
     });
-
-    // create activity record for created issue
-    try {
-      await tx.activity.create({
-        data: {
-          userId: context.actorId,
-          workspaceId: workspaceId || null,
-          type: 'CREATED',
-          sourceType: 'ISSUE',
-          sourceId: issue.id,
-          context: { title: issue.summary, issueKey: issue.key, projectId },
-          createdBy: context.actorId,
-        },
-      });
-    } catch (err) {
-      console.log(err);
-    }
 
     // --- activity feed (v2) ---
     emitActivity({
@@ -324,27 +303,6 @@ const updateIssue = async (
     },
   });
   if (!issue) throw new Error('Issue not found');
-
-  // create activity for update
-  try {
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { workspaceId: true },
-    });
-    await prisma.activity.create({
-      data: {
-        userId: context.actorId,
-        workspaceId: project?.workspaceId ?? null,
-        type: 'UPDATED',
-        sourceType: 'ISSUE',
-        sourceId: issue.id,
-        context: { title: issue.summary, issueKey: issue.key, projectId },
-        createdBy: context.actorId,
-      },
-    });
-  } catch (err) {
-    console.log(err);
-  }
 
   // --- activity feed (v2) ---
   const changes: Record<string, any>[] = [];

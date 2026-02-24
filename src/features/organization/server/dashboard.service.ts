@@ -24,6 +24,15 @@ export type RecentProject = {
   updatedAt: Date;
   lead: { id: string; name: string; avatar: string | null } | null;
   _issueCount: number;
+  completionPercent: number;
+  statusLabel: string;
+};
+
+export type TeamMember = {
+  id: string;
+  name: string;
+  avatar: string | null;
+  role: string;
 };
 
 export type AssignedIssue = {
@@ -42,6 +51,7 @@ export type DashboardData = {
   stats: DashboardStats;
   recentProjects: RecentProject[];
   assignedToMe: AssignedIssue[];
+  teamMembers: TeamMember[];
 };
 
 // ==================== Helpers ====================
@@ -110,21 +120,38 @@ async function getRecentProjects(
     include: {
       lead: { select: { id: true, name: true, avatar: true } },
       _count: { select: { issues: true } },
+      issues: {
+        where: { archived: false },
+        select: { status: { select: { category: true } } },
+      },
     },
     orderBy: { updatedAt: 'desc' },
     take: 5,
   });
 
-  return projects.map((p) => ({
-    id: p.id,
-    key: p.key,
-    name: p.name,
-    description: p.description,
-    type: p.type,
-    updatedAt: p.updatedAt,
-    lead: p.lead,
-    _issueCount: p._count.issues,
-  }));
+  return projects.map((p) => {
+    const total = p.issues.length;
+    const done = p.issues.filter((i) => i.status.category === 'DONE').length;
+    const inProgress = p.issues.some((i) => i.status.category === 'IN_PROGRESS');
+    const completionPercent = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    let statusLabel = 'NOT STARTED';
+    if (completionPercent === 100) statusLabel = 'DONE';
+    else if (inProgress || done > 0) statusLabel = 'IN PROGRESS';
+
+    return {
+      id: p.id,
+      key: p.key,
+      name: p.name,
+      description: p.description,
+      type: p.type,
+      updatedAt: p.updatedAt,
+      lead: p.lead,
+      _issueCount: p._count.issues,
+      completionPercent,
+      statusLabel,
+    };
+  });
 }
 
 async function getAssignedToMe(
@@ -170,16 +197,39 @@ async function getAssignedToMe(
   }));
 }
 
+const ORG_ROLE_DISPLAY: Record<string, string> = {
+  ORG_OWNER: 'Owner',
+  ORG_ADMIN: 'Admin',
+  ORG_MEMBER: 'Member',
+};
+
+async function getTeamMembers(orgId: string): Promise<TeamMember[]> {
+  const members = await prisma.orgMember.findMany({
+    where: { orgId },
+    include: { user: { select: { id: true, name: true, avatar: true } } },
+    orderBy: { createdAt: 'asc' },
+    take: 5,
+  });
+
+  return members.map((m) => ({
+    id: m.user.id,
+    name: m.user.name,
+    avatar: m.user.avatar,
+    role: ORG_ROLE_DISPLAY[m.role] ?? 'Member',
+  }));
+}
+
 async function getDashboard(orgId: string, ctx: DashboardContext): Promise<DashboardData> {
   const allowedProjectIds = await getAllowedProjectIds(orgId, ctx);
 
-  const [stats, recentProjects, assignedToMe] = await Promise.all([
+  const [stats, recentProjects, assignedToMe, teamMembers] = await Promise.all([
     getStats(orgId, allowedProjectIds),
     getRecentProjects(orgId, allowedProjectIds),
     getAssignedToMe(orgId, allowedProjectIds, ctx),
+    getTeamMembers(orgId),
   ]);
 
-  return { stats, recentProjects, assignedToMe };
+  return { stats, recentProjects, assignedToMe, teamMembers };
 }
 
 // ==================== Export ====================
@@ -189,4 +239,5 @@ export const dashboardService = {
   getStats,
   getRecentProjects,
   getAssignedToMe,
+  getTeamMembers,
 };

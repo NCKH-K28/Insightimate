@@ -14,6 +14,7 @@ import { emitActivity } from '@/features/activity/server/emit-activity';
 interface SprintContext {
   boardId: string;
   sprintId: string;
+  actorId?: string;
 }
 
 interface SprintQuery {
@@ -266,7 +267,7 @@ export const startBoardSprint = async (ctx: SprintContext) => {
         emitActivity({
           orgId: project.orgId,
           projectId: project.id,
-          actorId: 'system', // FIXME: missing actorId
+          actorId: ctx.actorId || 'system',
           action: 'SPRINT_STARTED',
           entity: 'SPRINT',
           entityId: ctx.sprintId,
@@ -380,7 +381,7 @@ export const completeBoardSprint = async (
         emitActivity({
           orgId: project.orgId,
           projectId: project.id,
-          actorId: 'system', // FIXME: missing actorId
+          actorId: ctx.actorId || 'system',
           action: 'SPRINT_CLOSED',
           entity: 'SPRINT',
           entityId: ctx.sprintId,

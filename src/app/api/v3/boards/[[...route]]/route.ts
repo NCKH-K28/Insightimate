@@ -4,6 +4,7 @@ import { httpExceptionFilterHono } from '@/lib/http/filters';
 import { handle } from 'hono/vercel';
 import { zValidator } from '@hono/zod-validator';
 import { z } from 'zod';
+import qs from 'qs';
 
 import { boardsService } from '@/features/boards/server/service';
 import { sprintService } from '@/features/boards/server/sprint-service';
@@ -13,6 +14,7 @@ import {
   ZBoardIssueMoveInput,
   ZBoardIssueRankUpdate,
   ZBoardIssueUpdateInput,
+  ZBoardSprintCompleteInput,
 } from '@/contracts/boards/board.input';
 
 const boardsHono = new Hono().basePath('/api/v3/boards');
@@ -68,10 +70,13 @@ boardsHono.post('/:boardId/columns:reorder', zValidator('json', ZColumnReorderIn
 // ========================== ISSUES ==========================
 
 // GET /api/v3/boards/:boardId/issues
-boardsHono.get('/:boardId/issues', zValidator('query', ZBoardIssueQueryParams), async (c) => {
+boardsHono.get('/:boardId/issues', async (c) => {
   const auth = await getUserAndThrow(c);
   const { boardId } = c.req.param();
-  const query = c.req.valid('query');
+  // Hono doesn't parse bracket-notation query strings into nested objects,
+  // but the client serialises with qs (e.g. filter[issueType][hierarchy]=2).
+  const rawQs = new URL(c.req.url).search.replace(/^\?/, '');
+  const query = ZBoardIssueQueryParams.parse(qs.parse(rawQs));
   // need to get board to know type (SCRUM vs KANBAN)
   const board = await boardsService.getById(boardId);
   const result = await boardsService.listIssues({ id: boardId, type: board.type }, query, {
@@ -160,7 +165,7 @@ boardsHono.post(
 boardsHono.get('/:boardId/sprints/:sprintId', async (c) => {
   const auth = await getUserAndThrow(c);
   const { boardId, sprintId } = c.req.param();
-  const result = await boardsService.getSprintById({ boardId, sprintId }, { actorId: auth.id });
+  const result = await boardsService.getSprintById({ boardId, sprintId, actorId: auth.id }, {});
   return c.json(result);
 });
 
@@ -168,7 +173,8 @@ boardsHono.get('/:boardId/sprints/:sprintId', async (c) => {
 boardsHono.post('/:boardId/sprints', async (c) => {
   const auth = await getUserAndThrow(c);
   const { boardId } = c.req.param();
-  const result = await boardsService.createSprint({ boardId }, { actorId: auth.id });
+  const input = await c.req.json().catch(() => ({}));
+  const result = await boardsService.createSprint({ boardId, actorId: auth.id }, input);
   return c.json(result);
 });
 
@@ -192,9 +198,7 @@ boardsHono.patch(
       startAt: input.startAt ? new Date(input.startAt) : undefined,
       endAt: input.endAt ? new Date(input.endAt) : undefined,
     };
-    const result = await boardsService.updateSprint({ boardId, sprintId }, data, {
-      actorId: auth.id,
-    });
+    const result = await boardsService.updateSprint({ boardId, sprintId, actorId: auth.id }, data);
     return c.json(result);
   },
 );
@@ -203,7 +207,7 @@ boardsHono.patch(
 boardsHono.delete('/:boardId/sprints/:sprintId', async (c) => {
   const auth = await getUserAndThrow(c);
   const { boardId, sprintId } = c.req.param();
-  await boardsService.deleteSprint({ boardId, sprintId }, { actorId: auth.id });
+  await boardsService.deleteSprint({ boardId, sprintId, actorId: auth.id });
   return c.json({ success: true });
 });
 
@@ -211,17 +215,25 @@ boardsHono.delete('/:boardId/sprints/:sprintId', async (c) => {
 boardsHono.post('/:boardId/sprints/:sprintId/start', async (c) => {
   const auth = await getUserAndThrow(c);
   const { boardId, sprintId } = c.req.param();
-  const result = await boardsService.startSprint({ boardId, sprintId }, { actorId: auth.id });
+  const result = await boardsService.startSprint({ boardId, sprintId, actorId: auth.id });
   return c.json(result);
 });
 
 // POST /api/v3/boards/:boardId/sprints/:sprintId/complete
-boardsHono.post('/:boardId/sprints/:sprintId/complete', async (c) => {
-  const auth = await getUserAndThrow(c);
-  const { boardId, sprintId } = c.req.param();
-  const result = await boardsService.completeSprint({ boardId, sprintId }, { actorId: auth.id });
-  return c.json(result);
-});
+boardsHono.post(
+  '/:boardId/sprints/:sprintId/complete',
+  zValidator('json', ZBoardSprintCompleteInput),
+  async (c) => {
+    const auth = await getUserAndThrow(c);
+    const { boardId, sprintId } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await boardsService.completeSprint(
+      { boardId, sprintId, actorId: auth.id },
+      input,
+    );
+    return c.json(result);
+  },
+);
 
 export const GET = handle(boardsHono);
 export const POST = handle(boardsHono);

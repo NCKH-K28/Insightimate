@@ -1,30 +1,46 @@
 'use client';
 
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { CheckCircle2, Circle, Clock, AlertTriangle, Inbox } from 'lucide-react';
+import { format, isPast, isToday } from 'date-fns';
+import { FileText, Bug, Inbox, CheckCircle2 } from 'lucide-react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 import type { AssignedIssue } from '@/features/organization/server/dashboard.service';
 
 // ==================== Helpers ====================
 
-const STATUS_CATEGORY_STYLES: Record<string, { icon: React.ElementType; className: string }> = {
-  TODO: {
-    icon: Circle,
-    className: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
-  },
-  IN_PROGRESS: {
-    icon: Clock,
-    className: 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300',
-  },
-  DONE: {
-    icon: CheckCircle2,
-    className: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
-  },
+function getTypeIcon(typeName: string) {
+  const lower = typeName.toLowerCase();
+  if (lower.includes('bug')) return Bug;
+  return FileText;
+}
+
+function getTypeIconStyle(typeName: string) {
+  const lower = typeName.toLowerCase();
+  if (lower.includes('bug')) return 'bg-red-100 text-red-500 dark:bg-red-950 dark:text-red-400';
+  return 'bg-blue-100 text-blue-500 dark:bg-blue-950 dark:text-blue-400';
+}
+
+const PRIORITY_STYLES: Record<string, string> = {
+  highest: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  high: 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-300',
+  medium: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+  low: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
+  lowest: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
 };
+
+function getPriorityStyle(priorityName: string) {
+  return PRIORITY_STYLES[priorityName.toLowerCase()] ?? PRIORITY_STYLES.medium;
+}
+
+function formatDueDate(dueDate: Date | null): string | null {
+  if (!dueDate) return null;
+  const d = new Date(dueDate);
+  if (isToday(d)) return 'Due Today';
+  if (isPast(d)) return 'Overdue';
+  return `Due in ${format(d, 'MMM d')}`;
+}
 
 // ==================== Component ====================
 
@@ -35,19 +51,17 @@ type AssignedToMeProps = {
 export const AssignedToMe: React.FC<AssignedToMeProps> = ({ issues }) => {
   if (issues.length === 0) {
     return (
-      <Card className='border-dashed'>
-        <CardHeader className='pb-3'>
+      <Card>
+        <CardHeader className='pb-2'>
           <CardTitle className='text-base font-semibold flex items-center gap-2'>
             <Inbox className='size-4 text-muted-foreground' />
             Assigned to Me
           </CardTitle>
         </CardHeader>
-        <CardContent className='flex flex-col items-center justify-center py-8 text-center'>
-          <CheckCircle2 className='size-10 text-emerald-400/40 mb-3' />
+        <CardContent className='flex flex-col items-center justify-center py-6 text-center'>
+          <CheckCircle2 className='size-8 text-emerald-400/50 mb-2' />
           <p className='text-sm font-medium text-muted-foreground'>All clear!</p>
-          <p className='text-xs text-muted-foreground/70 mt-1'>
-            You have no open issues assigned to you
-          </p>
+          <p className='text-xs text-muted-foreground/70 mt-0.5'>No open issues assigned to you</p>
         </CardContent>
       </Card>
     );
@@ -55,71 +69,56 @@ export const AssignedToMe: React.FC<AssignedToMeProps> = ({ issues }) => {
 
   return (
     <Card>
-      <CardHeader className='pb-3'>
+      <CardHeader className='pb-2'>
         <div className='flex items-center justify-between'>
           <CardTitle className='text-base font-semibold flex items-center gap-2'>
             <Inbox className='size-4 text-muted-foreground' />
             Assigned to Me
           </CardTitle>
-          <Badge variant='secondary' className='text-xs'>
-            {issues.length}
-          </Badge>
+          <button className='text-xs text-primary hover:underline font-medium'>View all</button>
         </div>
       </CardHeader>
       <CardContent className='pt-0'>
         <div className='divide-y'>
           {issues.map((issue) => {
-            const statusDef =
-              STATUS_CATEGORY_STYLES[issue.status.category] ?? STATUS_CATEGORY_STYLES.TODO;
-            const StatusIcon = statusDef.icon;
-            const isOverdue = issue.dueDate && new Date(issue.dueDate) < new Date();
+            const TypeIcon = getTypeIcon(issue.type.name);
+            const typeStyle = getTypeIconStyle(issue.type.name);
+            const dueDateLabel = formatDueDate(issue.dueDate);
+            const isOverdue = issue.dueDate && isPast(new Date(issue.dueDate));
 
             return (
-              <div key={issue.id} className='flex items-start gap-3 py-3 first:pt-0 last:pb-0'>
-                {/* Status icon */}
-                <div className='mt-0.5 shrink-0'>
-                  <StatusIcon
-                    className='size-4'
-                    style={{ color: issue.status.color ?? undefined }}
-                  />
+              <div key={issue.id} className='flex items-center gap-3 py-3 first:pt-1 last:pb-0'>
+                {/* Type icon */}
+                <div
+                  className={`size-9 rounded-full flex items-center justify-center shrink-0 ${typeStyle}`}
+                >
+                  <TypeIcon className='size-4' />
                 </div>
 
                 {/* Content */}
                 <div className='flex-1 min-w-0'>
-                  <div className='flex items-center gap-2 flex-wrap'>
-                    <span className='text-xs font-mono text-muted-foreground'>{issue.key}</span>
-                    <span className='text-sm font-medium truncate'>{issue.summary}</span>
-                  </div>
-                  <div className='flex items-center gap-2 mt-1.5 flex-wrap'>
-                    <Badge variant='outline' className='text-[10px] px-1.5 py-0'>
-                      {issue.project.key}
-                    </Badge>
-                    <Badge className={`text-[10px] px-1.5 py-0 border-0 ${statusDef.className}`}>
-                      {issue.status.name}
-                    </Badge>
-                    {issue.priority && (
-                      <Badge
-                        variant='outline'
-                        className='text-[10px] px-1.5 py-0'
-                        style={{ borderColor: issue.priority.color ?? undefined }}
-                      >
-                        {issue.priority.name}
-                      </Badge>
+                  <p className='text-sm font-medium truncate'>{issue.summary}</p>
+                  <p className='text-xs text-muted-foreground mt-0.5'>
+                    Project: {issue.project.name}
+                    {dueDateLabel && (
+                      <>
+                        {' • '}
+                        <span className={isOverdue ? 'text-red-500 font-medium' : ''}>
+                          {dueDateLabel}
+                        </span>
+                      </>
                     )}
-                    {issue.dueDate && (
-                      <span
-                        className={`text-[10px] flex items-center gap-0.5 ${
-                          isOverdue ? 'text-red-500 font-medium' : 'text-muted-foreground/60'
-                        }`}
-                      >
-                        {isOverdue && <AlertTriangle className='size-2.5' />}
-                        {formatDistanceToNow(new Date(issue.dueDate), {
-                          addSuffix: true,
-                        })}
-                      </span>
-                    )}
-                  </div>
+                  </p>
                 </div>
+
+                {/* Priority pill */}
+                {issue.priority && (
+                  <span
+                    className={`text-[10px] font-bold uppercase px-2.5 py-1 rounded-full shrink-0 ${getPriorityStyle(issue.priority.name)}`}
+                  >
+                    {issue.priority.name}
+                  </span>
+                )}
               </div>
             );
           })}

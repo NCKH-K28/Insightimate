@@ -151,6 +151,7 @@ const getDestRanks = async (
 export const moveInColumn = async (
   params: { boardId: string; issueId: string },
   input: BoardIssueMoveInput,
+  context: { actorId: string },
 ) => {
   if (input.parentType !== 'column') throw new Error('Invalid parent type');
   if (!input.from.parentId) throw new Error('Invalid source parent id');
@@ -301,7 +302,7 @@ export const moveInColumn = async (
         emitActivity({
           orgId: boardIssue.board.project.orgId,
           projectId: boardIssue.board.project.id,
-          actorId: 'system', // FIXME: need actorId in moveInColumn args
+          actorId: context.actorId,
           actorType: 'USER',
           action: 'STATUS_CHANGED',
           entity: 'ISSUE',
@@ -320,8 +321,9 @@ export const moveInColumn = async (
 export const moveBoardIssue = async (
   params: { boardId: string; issueId: string },
   input: BoardIssueMoveInput,
+  context: { actorId: string },
 ) => {
-  if (input.parentType === 'column') await moveInColumn(params, input);
+  if (input.parentType === 'column') await moveInColumn(params, input, context);
   else {
     const parentField = input.parentType === 'sprint' ? 'sprintId' : 'statusId';
     const destRanks = await getDestRanks(params, input, parentField);
@@ -363,7 +365,7 @@ export const moveBoardIssue = async (
         emitActivity({
           orgId: project.orgId,
           projectId: project.id,
-          actorId: 'system', // FIXME: missing actorId
+          actorId: context.actorId,
           action: 'MOVED',
           entity: 'ISSUE',
           entityId: params.issueId,

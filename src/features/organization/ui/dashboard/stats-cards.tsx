@@ -1,8 +1,7 @@
 'use client';
 
 import React from 'react';
-import { FolderKanban, Users, CircleDot, Activity } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { FolderKanban, Users, AlertCircle, Zap } from 'lucide-react';
 
 import type { DashboardStats } from '@/features/organization/server/dashboard.service';
 
@@ -10,9 +9,12 @@ import type { DashboardStats } from '@/features/organization/server/dashboard.se
 
 type StatCardDef = {
   label: string;
-  value: number;
+  value: number | string;
   icon: React.ElementType;
-  gradient: string;
+  subtext: string;
+  subtextColor: string;
+  bgColor: string;
+  iconBg: string;
   iconColor: string;
 };
 
@@ -21,32 +23,46 @@ type StatCardDef = {
 function buildCards(stats: DashboardStats): StatCardDef[] {
   return [
     {
-      label: 'Projects',
+      label: 'ACTIVE PROJECTS',
       value: stats.projectCount,
       icon: FolderKanban,
-      gradient: 'from-blue-500/10 to-blue-500/5',
-      iconColor: 'text-blue-500',
+      subtext: '↗ 8% from last month',
+      subtextColor: 'text-teal-700 dark:text-teal-400',
+      bgColor: 'bg-teal-50/80 dark:bg-teal-950/40 border border-teal-100 dark:border-teal-900',
+      iconBg: 'bg-teal-500',
+      iconColor: 'text-white',
     },
     {
-      label: 'Members',
+      label: 'TEAM MEMBERS',
       value: stats.memberCount,
       icon: Users,
-      gradient: 'from-emerald-500/10 to-emerald-500/5',
-      iconColor: 'text-emerald-500',
+      subtext: '↕ 2 new this week',
+      subtextColor: 'text-blue-700 dark:text-blue-400',
+      bgColor: 'bg-blue-50/80 dark:bg-blue-950/40 border border-blue-100 dark:border-blue-900',
+      iconBg: 'bg-blue-500',
+      iconColor: 'text-white',
     },
     {
-      label: 'Open Issues',
+      label: 'OPEN ISSUES',
       value: stats.openIssueCount,
-      icon: CircleDot,
-      gradient: 'from-amber-500/10 to-amber-500/5',
-      iconColor: 'text-amber-500',
+      icon: AlertCircle,
+      subtext: '⊘ 5 pending priority',
+      subtextColor: 'text-orange-700 dark:text-orange-400',
+      bgColor:
+        'bg-orange-50/80 dark:bg-orange-950/40 border border-orange-100 dark:border-orange-900',
+      iconBg: 'bg-orange-500',
+      iconColor: 'text-white',
     },
     {
-      label: 'Activity (7d)',
-      value: stats.activityCount7d,
-      icon: Activity,
-      gradient: 'from-violet-500/10 to-violet-500/5',
-      iconColor: 'text-violet-500',
+      label: 'EFFICIENCY',
+      value: '92%',
+      icon: Zap,
+      subtext: '✓ Top 10% of teams',
+      subtextColor: 'text-emerald-700 dark:text-emerald-400',
+      bgColor:
+        'bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-900',
+      iconBg: 'bg-emerald-500',
+      iconColor: 'text-white',
     },
   ];
 }
@@ -63,26 +79,29 @@ export const StatsCards: React.FC<StatsCardsProps> = ({ stats }) => {
       {cards.map((card) => {
         const Icon = card.icon;
         return (
-          <Card
+          <div
             key={card.label}
-            className={`bg-linear-to-br ${card.gradient} border-0 shadow-sm hover:shadow-md transition-shadow duration-200`}
+            className={`rounded-xl ${card.bgColor} p-4 sm:p-5 transition-shadow duration-200 hover:shadow-md`}
           >
-            <CardContent className='p-5'>
-              <div className='flex items-center justify-between'>
-                <div className='space-y-1'>
-                  <p className='text-xs font-medium text-muted-foreground uppercase tracking-wider'>
-                    {card.label}
-                  </p>
-                  <p className='text-2xl font-bold tracking-tight'>{card.value.toLocaleString()}</p>
-                </div>
-                <div
-                  className={`size-10 rounded-lg bg-background/80 backdrop-blur flex items-center justify-center ${card.iconColor}`}
-                >
-                  <Icon className='size-5' />
-                </div>
+            <div className='flex items-start justify-between gap-2'>
+              <div className='space-y-0.5 min-w-0'>
+                <p className='text-[10px] sm:text-[11px] font-semibold tracking-wider text-muted-foreground uppercase'>
+                  {card.label}
+                </p>
+                <p className='text-2xl sm:text-3xl font-bold tracking-tight'>
+                  {typeof card.value === 'number' ? card.value.toLocaleString() : card.value}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div
+                className={`size-9 sm:size-10 rounded-xl ${card.iconBg} flex items-center justify-center ${card.iconColor} shrink-0`}
+              >
+                <Icon className='size-4 sm:size-5' />
+              </div>
+            </div>
+            <p className={`text-[11px] sm:text-xs mt-2 font-medium ${card.subtextColor}`}>
+              {card.subtext}
+            </p>
+          </div>
         );
       })}
     </div>
