@@ -1,7 +1,12 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { BoardIssueCreateInput, BoardIssueUpdateInput } from '@/contracts/boards/board.input';
-import { BoardIssueQueryParams, ZBoardIssueList, ZBoardItem } from '@/contracts/boards/board.query';
+import {
+  BoardIssueQueryParams,
+  ZBoardColumnList,
+  ZBoardIssueList,
+  ZBoardItem,
+} from '@/contracts/boards/board.query';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { format } from 'date-fns';
@@ -29,6 +34,21 @@ const getById = async (id: string) => {
   });
   if (!board) throw new Error('Board not found');
   return ZBoardItem.parse(board);
+};
+
+const listColumns = async (boardId: string) => {
+  const columns = await prisma.boardColumn.findMany({
+    where: { boardId },
+    include: { statuses: { include: { status: true } } },
+    orderBy: { sequence: 'asc' },
+  });
+
+  const mappedColumns = columns.map(({ statuses, ...col }) => ({
+    statuses: statuses.map(({ status }) => status),
+    ...col,
+  }));
+
+  return ZBoardColumnList.parse({ data: mappedColumns, meta: {} });
 };
 
 const getIssue = async (
@@ -421,6 +441,7 @@ export const boardsService = {
   getIssue,
   addIssue,
   listIssues,
+  listColumns,
   updateIssue,
   deleteIssue,
 

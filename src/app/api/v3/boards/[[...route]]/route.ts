@@ -41,6 +41,14 @@ const ZColumnCreateInput = z.object({
   ),
 });
 
+// GET /api/v3/boards/:boardId/columns
+boardsHono.get('/:boardId/columns', async (c) => {
+  const auth = await getUserAndThrow(c); // Validate session
+  const { boardId } = c.req.param();
+  const result = await boardsService.listColumns(boardId);
+  return c.json(result);
+});
+
 // POST /api/v3/boards/:boardId/columns
 boardsHono.post('/:boardId/columns', zValidator('json', ZColumnCreateInput), async (c) => {
   const { boardId } = c.req.param();
