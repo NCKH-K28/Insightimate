@@ -3,10 +3,13 @@ import { ProjectQueryParams } from '@/contracts/project';
 import { projectApi } from './http';
 import { ProjectListInput } from '../server/cqrs/search-projects';
 
-export const getProjectQueryOptions = (params: { projId: string }) => {
+export const getProjectQueryOptions = (
+  params: { projId: string } | { projectId: string; projId?: string },
+) => {
+  const projId = 'projId' in params ? params.projId : params.projectId;
   return queryOptions({
-    queryKey: ['projects', params.projId],
-    queryFn: async () => projectApi.get(params),
+    queryKey: ['projects', projId],
+    queryFn: async () => projectApi.get({ projId: projId as string }),
     staleTime: 1000 * 60 * 5,
   });
 };
@@ -45,10 +48,13 @@ export const fetchRecentProjectsQueryOptions = () =>
     select: (res) => res.data,
   });
 
-export const fetchProjectQueryOptions = (params: { projId: string }) => {
+export const fetchProjectQueryOptions = (
+  params: { projId: string } | { projectId: string; projId?: string },
+) => {
+  const projId = 'projId' in params ? params.projId : params.projectId;
   return queryOptions({
-    queryKey: ['projects', params.projId],
-    queryFn: async () => projectApi.get(params),
+    queryKey: ['projects', projId],
+    queryFn: async () => projectApi.get({ projId: projId as string }),
     staleTime: 1000 * 60 * 5,
   });
 };
