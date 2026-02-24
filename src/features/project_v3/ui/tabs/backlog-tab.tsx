@@ -12,13 +12,40 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   useReactTable,
+  type Table,
 } from '@tanstack/react-table';
 import React, { useMemo } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ColumnFilter } from '@/components/table';
+import { type ColumnFilter, DataTableToolbar } from '@/components/table';
 import { useIssuesToScrumRows } from '@/features/boards/hooks';
 import { issueColumns } from '@/features/boards/ui/tables/issue-column';
-import BacklogLayout from '@/app/(authed)/wps/[workspaceId]/projects/[projectId]/(project)/_tabs/baklog-tab/backlog-layout';
+import { ScrumBoard, type ScrumRowProps } from '@/features/boards/ui/containers/scrum/scrum-board';
+import { EpicsPanel } from '@/features/boards/ui/containers/scrum/scrum-epic-panel';
+
+// ==================== Inline BacklogLayout ====================
+// Previously lived at wps/[...]/backlog-layout which was deleted during v2→v3 migration.
+
+type BacklogLayoutProps = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  table: Table<any>;
+  tableConfig: { searchPlaceholder?: string; searchColumn?: string; filters?: ColumnFilter[] };
+  rows: ScrumRowProps[];
+  params: { boardId: string; projectId: string; orgSlug: string };
+};
+
+function BacklogLayout({ table, tableConfig, rows, params }: BacklogLayoutProps) {
+  return (
+    <div className='space-y-4'>
+      <DataTableToolbar table={table} config={tableConfig} />
+      <div className='flex gap-4'>
+        <EpicsPanel params={params} className='w-64 shrink-0 rounded-lg border' />
+        <div className='flex-1 min-w-0'>
+          <ScrumBoard rows={rows} />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 const BacklogSkeleton = () => (
   <div className='w-full space-y-4'>
@@ -99,8 +126,8 @@ export function BacklogTab({ params }: BacklogTabProps) {
   const tableRows = table.getRowModel().rows;
   const filtered = useMemo(() => tableRows.map((row) => row.original), [tableRows]);
 
-  // BacklogLayout & useIssuesToScrumRows expect { boardId, projectId, workspaceId }
-  const legacyParams = { boardId, projectId: projId, workspaceId: '' };
+  // BacklogLayout & useIssuesToScrumRows expect { boardId, projectId, orgSlug }
+  const legacyParams = { boardId, projectId: projId, orgSlug: '' };
   const rows = useIssuesToScrumRows(legacyParams, filtered, board?.sprints || []);
 
   if (isPending) return <BacklogSkeleton />;

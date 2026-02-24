@@ -69,7 +69,7 @@ import { BoardIssueItem } from '@/contracts/boards/board.query';
 type SubIssue = BoardIssueItem;
 
 interface SubIssuesProps {
-  params: { workspaceId: string; boardId: string; projectId: string; issueId: string };
+  params: { orgSlug: string; boardId: string; projectId: string; issueId: string };
   statuses?: Array<{ id: string; name: string; category?: string }>;
   className?: string;
 }
@@ -244,7 +244,7 @@ const QuickAddInput = ({ onSubmit, onCancel, isLoading }: QuickAddInputProps) =>
 // Sortable Sub Issue Item
 interface SubIssueItemProps {
   issue: SubIssue;
-  workspaceId: string;
+  orgSlug: string;
   projectId: string;
   onStatusChange: (issueId: string, statusId: string) => void;
   onDelete: (issueId: string) => void;
@@ -254,7 +254,7 @@ interface SubIssueItemProps {
 
 const SubIssueItem = ({
   issue,
-  workspaceId,
+  orgSlug,
   projectId,
   onStatusChange,
   onDelete,
@@ -325,7 +325,7 @@ const SubIssueItem = ({
 
       {/* Issue Key */}
       <Link
-        href={`/wps/${workspaceId}/projects/${projectId}/issues/${issue.id}`}
+        href={`/o/${orgSlug}/projects/${projectId}/issues/${issue.id}`}
         className='shrink-0'
       >
         <Badge
@@ -338,7 +338,7 @@ const SubIssueItem = ({
 
       {/* Summary */}
       <Link
-        href={`/wps/${workspaceId}/projects/${projectId}/issues/${issue.id}`}
+        href={`/o/${orgSlug}/projects/${projectId}/issues/${issue.id}`}
         className={cn(
           'flex-1 text-sm truncate hover:text-primary transition-colors',
           issue.status.category === 'DONE' && 'line-through text-muted-foreground',
@@ -727,7 +727,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
                     <SubIssueItem
                       key={issue.id}
                       issue={issue}
-                      workspaceId={params.workspaceId}
+                      orgSlug={params.orgSlug}
                       projectId={params.projectId}
                       onStatusChange={handleStatusChange}
                       onDelete={handleDelete}

@@ -19,7 +19,7 @@ import { SprintHeaderSkeleton } from './sprint-header-skeleton';
 
 import { Sprint } from '../mock-data';
 
-type SprintHeaderProps = { params: { workspaceId: string; sprintId: string } };
+type SprintHeaderProps = { params: { orgSlug: string; sprintId: string } };
 function SprintHeader({ ...props }: SprintHeaderProps) {
   const { data: sprint } = useSuspenseQuery({
     queryKey: ['sprints', props.params.sprintId],

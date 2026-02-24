@@ -12,7 +12,7 @@ import { RowBacklog, RowSprint } from '../ui/containers/scrum';
 const BACKLOG_ROW_ID = 'backlog';
 
 export const useIssuesToScrumRows = (
-  params: { boardId: string; projectId: string; workspaceId: string },
+  params: { boardId: string; projectId: string; orgSlug: string },
   issues: BoardIssueItem[],
   sprints: { id: string; name: string }[] = [],
 ): ScrumRowProps[] => {

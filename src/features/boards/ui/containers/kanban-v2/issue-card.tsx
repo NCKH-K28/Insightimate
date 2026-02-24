@@ -139,13 +139,13 @@ type IssueCardProps = {
 };
 
 export const IssueCard = ({ item, isDragging, dragProps, onRemove, onEdit }: IssueCardProps) => {
-  const params = useParams<{ workspaceId: string }>();
+  const params = useParams<{ orgSlug: string }>();
   const router = useRouter();
-  if (!params) throw new Error('No workspaceId found');
+  if (!params) throw new Error('No orgSlug found');
   if (!router) throw new Error('No router found');
   const issue = item.data;
 
-  const href = `/wps/${params.workspaceId}/projects/${issue.projectId}/issues/${item.id}`;
+  const href = `/o/${params.orgSlug}/projects/${issue.projectId}/issues/${item.id}`;
   return (
     <Card
       className={cn(

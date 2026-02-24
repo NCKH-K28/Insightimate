@@ -48,8 +48,8 @@ export const IssueAssigneeCell: CellType = ({ row }) => {
       ]}
       popoverClassName='w-72'
       fetchQueryOptions={() => ({
-        ...listProjectMembersQueryOptions(params),
-        select: (res) => get(res, 'members.data', []), // FIXME: should be res.data
+        ...listProjectMembersQueryOptions({ projId: params.projectId }),
+        select: (res: any) => res.data ?? [],
       })}
       disabled={updateIssue.isPending}
       placeholder='Unassigned'

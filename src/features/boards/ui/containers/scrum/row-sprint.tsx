@@ -26,7 +26,7 @@ const formatSprintDates = (start: Date, end: Date) => {
 
 type RowSprintProps = {
   id: string; // this is rowId
-  params: { boardId: string; projectId: string; workspaceId: string };
+  params: { boardId: string; projectId: string; orgSlug: string };
   sprint: {
     id: string;
     boardId: string;
@@ -43,7 +43,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
   const route = useRouter();
 
   const toSprintDetail = () => {
-    const path = `/wps/${params.workspaceId}/sprints/${sprint.id}`;
+    const path = `/o/${params.orgSlug}/sprints/${sprint.id}`;
     route.push(path);
   };
 
@@ -51,7 +51,7 @@ export const RowSprint = ({ id, params, sprint, collapsed, toggle }: RowSprintPr
     boardId: params.boardId,
     sprintId: sprint.id,
     projectId: params.projectId,
-    workspaceId: params.workspaceId,
+    orgSlug: params.orgSlug,
   };
   const deleteSprint = useMutation(deleteBoardSprintMutationOptions(context));
   const startSprint = useMutation(startBoardSprintMutationOptions(context));

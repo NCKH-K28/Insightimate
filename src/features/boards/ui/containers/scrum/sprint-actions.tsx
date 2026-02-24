@@ -17,7 +17,7 @@ type SprintActionsProps = {
   onEdit?: () => void;
   onDelete?: () => void;
   params: {
-    workspaceId: string;
+    orgSlug: string;
     boardId: string;
     sprintId: string;
   };
@@ -47,7 +47,7 @@ export const SprintActions = ({ onDelete, params, defaultValues }: SprintActions
           <DropdownMenuItem
             onClick={(e) => {
               e.stopPropagation();
-              const path = `/wps/${params.workspaceId}/sprints/${params.sprintId}`;
+              const path = `/o/${params.orgSlug}/sprints/${params.sprintId}`;
               router.push(path);
             }}
           >

@@ -31,7 +31,7 @@ type IssueOption = {
 };
 
 type BoardIssueSelectorsProps = {
-  params: { workspaceId: string; boardId: string };
+  params: { orgSlug: string; boardId: string };
   value?: string | null;
   onChange?: (value: string | null) => void;
   defaultValue?: string | null;

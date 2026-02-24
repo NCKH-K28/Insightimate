@@ -27,7 +27,7 @@ import { CreateIssueButton } from '../../buttons/create-issue-btn';
 type Epic = BoardIssueItem;
 
 type EpicsPanelProps = {
-  params: { workspaceId: string; boardId: string; projectId: string };
+  params: { orgSlug: string; boardId: string; projectId: string };
   className?: string;
   epics?: Epic[];
   selectedEpicId?: string | null;
@@ -87,7 +87,7 @@ const EpicCard = ({
   onSelect,
   onHover,
 }: {
-  params: { workspaceId: string; projectId: string; boardId: string };
+  params: { orgSlug: string; projectId: string; boardId: string };
   epic: Epic;
   isSelected: boolean;
   isHovered: boolean;
@@ -119,7 +119,7 @@ const EpicCard = ({
               />
             )}
             <Link
-              href={`/wps/${params.workspaceId}/projects/${params.projectId}/issues/${epic.id}`}
+              href={`/o/${params.orgSlug}/projects/${params.projectId}/issues/${epic.id}`}
               className={cn('text-xs font-medium text-muted-foreground')}
             >
               {epic.key}

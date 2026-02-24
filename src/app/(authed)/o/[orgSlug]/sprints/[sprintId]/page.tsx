@@ -221,7 +221,7 @@ function CreateIssueDialog({ isOpen, onClose }: { isOpen: boolean; onClose: () =
 export default function SprintPage() {
   const searchparams = useSearchParams();
   if (!searchparams) throw new Error('Search params are undefined');
-  const params = useParams<{ workspaceId: string; sprintId: string }>();
+  const params = useParams<{ orgSlug: string; sprintId: string }>();
   if (!params) throw new Error('Params are undefined');
   const router = useRouter();
   const pathname = usePathname();
@@ -298,7 +298,7 @@ export default function SprintPage() {
             <div className='flex-1 overflow-auto'>
               <KanbanTabV3
                 params={{
-                  workspaceId: params.workspaceId,
+                  orgSlug: params.orgSlug,
                   boardId: sprint.boardId,
                   projectId: sprint.projectId,
                 }}

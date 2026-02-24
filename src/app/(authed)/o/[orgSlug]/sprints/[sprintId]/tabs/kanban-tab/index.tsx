@@ -115,7 +115,7 @@ const KanbanTabSkeleton = () => {
 };
 
 type KanbanTabV3Props = {
-  params: { workspaceId: string; projectId: string; boardId: string };
+  params: { orgSlug: string; projectId: string; boardId: string };
   issues: BoardIssueItem[];
 };
 export default function KanbanTabV3({ params, issues }: KanbanTabV3Props) {

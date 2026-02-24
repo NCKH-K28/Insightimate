@@ -78,7 +78,7 @@ export const AddTeamDialogButton = (props: AddTeamDialogButtonProps) => {
   const [open, setOpen] = React.useState(false);
   const { projectId } = props;
 
-  const { data: actors } = useQuery(listProjectMembersQueryOptions({ projectId }));
+  const { data: actors } = useQuery(listProjectMembersQueryOptions({ projId: projectId }));
   const teams = actors?.filter((actor) => actor.type === 'TEAM') || [];
 
   const form = useForm({

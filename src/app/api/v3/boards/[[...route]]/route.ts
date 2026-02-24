@@ -15,6 +15,7 @@ import {
   ZBoardIssueRankUpdate,
   ZBoardIssueUpdateInput,
   ZBoardSprintCompleteInput,
+  ZMoveIssueInputV2,
 } from '@/contracts/boards/board.input';
 
 const boardsHono = new Hono().basePath('/api/v3/boards');
@@ -131,6 +132,48 @@ boardsHono.delete('/:boardId/issues/:issueId', async (c) => {
   const { boardId, issueId } = c.req.param();
   await boardsService.deleteIssue({ boardId, issueId }, { actorId: auth.id });
   return c.json({ success: true });
+});
+
+// POST /api/v3/boards/:boardId/issues:move  (kanban-style path-based move)
+boardsHono.post('/:boardId/issues:move', zValidator('json', ZMoveIssueInputV2), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { boardId } = c.req.param();
+  const input = c.req.valid('json');
+
+  // Parse path-format:  /cols/<colId|null>/items/<issueId>
+  const PATH_RE = /^\/cols\/([^/]+)\/items\/([^/]+)$/;
+  const fromMatch = input.from.match(PATH_RE);
+  const toMatch = input.to.match(PATH_RE);
+  if (!fromMatch || !toMatch) {
+    return c.json({ error: 'Invalid from/to format' }, 400);
+  }
+
+  const fromColId = fromMatch[1] === 'null' ? null : fromMatch[1];
+  const issueId = fromMatch[2];
+  const toColId = toMatch[1] === 'null' ? null : toMatch[1];
+  const toRef = toMatch[2]; // issueId | 'top' | 'bottom'
+
+  // Build relative positioning
+  let relative: { type: 'top' | 'bottom' } | { type: 'after'; refId: string };
+  if (toRef === 'top') {
+    relative = { type: 'top' };
+  } else if (toRef === 'bottom') {
+    relative = { type: 'bottom' };
+  } else {
+    relative = { type: 'after', refId: toRef };
+  }
+
+  const moveInput = {
+    parentType: 'column' as const,
+    relative,
+    from: { parentId: fromColId },
+    to: { parentId: toColId },
+  };
+
+  const result = await boardsService.moveIssue({ boardId, issueId }, moveInput, {
+    actorId: auth.id,
+  });
+  return c.json(result);
 });
 
 // POST /api/v3/boards/:boardId/issues/:issueId/move

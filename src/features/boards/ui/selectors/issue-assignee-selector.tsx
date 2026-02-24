@@ -41,8 +41,8 @@ export const IssueAssigneeSelector = ({ params }: IssueAssigneeSelectorProps) =>
       value={value ? userToOption(value) : null}
       extendOptions={[unassignedUser()]}
       fetchQueryOptions={() => ({
-        ...listProjectMembersQueryOptions(params),
-        select: (res) => res.members.data,
+        ...listProjectMembersQueryOptions({ projId: params.projectId }),
+        select: (res: any) => res.data,
       })}
       disabled={updateIssue.isPending}
       placeholder='Unassigned'

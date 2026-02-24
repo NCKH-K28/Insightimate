@@ -25,7 +25,7 @@ export type Issue = IssueItem & {
 };
 
 interface IssueMainPanelProps {
-  params: { workspaceId: string; projectId: string; boardId: string; issueId: string };
+  params: { orgSlug: string; projectId: string; boardId: string; issueId: string };
   className?: string;
 }
 

@@ -238,7 +238,7 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
                       className='max-w-40 overflow-hidden'
                       placeholder={issue.parent ? issue.parent.summary : 'Select epic'}
                       disabled={updateIssue.isPending}
-                      params={{ workspaceId: '', boardId: issue.boardId }}
+                      params={{ orgSlug: '', boardId: issue.boardId }}
                       defaultValue={issue.parentId ?? null}
                       onChange={(value) => handleUpdate({ parentId: value })}
                       queryFilter={{

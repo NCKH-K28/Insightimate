@@ -39,19 +39,19 @@ export type IssueItemProps = {
 export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
   // FIXME: use workspace root path from context or hook
   const pathname = usePathname();
-  const p = useParams<{ workspaceId: string }>();
+  const p = useParams<{ orgSlug: string }>();
   if (!p) throw new Error('params are undefined');
   if (!pathname) throw new Error('pathname is undefined');
 
   const wspRoot = useMemo(() => {
-    // p: wps/{workspaceId}/...
-    const reg = new RegExp(`/wps/${p.workspaceId}(/|$)`);
+    // p: wps/{orgSlug}/...
+    const reg = new RegExp(`/o/${p.orgSlug}(/|$)`);
     const match = pathname.match(reg);
     if (match) {
       return match[0].replace(/\/$/, ''); // remove trailing slash
     }
-    return `/wps/${p.workspaceId}`;
-  }, [pathname, p.workspaceId]);
+    return `/o/${p.orgSlug}`;
+  }, [pathname, p.orgSlug]);
   //============
 
   const params = useMemo(
@@ -140,7 +140,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
         <BoardIssueSelectors
           className='max-w-40 overflow-hidden'
           placeholder={issue.parent ? issue.parent.summary : 'Select epic'}
-          params={{ workspaceId: '', boardId: issue.boardId }}
+          params={{ orgSlug: '', boardId: issue.boardId }}
           defaultValue={issue.parentId ?? null}
           disabled={updateIssue.isPending}
           onChange={(value) => handleUpdate({ parentId: value })}
@@ -191,8 +191,8 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
             className='w-full'
             extendOptions={[unassignedUser()]}
             fetchQueryOptions={() => ({
-              ...listProjectMembersQueryOptions(params),
-              select: (res) => res.members.data,
+              ...listProjectMembersQueryOptions({ projId: params.projectId }),
+              select: (res: any) => res.data,
             })}
             disabled={updateIssue.isPending}
             placeholder='Unassigned'
