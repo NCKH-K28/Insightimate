@@ -30,7 +30,7 @@ export default async function Page({ params }: PageProps) {
         <p className='text-muted-foreground'>Manage your organization&apos;s projects</p>
       </div>
 
-      <ProjectsTable initialData={result.data} orgId={org.id} />
+      <ProjectsTable initialData={result.data} orgId={org.id} context={{ userId: actorId }} />
     </div>
   );
 }

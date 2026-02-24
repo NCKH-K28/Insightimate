@@ -17,62 +17,18 @@ import { z } from 'zod';
 import { getErrorMsg } from '@/lib/api/helper';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  DEFAULT_PRIORITIES,
+  DEFAULT_STATUSES,
+  DEFAULT_TYPES,
+} from '@/features/project/contants/default-project';
+import { getDefaultRoles } from '@/features/project/contants/default-roles';
 
 const ZCreateFormData = ZProjectCreateInput;
 type CreateFormData = z.infer<typeof ZCreateFormData>;
 
-const ProjectTypes = (props: { form: UseFormReturn<CreateFormData> }) => {
-  const { fields, append, remove } = useFieldArray({ control: props.form.control, name: 'types' });
-
-  return (
-    <div>
-      {fields.map((field, index) => (
-        <div key={field.id}>
-          <Input {...props.form.register(`types.${index}.name`)} />
-          <Button type='button' onClick={() => remove(index)}>
-            Remove
-          </Button>
-        </div>
-      ))}
-      <Button
-        type='button'
-        onClick={() => {
-          append({ name: '', description: '', hierarchy: 1, sequence: fields.length });
-        }}
-      >
-        Add Type
-      </Button>
-    </div>
-  );
-};
-
-const ProjectStatus = (props: { form: UseFormReturn<CreateFormData> }) => {
-  const { fields, append, remove } = useFieldArray({
-    control: props.form.control,
-    name: 'statuses',
-  });
-
-  return (
-    <div>
-      {fields.map((field, index) => (
-        <div key={field.id}>
-          <Input {...props.form.register(`statuses.${index}.name`)} />
-          <Button type='button' onClick={() => remove(index)}>
-            Remove
-          </Button>
-        </div>
-      ))}
-      <Button
-        type='button'
-        onClick={() => {
-          append({ name: '', description: '', category: 'TODO', sequence: fields.length });
-        }}
-      >
-        Add Status
-      </Button>
-    </div>
-  );
-};
+import { ProjectTypeMap } from './project-type-map';
+import { ProjectStatusEditor } from './project-status-editor';
 
 type Lead = { id: string; name: string; avatar?: string };
 type ProjectCreateFormProps = {
@@ -82,6 +38,7 @@ type ProjectCreateFormProps = {
   defaultValue?: Partial<ProjectCreateInput>;
   leadOptions?: Lead[] | Promise<Lead[]>;
 };
+
 export function ProjectCreateForm({
   onSuccess,
   onValueChange,
@@ -101,7 +58,30 @@ export function ProjectCreateForm({
       description: '',
       type: 'SOFTWARE',
       avatar: '/icons/project/1000.svg',
-      roles: [],
+      roles: getDefaultRoles(),
+      types: DEFAULT_TYPES.map((t) => ({
+        name: t.name,
+        color: t.color,
+        hierarchy: t.hierarchy,
+        iconURL: t.iconURL ?? null,
+        description: null,
+        sequence: t.sequence,
+      })),
+      statuses: DEFAULT_STATUSES.map((s) => ({
+        name: s.name,
+        color: s.color,
+        category: s.category,
+        iconURL: null,
+        description: null,
+        sequence: s.sequence,
+      })),
+      priorities: DEFAULT_PRIORITIES.map((p) => ({
+        name: p.name,
+        color: p.color,
+        iconURL: p.iconURL ?? null,
+        description: null,
+        sequence: p.sequence,
+      })),
     },
   });
 
@@ -136,38 +116,30 @@ export function ProjectCreateForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={handleSubmit} className={cn('container mx-auto max-w-2xl', 'space-y-6')}>
+      <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
         <Tabs defaultValue='info' className='w-full'>
-          <TabsList>
+          <TabsList className='w-full grid grid-cols-4'>
             <TabsTrigger value='info'>Info</TabsTrigger>
-            <TabsTrigger value='type'>Type</TabsTrigger>
-            <TabsTrigger value='field'>Field</TabsTrigger>
-            <TabsTrigger value='permission'>Permission</TabsTrigger>
+            <TabsTrigger value='type'>Type Map</TabsTrigger>
+            <TabsTrigger value='status'>Status</TabsTrigger>
+            <TabsTrigger value='permission'>Security</TabsTrigger>
           </TabsList>
-          <TabsContent value='info'>
+          <TabsContent value='info' className='mt-4'>
             <ProjectInfo form={form} />
           </TabsContent>
-          <TabsContent value='type'>
-            <ProjectTypes form={form} />
+          <TabsContent value='type' className='mt-4'>
+            <ProjectTypeMap form={form} />
           </TabsContent>
-          <TabsContent value='field'>
-            <ProjectStatus form={form} />
+          <TabsContent value='status' className='mt-4'>
+            <ProjectStatusEditor form={form} />
           </TabsContent>
-          <TabsContent value='permission'>
+          <TabsContent value='permission' className='mt-4'>
             <ProjectPermission form={form} />
           </TabsContent>
         </Tabs>
 
-        <div
-          className={cn(
-            'flex items-center justify-end gap-2 py-2',
-            'sticky bottom-0 bg-white dark:bg-gray-800',
-          )}
-        >
-          <Button hidden type='button' variant='outline'>
-            Cancel
-          </Button>
-          <Button type='submit' disabled={form.formState.isSubmitting || !form.formState.isValid}>
+        <div className={cn('flex items-center justify-end gap-3 pt-4', 'border-t')}>
+          <Button type='submit' disabled={form.formState.isSubmitting}>
             {(form.formState.isSubmitting && <Loader2 className='animate-spin' />) || <Plus />}
             {form.formState.isSubmitting ? 'Creating...' : 'Create Project'}
           </Button>

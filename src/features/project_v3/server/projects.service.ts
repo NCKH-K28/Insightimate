@@ -29,6 +29,7 @@ import { IssueStatusCategory } from '@/contracts/issues';
 import { buildProjectTuples } from '@/lib/authz/tuple-factory';
 import { ProjectError } from '@/lib/http/errors';
 import { emitActivity } from '@/features/activity/server/emit-activity';
+import { getDefaultRoles } from '@/features/project_v3/constants/default-roles';
 
 // =============================== HELPERS
 type TxClient = Prisma.TransactionClient;
@@ -42,10 +43,9 @@ const buildRoleCreateManyData = (
   input: ProjectCreateInput,
   projectId: string,
 ): PrismaRoleCreateInput[] => {
-  if (!input.roles || input.roles.length === 0) return [];
-  return input.roles
-    .map((r) => ({ ...r, projectId }))
-    .map((r) => ({ ...r, id: genProjectRoleId() }));
+  const roles = input.roles && input.roles.length > 0 ? input.roles : getDefaultRoles();
+
+  return roles.map((r) => ({ ...r, projectId })).map((r) => ({ ...r, id: genProjectRoleId() }));
 };
 
 const buildPriorityCreateManyData = (
@@ -219,9 +219,18 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
     updatedAt: addSeconds(new Date(), idx),
   }));
 
-  const priorities = buildPriorityCreateManyData(templateConfig);
-  const statuses = buildStatusCreateManyData(templateConfig);
-  const types = buildTypeCreateManyData(templateConfig);
+  const priorities = input.priorities?.length
+    ? input.priorities.map((p) => ({ ...p, id: genIssuePriorityId() }))
+    : buildPriorityCreateManyData(templateConfig);
+
+  const statuses = input.statuses?.length
+    ? input.statuses.map((s) => ({ ...s, id: genIssueStatusId() }))
+    : buildStatusCreateManyData(templateConfig);
+
+  const types = input.types?.length
+    ? input.types.map((t) => ({ ...t, id: genIssueTypeId() }))
+    : buildTypeCreateManyData(templateConfig);
+
   const resolutions = buildResolutionCreateManyData(templateConfig);
 
   await prisma.$transaction(async (tx) => {

@@ -28,9 +28,10 @@ import { projectColumns } from './project-column';
 interface ProjectsTableProps {
   initialData: ProjectItem[];
   orgId: string;
+  context: { userId: string };
 }
 
-export function ProjectsTable({ initialData, orgId }: ProjectsTableProps) {
+export function ProjectsTable({ initialData, orgId, context }: ProjectsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -110,7 +111,7 @@ export function ProjectsTable({ initialData, orgId }: ProjectsTableProps) {
       <CreateProjectDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        values={{ leadId: '', orgId }}
+        values={{ leadId: context.userId, orgId }}
       />
     </div>
   );

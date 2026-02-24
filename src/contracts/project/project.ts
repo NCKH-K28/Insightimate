@@ -58,7 +58,7 @@ export const ZProject = z.object({
   type: ZProjectType,
 
   // Nếu backend cho phép null/empty, để nullish trong core entity (contract boundary)
-  avatar: z.string().trim().url().nullish(),
+  avatar: z.string().trim().nullish(),
 
   name: z.string().trim().min(1, 'Name is required'),
   description: z.string().trim().nullish(),

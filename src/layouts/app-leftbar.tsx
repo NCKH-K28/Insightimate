@@ -70,7 +70,7 @@ const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link href={`/o/${orgSlug}/foryou`}>
+              <Link href={`/o/${orgSlug}`}>
                 <HomeIcon />
                 <span>For You</span>
               </Link>
