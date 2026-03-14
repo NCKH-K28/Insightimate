@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { getProjectQueryOptions } from '@/features/project/api/actions';
+import { ActivityFeedPanel } from '@/features/activity/ui/activity-feed-panel';
 
 import {
   SummaryTab,
@@ -38,7 +39,7 @@ const Wrapper = React.memo(
 
 // ---------- Tabs config ----------
 
-const makeTabs = (projId: string) => ({
+const makeTabs = (projId: string, orgId: string) => ({
   summary: {
     label: 'Summary',
     content: <Wrapper projId={projId} Component={SummaryTab} />,
@@ -63,6 +64,14 @@ const makeTabs = (projId: string) => ({
     label: 'Calendar',
     content: <Wrapper projId={projId} Component={CalendarTab} />,
   },
+  activity: {
+    label: 'Activity',
+    content: orgId ? (
+      <ActivityFeedPanel orgId={orgId} projectId={projId} />
+    ) : (
+      <div className='p-4 text-muted-foreground'>Loading…</div>
+    ),
+  },
 });
 
 // ---------- ProjectTabs ----------
@@ -74,7 +83,11 @@ export function ProjectTabs({ projId }: ProjectTabsProps) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  const tabs = React.useMemo(() => makeTabs(projId), [projId]);
+  // Fetch orgId from the project to pass to the Activity tab
+  const { data: project } = useQuery(getProjectQueryOptions({ projId }));
+  const orgId = (project as any)?.orgId as string | undefined;
+
+  const tabs = React.useMemo(() => makeTabs(projId, orgId ?? ''), [projId, orgId]);
   const tabArr = React.useMemo(() => Object.entries(tabs), [tabs]);
 
   const currentTab = searchParams?.get('tab') || tabArr[0][0];

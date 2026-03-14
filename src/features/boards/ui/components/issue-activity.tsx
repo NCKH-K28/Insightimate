@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CommentThread, CommentThreadSkeleton } from '@/features/collab/ui/comment-thread';
+import { ActivityFeed } from '@/features/activity/ui/activity-feed';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import axiosInstance from '@/lib/api/_client';
 import { io, Socket } from 'socket.io-client';
 import sortBy from 'lodash/sortBy';
@@ -62,14 +64,47 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
   );
 };
 
-export default function IssueActivity({ issueId }: { issueId: string }) {
+// ─── History Tab ──────────────────────────────────────────────────────────────
+
+type HistoryTabProps = { issueId: string; orgId: string };
+
+const HistoryTab: React.FC<HistoryTabProps> = ({ issueId, orgId }) => (
+  <TooltipProvider delayDuration={300}>
+    <ActivityFeed
+      params={{
+        orgId,
+        entity: 'ISSUE',
+        entityId: issueId,
+        limit: 25,
+      }}
+      showProject={false}
+    />
+  </TooltipProvider>
+);
+
+// ─── Main Export ──────────────────────────────────────────────────────────────
+
+export default function IssueActivity({
+  issueId,
+  orgId,
+}: {
+  issueId: string;
+  /** orgId is required to scope the activity feed */
+  orgId: string;
+}) {
   return (
     <Tabs defaultValue='comments' className='w-full'>
       <TabsList>
         <TabsTrigger value='comments'>Comments</TabsTrigger>
+        <TabsTrigger value='activity'>Activity</TabsTrigger>
       </TabsList>
+
       <TabsContent value='comments'>
         <CommentsTab issueId={issueId} />
+      </TabsContent>
+
+      <TabsContent value='activity'>
+        <HistoryTab issueId={issueId} orgId={orgId} />
       </TabsContent>
     </Tabs>
   );

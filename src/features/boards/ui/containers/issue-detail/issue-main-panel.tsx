@@ -16,6 +16,7 @@ import {
 } from '@/features/boards/api/actions';
 import { toast } from 'sonner';
 import SubIssues from './sub-issues';
+import { baseApi } from '@/lib/api/_client';
 
 export type Issue = IssueItem & {
   description: string | null;
@@ -26,6 +27,9 @@ export type Issue = IssueItem & {
 
 interface IssueMainPanelProps {
   params: { orgSlug: string; projectId: string; boardId: string; issueId: string };
+  /** orgId is the organization ID used to scope activity feed queries.
+   *  If not supplied, it is derived from the project. */
+  orgId?: string;
   className?: string;
 }
 
@@ -172,8 +176,19 @@ const EditableDescription = ({ params }: EditableParams) => {
   );
 };
 
-function IssueMainPanel({ className, params }: IssueMainPanelProps) {
+function IssueMainPanel({ className, params, orgId: orgIdProp }: IssueMainPanelProps) {
   const { data: issue, isPending } = useSuspenseQuery(getBoardIssueQueryOptions(params));
+
+  // Derive orgId if not supplied — fetch the project and read its orgId
+  const { data: projectData } = useQuery({
+    queryKey: ['projects', params.projectId, 'orgId'],
+    queryFn: () => baseApi.get<{ orgId: string }>(`v3/projs/${params.projectId}`, undefined),
+    enabled: !orgIdProp,
+    staleTime: 1000 * 60 * 10,
+    select: (res) => (res as any)?.orgId as string | undefined,
+  });
+
+  const orgId = orgIdProp ?? projectData ?? '';
 
   if (isPending) return <LoadingSkeleton />;
   if (!issue) throw new Error('Issue not found');
@@ -186,7 +201,7 @@ function IssueMainPanel({ className, params }: IssueMainPanelProps) {
 
       {issue.type.hierarchy > 0 && <SubIssues params={params} />}
 
-      <IssueActivity issueId={issue.id} />
+      <IssueActivity issueId={issue.id} orgId={orgId} />
     </section>
   );
 }

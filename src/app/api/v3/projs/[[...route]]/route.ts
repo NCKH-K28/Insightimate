@@ -15,6 +15,7 @@ import { projectsService } from '@/features/project_v3/server/projects.service';
 import { actorsService } from '@/features/project_v3/server/actors.service';
 import { rolesService } from '@/features/project_v3/server/roles.service';
 import { exportService } from '@/features/project_v3/server/export.service';
+import { searchProjects, ZProjectListInput } from '@/features/project/server/cqrs/search-projects';
 import { prisma } from '@/lib/prisma';
 
 const projsHono = new Hono().basePath('/api/v3/projs');
@@ -60,6 +61,22 @@ projsHono.get('/facets', zValidator('query', ZFacetsQuery), async (c) => {
   const auth = await getUserAndThrow(c);
   const { orgId } = c.req.valid('query');
   const result = await projectsService.getFacets({ filter: { orgId } }, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== SEARCH API ==========================
+
+// GET /api/v3/projs/search - Search projects
+const ZSearchQuery = z.object({
+  q: z.string().optional(),
+  workspaceId: z.string().optional(),
+});
+
+projsHono.get('/search', zValidator('query', ZSearchQuery), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const query = c.req.valid('query');
+  const input = ZProjectListInput.parse({ filter: query });
+  const result = await searchProjects(input, { actorId: auth.id });
   return c.json(result);
 });
 
@@ -318,6 +335,92 @@ projsHono.delete('/:projId/issue-statuses', async (c) => {
     return c.json({ error: 'Status ID is required' }, 400);
   }
   const result = await projectsService.deleteStatus(projId, statusId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== PROJECT MEMBERS APIs ==========================
+
+// GET /api/v3/projs/:projId/members - List members in project
+projsHono.get('/:projId/members', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+
+  // Auth check: ensure caller has access to project
+  await projectsService.getById(projId, { actorId: auth.id });
+
+  // Get actors with their resolved user/team data
+  const actors = await actorsService.listProjectActors({ projectId: projId });
+
+  // Also resolve actual user members (including team members)
+  const userIds = actors.data.filter((a) => a.actorType === 'USER').map((a) => a.actorId);
+  const teamIds = actors.data.filter((a) => a.actorType === 'TEAM').map((a) => a.actorId);
+
+  const teamMembers = teamIds.length > 0
+    ? await prisma.teamMember.findMany({ where: { teamId: { in: teamIds } } })
+    : [];
+  const teamMemberUserIds = teamMembers.map((tm) => tm.userId);
+
+  const allUserIds = Array.from(new Set([...userIds, ...teamMemberUserIds]));
+  const users = allUserIds.length > 0
+    ? await prisma.user.findMany({
+        where: { id: { in: allUserIds } },
+        select: { id: true, name: true, email: true, avatar: true },
+      })
+    : [];
+
+  return c.json({ actors: actors.data, members: users });
+});
+
+// POST /api/v3/projs/:projId/members - Add member to project
+projsHono.post(
+  '/:projId/members',
+  zValidator('json', ZProjectActorAddInput.omit({ projectId: true })),
+  async (c) => {
+    const auth = await getUserAndThrow(c);
+    const { projId } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await actorsService.addProjectActor(
+      { ...input, projectId: projId },
+      { actorId: auth.id },
+    );
+    return c.json(result, 201);
+  },
+);
+
+// PATCH /api/v3/projs/:projId/members/:memberId - Update member in project
+projsHono.patch(
+  '/:projId/members/:memberId',
+  zValidator('json', ZProjectActorUpdateInput.omit({ id: true })),
+  async (c) => {
+    const auth = await getUserAndThrow(c);
+    const { projId, memberId } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await actorsService.updateProjectActor(
+      { projectId: projId, actorId: memberId, ...input },
+      { actorId: auth.id },
+    );
+    return c.json(result);
+  },
+);
+
+// DELETE /api/v3/projs/:projId/members/:memberId - Remove member from project
+projsHono.delete('/:projId/members/:memberId', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, memberId } = c.req.param();
+  const result = await actorsService.removeProjectActor(
+    { projectId: projId, actorId: memberId },
+    { actorId: auth.id },
+  );
+  return c.json(result);
+});
+
+// ========================== PROJECT STATES API ==========================
+
+// GET /api/v3/projs/:projId/states - List project states (statuses grouped by category)
+projsHono.get('/:projId/states', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.listStatuses(projId, { actorId: auth.id });
   return c.json(result);
 });
 

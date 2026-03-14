@@ -71,6 +71,7 @@ export type ActivityEventWithActor = z.infer<typeof ZActivityEventWithActor>;
 export const ZActivityFeedQuery = z.object({
   orgId: z.string(),
   projectId: z.string().optional(),
+  entityId: z.string().optional(),
   entity: ZActivityEntity.optional(),
   action: ZActivityAction.optional(),
   actorId: z.string().optional(),

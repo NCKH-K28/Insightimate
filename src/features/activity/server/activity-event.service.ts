@@ -20,7 +20,7 @@ type ListResult = {
 const ACTOR_SELECT = { id: true, name: true, email: true, avatar: true } as const;
 
 function buildWhere(
-  query: Pick<ActivityFeedQuery, 'orgId' | 'projectId' | 'entity' | 'action' | 'actorId'>,
+  query: Pick<ActivityFeedQuery, 'orgId' | 'projectId' | 'entityId' | 'entity' | 'action' | 'actorId'>,
   allowedProjectIds?: string[],
 ): Prisma.ActivityEventWhereInput {
   const where: Prisma.ActivityEventWhereInput = {
@@ -35,7 +35,7 @@ function buildWhere(
   }
 
   if (query.entity) where.entity = query.entity;
-  if (query.action) where.action = query.action;
+  if (query.entityId) where.entityId = query.entityId;
   if (query.actorId) where.actorId = query.actorId;
 
   return where;
