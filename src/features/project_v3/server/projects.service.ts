@@ -474,6 +474,116 @@ const deleteStatus = async (projectId: string, statusId: string, ctx: ProjectCon
   return { message: 'Issue status deleted successfully' };
 };
 
+// =============================== ARCHIVE / UNARCHIVE
+
+const archive = async (projectId: string, ctx: ProjectContext) => {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { organization: true, actors: true },
+  });
+  if (!project) throw new ProjectError('PROJECT_NOT_FOUND', 'Project not found');
+
+  const resources = [projectResourceFactory(project)];
+  const principal = await loadPrincipal(ctx, {}, resources);
+  const withActions = resources.map((r) => ({ resource: r, actions: ['update'] }));
+  const { results } = await checkResourcesMapped({ principal, resources: withActions });
+  const perm = results[project.id]?._actions || [];
+  if (!perm['update']) throw new ProjectError('PROJECT_PERMISSION_DENIED', 'Permission denied');
+
+  const updated = await prisma.project.update({
+    where: { id: projectId },
+    data: { archived: true, updatedAt: new Date() },
+  });
+
+  emitActivity({
+    orgId: project.orgId,
+    projectId: project.id,
+    actorId: ctx.actorId,
+    action: 'UPDATED',
+    entity: 'PROJECT',
+    entityId: project.id,
+    entityKey: project.key,
+    entityTitle: project.name,
+    changes: [{ field: 'archived', old: false, new: true }],
+  });
+
+  return ZProject.parse(updated);
+};
+
+const unarchive = async (projectId: string, ctx: ProjectContext) => {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { organization: true, actors: true },
+  });
+  if (!project) throw new ProjectError('PROJECT_NOT_FOUND', 'Project not found');
+
+  const resources = [projectResourceFactory(project)];
+  const principal = await loadPrincipal(ctx, {}, resources);
+  const withActions = resources.map((r) => ({ resource: r, actions: ['update'] }));
+  const { results } = await checkResourcesMapped({ principal, resources: withActions });
+  const perm = results[project.id]?._actions || [];
+  if (!perm['update']) throw new ProjectError('PROJECT_PERMISSION_DENIED', 'Permission denied');
+
+  const updated = await prisma.project.update({
+    where: { id: projectId },
+    data: { archived: false, updatedAt: new Date() },
+  });
+
+  emitActivity({
+    orgId: project.orgId,
+    projectId: project.id,
+    actorId: ctx.actorId,
+    action: 'UPDATED',
+    entity: 'PROJECT',
+    entityId: project.id,
+    entityKey: project.key,
+    entityTitle: project.name,
+    changes: [{ field: 'archived', old: true, new: false }],
+  });
+
+  return ZProject.parse(updated);
+};
+
+// =============================== FAVORITES
+
+const addFavorite = async (projectId: string, ctx: ProjectContext) => {
+  // Auth check: ensure caller can view the project
+  await getProjectById(projectId, ctx);
+
+  const favorite = await prisma.projectFavorite.upsert({
+    where: { userId_projectId: { userId: ctx.actorId, projectId } },
+    create: { userId: ctx.actorId, projectId },
+    update: {},
+  });
+
+  return favorite;
+};
+
+const removeFavorite = async (projectId: string, ctx: ProjectContext) => {
+  // Auth check: ensure caller can view the project
+  await getProjectById(projectId, ctx);
+
+  await prisma.projectFavorite.deleteMany({
+    where: { userId: ctx.actorId, projectId },
+  });
+
+  return { message: 'Favorite removed' };
+};
+
+const listFavorites = async (ctx: ProjectContext) => {
+  const favorites = await prisma.projectFavorite.findMany({
+    where: { userId: ctx.actorId },
+    include: {
+      project: {
+        include: { lead: true, organization: true },
+      },
+    },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  return { data: favorites };
+};
+
 export const projectsService = {
   list: listProjects,
   create: createProject,
@@ -484,4 +594,9 @@ export const projectsService = {
   listStatuses,
   createStatus,
   deleteStatus,
+  archive,
+  unarchive,
+  addFavorite,
+  removeFavorite,
+  listFavorites,
 };

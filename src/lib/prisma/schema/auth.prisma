@@ -18,6 +18,7 @@ model User {
   organizationMemberships OrgMember[]     @relation("UserOrgMemberships")
   ownedOrganizations      Organization[]  @relation("OrganizationOwner")
   leadProjects            Project[]       @relation("ProjectLead")
+  projectFavorites        ProjectFavorite[] @relation("UserProjectFavorites")
   sessions                Session[]
   teamMemberships         TeamMember[]    @relation("UserTeamMemberships")
   ledTeams                Team[]          @relation("UserLedTeams")

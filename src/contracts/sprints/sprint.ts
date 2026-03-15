@@ -67,12 +67,56 @@ export const ZSprintAddIssuesInput = z.object({
 export type SprintAddIssuesInput = z.infer<typeof ZSprintAddIssuesInput>;
 
 // ── Sprint List Query ────────────────────────────────────────────────────
-export const ZSprintListQuery = z.object({
-  boardId: z.string(),
-  state: z.enum(['FUTURE', 'ACTIVE', 'CLOSED']).optional(),
-});
+export const ZSprintListQuery = z
+  .object({
+    boardId: z.string().optional(),
+    projectId: z.string().optional(),
+    state: z.enum(['FUTURE', 'ACTIVE', 'CLOSED']).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.boardId && !data.projectId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Either boardId or projectId must be provided',
+      });
+    }
+  });
 
 export type SprintListQuery = z.infer<typeof ZSprintListQuery>;
+
+// ── Sprint Transfer Input ────────────────────────────────────────────────
+export const ZSprintTransferInput = z.object({
+  targetSprintId: z.string(),
+});
+
+export type SprintTransferInput = z.infer<typeof ZSprintTransferInput>;
+
+// ── Sprint User Preferences ─────────────────────────────────────────────
+export const ZSprintUserPreferenceInput = z.object({
+  filters: z.record(z.string(), z.unknown()).optional(),
+  displayProperties: z.record(z.string(), z.unknown()).optional(),
+  sortOrder: z.string().nullish(),
+});
+
+export type SprintUserPreferenceInput = z.infer<typeof ZSprintUserPreferenceInput>;
+
+// ── Sprint Analytics ─────────────────────────────────────────────────────
+export const ZDistributionEntry = z.object({
+  id: z.string().nullable(),
+  count: z.number(),
+  points: z.number(),
+});
+
+export type DistributionEntry = z.infer<typeof ZDistributionEntry>;
+
+export const ZSprintAnalyticsResponse = z.object({
+  assigneeDistribution: z.array(ZDistributionEntry),
+  statusDistribution: z.array(ZDistributionEntry),
+  priorityDistribution: z.array(ZDistributionEntry),
+  burndown: z.any(),
+});
+
+export type SprintAnalyticsResponse = z.infer<typeof ZSprintAnalyticsResponse>;
 
 // ── Re-export existing chart/summary schemas from board contracts ────────
 export {
@@ -83,3 +127,4 @@ export {
   type BunrdownChart,
   type BurnupChart,
 } from '../boards/board.query';
+

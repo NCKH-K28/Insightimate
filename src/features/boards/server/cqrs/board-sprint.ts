@@ -286,28 +286,37 @@ export const startBoardSprint = async (ctx: SprintContext) => {
 // Complete Sprint Logic
 // ============================================================================
 
+type TransferResult = {
+  transferredCount: number;
+  targetSprintId: string | null;
+  targetSprintName: string | null;
+};
+
 const handleIncompleteIssues = async (
   tx: Prisma.TransactionClient,
   ctx: SprintContext,
   effect: string,
-): Promise<void> => {
+): Promise<TransferResult> => {
   const whereClause = {
     boardId: ctx.boardId,
     sprintId: ctx.sprintId,
     issue: { resolvedAt: null },
   };
 
+  // Count before modifying
+  const transferredCount = await tx.boardIssue.count({ where: whereClause });
+
   switch (effect) {
     case INCOMPLETE_ISSUE_EFFECTS.DELETE:
       await tx.boardIssue.deleteMany({ where: whereClause });
-      break;
+      return { transferredCount, targetSprintId: null, targetSprintName: 'deleted' };
 
     case INCOMPLETE_ISSUE_EFFECTS.TO_BACKLOG:
       await tx.boardIssue.updateMany({
         where: whereClause,
         data: { sprintId: null },
       });
-      break;
+      return { transferredCount, targetSprintId: null, targetSprintName: 'backlog' };
 
     case INCOMPLETE_ISSUE_EFFECTS.TO_NEW_SPRINT: {
       const newSprint = await createBoardSprint({ boardId: ctx.boardId }, {}, tx);
@@ -315,12 +324,13 @@ const handleIncompleteIssues = async (
         where: whereClause,
         data: { sprintId: newSprint.id },
       });
-      break;
+      return { transferredCount, targetSprintId: newSprint.id, targetSprintName: newSprint.name };
     }
 
     default:
       if (effect.startsWith(INCOMPLETE_ISSUE_EFFECTS.TO_SPRINT_PREFIX)) {
-        await moveIssuesToSprint(tx, ctx, whereClause, effect);
+        const result = await moveIssuesToSprint(tx, ctx, whereClause, effect);
+        return { transferredCount, ...result };
       } else {
         throw new Error(`Invalid effect: ${effect}`);
       }
@@ -332,7 +342,7 @@ const moveIssuesToSprint = async (
   ctx: SprintContext,
   whereClause: Prisma.BoardIssueWhereInput,
   effect: string,
-): Promise<void> => {
+): Promise<{ targetSprintId: string; targetSprintName: string }> => {
   const toSprintId = effect.replace('to:', '');
   const toSprint = await tx.sprint.findUnique({ where: { id: toSprintId, boardId: ctx.boardId } });
 
@@ -343,6 +353,7 @@ const moveIssuesToSprint = async (
   }
 
   await tx.boardIssue.updateMany({ where: whereClause, data: { sprintId: toSprint.id } });
+  return { targetSprintId: toSprint.id, targetSprintName: toSprint.name };
 };
 
 export const completeBoardSprint = async (
@@ -364,8 +375,9 @@ export const completeBoardSprint = async (
         },
       });
 
+      let transfer: TransferResult | null = null;
       if (incompletedCount > 0) {
-        await handleIncompleteIssues(tx, ctx, input.effect);
+        transfer = await handleIncompleteIssues(tx, ctx, input.effect);
       }
 
       const updated = await tx.sprint.update({
@@ -387,6 +399,14 @@ export const completeBoardSprint = async (
           entityId: ctx.sprintId,
           entityTitle: sprint.name,
           changes: [{ field: 'state', old: SPRINT_STATE.ACTIVE, new: SPRINT_STATE.CLOSED }],
+          metadata: transfer
+            ? {
+                incompleteIssueCount: transfer.transferredCount,
+                transferEffect: input.effect,
+                targetSprintId: transfer.targetSprintId,
+                targetSprintName: transfer.targetSprintName,
+              }
+            : undefined,
         });
       }
 

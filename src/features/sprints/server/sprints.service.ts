@@ -22,6 +22,52 @@ interface SprintContext {
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 
+/**
+ * Validate that a sprint's date range does not overlap with any other
+ * non-CLOSED sprint on the same board.
+ *
+ * @param boardId - Board to check against
+ * @param startAt - Proposed start date (ISO string or null)
+ * @param endAt - Proposed end date (ISO string or null)
+ * @param excludeSprintId - Sprint to exclude from the check (for updates)
+ */
+const validateSprintDateOverlap = async (
+  boardId: string,
+  startAt: string | null | undefined,
+  endAt: string | null | undefined,
+  excludeSprintId?: string,
+): Promise<void> => {
+  // Draft sprints without dates don't need overlap validation
+  if (!startAt || !endAt) return;
+
+  const start = new Date(startAt);
+  const end = new Date(endAt);
+
+  const overlapping = await prisma.sprint.findFirst({
+    where: {
+      boardId,
+      ...(excludeSprintId ? { id: { not: excludeSprintId } } : {}),
+      state: { not: 'CLOSED' },
+      // Only check sprints that have dates set (ignore drafts)
+      startAt: { not: null },
+      endAt: { not: null },
+      // Standard interval overlap: A.start <= B.end AND A.end >= B.start
+      AND: [
+        { startAt: { lte: end } },
+        { endAt: { gte: start } },
+      ],
+    },
+    select: { id: true, name: true, startAt: true, endAt: true },
+  });
+
+  if (overlapping) {
+    throw Object.assign(
+      new Error(`Sprint dates overlap with "${overlapping.name}"`),
+      { code: 'SPRINT_DATE_OVERLAP', overlappingSprintId: overlapping.id },
+    );
+  }
+};
+
 const resolveSprintWithBoard = async (sprintId: string) => {
   const sprint = await prisma.sprint.findUnique({
     where: { id: sprintId },
@@ -61,6 +107,24 @@ const list = async (
   return { data: sprints };
 };
 
+// ── List by Project ──────────────────────────────────────────────────────
+
+const listByProject = async (
+  projectId: string,
+  params: { state?: 'FUTURE' | 'ACTIVE' | 'CLOSED' },
+  ctx: SprintContext,
+) => {
+  await ensureProjectAccess(projectId, ctx);
+
+  const board = await prisma.board.findUnique({
+    where: { projectId },
+    select: { id: true },
+  });
+  if (!board) throw Object.assign(new Error('Board not found for project'), { code: 'BOARD_NOT_FOUND' });
+
+  return list({ boardId: board.id, state: params.state }, ctx);
+};
+
 // ── Get by ID ────────────────────────────────────────────────────────────
 
 const getById = async (sprintId: string, ctx: SprintContext) => {
@@ -86,6 +150,9 @@ const create = async (input: SprintCreateInput, ctx: SprintContext) => {
 
   await ensureProjectAccess(board.projectId, ctx);
 
+  // Validate no date overlap with existing sprints
+  await validateSprintDateOverlap(input.boardId, input.startAt, input.endAt);
+
   const { boardId, ...data } = input;
   const sprint = await createBoardSprint({ boardId }, data);
   return sprint;
@@ -96,6 +163,11 @@ const create = async (input: SprintCreateInput, ctx: SprintContext) => {
 const update = async (sprintId: string, input: SprintUpdateInput, ctx: SprintContext) => {
   const sprint = await resolveSprintWithBoard(sprintId);
   await ensureProjectAccess(sprint.board.projectId, ctx);
+
+  // If dates are being changed, validate no overlap (exclude self)
+  const effectiveStart = input.startAt !== undefined ? input.startAt : sprint.startAt?.toISOString() ?? null;
+  const effectiveEnd = input.endAt !== undefined ? input.endAt : sprint.endAt?.toISOString() ?? null;
+  await validateSprintDateOverlap(sprint.boardId, effectiveStart, effectiveEnd, sprintId);
 
   const updated = await updateBoardSprint(
     { boardId: sprint.boardId, sprintId },
@@ -230,10 +302,168 @@ const summary = async (sprintId: string, ctx: SprintContext) => {
   return result;
 };
 
+// ── User Preferences ─────────────────────────────────────────────────────
+
+const getUserPreferences = async (sprintId: string, ctx: SprintContext) => {
+  const sprint = await resolveSprintWithBoard(sprintId);
+  await ensureProjectAccess(sprint.board.projectId, ctx);
+
+  const pref = await prisma.sprintUserPreference.findUnique({
+    where: { userId_sprintId: { userId: ctx.actorId, sprintId } },
+  });
+
+  return pref ?? { filters: {}, displayProperties: {}, sortOrder: null };
+};
+
+const updateUserPreferences = async (
+  sprintId: string,
+  input: { filters?: unknown; displayProperties?: unknown; sortOrder?: string | null },
+  ctx: SprintContext,
+) => {
+  const sprint = await resolveSprintWithBoard(sprintId);
+  await ensureProjectAccess(sprint.board.projectId, ctx);
+
+  const pref = await prisma.sprintUserPreference.upsert({
+    where: { userId_sprintId: { userId: ctx.actorId, sprintId } },
+    create: {
+      userId: ctx.actorId,
+      sprintId,
+      filters: input.filters as any,
+      displayProperties: input.displayProperties as any,
+      sortOrder: input.sortOrder,
+    },
+    update: {
+      ...(input.filters !== undefined && { filters: input.filters as any }),
+      ...(input.displayProperties !== undefined && {
+        displayProperties: input.displayProperties as any,
+      }),
+      ...(input.sortOrder !== undefined && { sortOrder: input.sortOrder }),
+    },
+  });
+
+  return pref;
+};
+
+// ── Analytics ────────────────────────────────────────────────────────────
+
+type DistributionEntry = {
+  id: string | null;
+  count: number;
+  points: number;
+};
+
+const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
+  const sprint = await resolveSprintWithBoard(sprintId);
+  await ensureProjectAccess(sprint.board.projectId, ctx);
+
+  // Base filter: issues linked to this sprint
+  const baseWhere = {
+    boards: { some: { sprintId } },
+  };
+
+  // Assignee distribution
+  const assigneeRaw = await prisma.issue.groupBy({
+    by: ['assigneeId'],
+    where: baseWhere,
+    _count: { id: true },
+    _sum: { storyPoints: true },
+  });
+
+  const assigneeDistribution: DistributionEntry[] = assigneeRaw.map((row) => ({
+    id: row.assigneeId,
+    count: row._count.id,
+    points: row._sum.storyPoints ?? 0,
+  }));
+
+  // Status distribution
+  const statusRaw = await prisma.issue.groupBy({
+    by: ['statusId'],
+    where: baseWhere,
+    _count: { id: true },
+    _sum: { storyPoints: true },
+  });
+
+  const statusDistribution: DistributionEntry[] = statusRaw.map((row) => ({
+    id: row.statusId,
+    count: row._count.id,
+    points: row._sum.storyPoints ?? 0,
+  }));
+
+  // Priority distribution
+  const priorityRaw = await prisma.issue.groupBy({
+    by: ['priorityId'],
+    where: baseWhere,
+    _count: { id: true },
+    _sum: { storyPoints: true },
+  });
+
+  const priorityDistribution: DistributionEntry[] = priorityRaw.map((row) => ({
+    id: row.priorityId,
+    count: row._count.id,
+    points: row._sum.storyPoints ?? 0,
+  }));
+
+  // Reuse existing burndown data
+  const burndown = await legacySprintService.burndown(sprintId);
+
+  return {
+    assigneeDistribution,
+    statusDistribution,
+    priorityDistribution,
+    burndown,
+  };
+};
+
+// ── Transfer Incomplete ──────────────────────────────────────────────────
+
+const transferIncomplete = async (
+  sprintId: string,
+  targetSprintId: string,
+  ctx: SprintContext,
+) => {
+  const sourceSprint = await resolveSprintWithBoard(sprintId);
+  await ensureProjectAccess(sourceSprint.board.projectId, ctx);
+
+  const targetSprint = await resolveSprintWithBoard(targetSprintId);
+  // Ensure both sprints belong to the same board
+  if (sourceSprint.boardId !== targetSprint.boardId) {
+    throw Object.assign(
+      new Error('Source and target sprints must belong to the same board'),
+      { code: 'SPRINT_BOARD_MISMATCH' },
+    );
+  }
+
+  // Find all board issues in source sprint whose issue status category ≠ DONE
+  const boardIssues = await prisma.boardIssue.findMany({
+    where: { sprintId, boardId: sourceSprint.boardId },
+    include: { issue: { select: { id: true, status: { select: { category: true } } } } },
+  });
+
+  const incompleteIssueIds = boardIssues
+    .filter((bi) => bi.issue.status?.category !== 'DONE')
+    .map((bi) => bi.issueId);
+
+  if (incompleteIssueIds.length === 0) {
+    return { transferred: 0 };
+  }
+
+  const result = await prisma.boardIssue.updateMany({
+    where: {
+      boardId: sourceSprint.boardId,
+      sprintId,
+      issueId: { in: incompleteIssueIds },
+    },
+    data: { sprintId: targetSprintId },
+  });
+
+  return { transferred: result.count };
+};
+
 // ── Export ────────────────────────────────────────────────────────────────
 
 export const sprintsService = {
   list,
+  listByProject,
   getById,
   create,
   update,
@@ -245,4 +475,9 @@ export const sprintsService = {
   removeIssue,
   reports,
   summary,
+  getUserPreferences,
+  updateUserPreferences,
+  getAnalytics,
+  transferIncomplete,
 };
+

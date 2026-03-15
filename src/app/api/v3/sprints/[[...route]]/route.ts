@@ -9,6 +9,8 @@ import {
   ZSprintCompleteInput,
   ZSprintAddIssuesInput,
   ZSprintListQuery,
+  ZSprintUserPreferenceInput,
+  ZSprintTransferInput,
 } from '@/contracts/sprints';
 import { sprintsService } from '@/features/sprints/server/sprints.service';
 import { z } from 'zod';
@@ -19,11 +21,17 @@ sprintsHono.onError(httpExceptionFilterHono);
 
 // ========================== SPRINT CRUD APIs ==========================
 
-// GET /api/v3/sprints?boardId=&state= - List sprints
+// GET /api/v3/sprints?boardId=&state= or ?projectId=&state= - List sprints
 sprintsHono.get('/', zValidator('query', ZSprintListQuery), async (c) => {
   const auth = await getUserAndThrow(c);
-  const { boardId, state } = c.req.valid('query');
-  const result = await sprintsService.list({ boardId, state }, { actorId: auth.id });
+  const { boardId, projectId, state } = c.req.valid('query');
+
+  if (projectId) {
+    const result = await sprintsService.listByProject(projectId, { state }, { actorId: auth.id });
+    return c.json(result);
+  }
+
+  const result = await sprintsService.list({ boardId: boardId!, state }, { actorId: auth.id });
   return c.json(result);
 });
 
@@ -144,6 +152,54 @@ sprintsHono.get('/:sprintId/summary', async (c) => {
   const result = await sprintsService.summary(sprintId, { actorId: auth.id });
   return c.json(result);
 });
+
+// ========================== USER PREFERENCES APIs ==========================
+
+// GET /api/v3/sprints/:sprintId/user-preferences - Get user preferences
+sprintsHono.get('/:sprintId/user-preferences', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { sprintId } = c.req.param();
+  const result = await sprintsService.getUserPreferences(sprintId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// PATCH /api/v3/sprints/:sprintId/user-preferences - Update user preferences
+sprintsHono.patch(
+  '/:sprintId/user-preferences',
+  zValidator('json', ZSprintUserPreferenceInput),
+  async (c) => {
+    const auth = await getUserAndThrow(c);
+    const { sprintId } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await sprintsService.updateUserPreferences(sprintId, input, { actorId: auth.id });
+    return c.json(result);
+  },
+);
+
+// ========================== ANALYTICS APIs ==========================
+
+// GET /api/v3/sprints/:sprintId/analytics - Sprint analytics
+sprintsHono.get('/:sprintId/analytics', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { sprintId } = c.req.param();
+  const result = await sprintsService.getAnalytics(sprintId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== SPRINT TRANSFER API ==========================
+
+// POST /api/v3/sprints/:sprintId/transfer - Transfer incomplete issues
+sprintsHono.post(
+  '/:sprintId/transfer',
+  zValidator('json', ZSprintTransferInput),
+  async (c) => {
+    const auth = await getUserAndThrow(c);
+    const { sprintId } = c.req.param();
+    const { targetSprintId } = c.req.valid('json');
+    const result = await sprintsService.transferIncomplete(sprintId, targetSprintId, { actorId: auth.id });
+    return c.json(result);
+  },
+);
 
 export const GET = handle(sprintsHono);
 export const POST = handle(sprintsHono);

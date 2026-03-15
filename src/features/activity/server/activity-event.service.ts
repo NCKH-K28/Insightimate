@@ -36,6 +36,7 @@ function buildWhere(
 
   if (query.entity) where.entity = query.entity;
   if (query.entityId) where.entityId = query.entityId;
+  if (query.action) where.action = query.action;
   if (query.actorId) where.actorId = query.actorId;
 
   return where;

@@ -1,54 +1,29 @@
 'use client';
 
-import React from 'react';
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  ArrowRight,
-  UserPlus,
-  UserMinus,
-  ShieldCheck,
-  MessageSquare,
-  Clock,
-  Play,
-  CheckCircle2,
-  type LucideIcon,
-} from 'lucide-react';
+import React, { useMemo } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { ActivityEventWithActor, ActivityAction, ActivityEntity } from '@/contracts/activity';
+import type { ActivityEventWithActor } from '@/contracts/activity';
 
-// ==================== Maps ====================
-
-const ACTION_CONFIG: Record<ActivityAction, { icon: LucideIcon; label: string; color: string }> = {
-  CREATED: { icon: Plus, label: 'created', color: 'text-emerald-500' },
-  UPDATED: { icon: Pencil, label: 'updated', color: 'text-blue-500' },
-  DELETED: { icon: Trash2, label: 'deleted', color: 'text-red-500' },
-  MOVED: { icon: ArrowRight, label: 'moved', color: 'text-amber-500' },
-  ASSIGNED: { icon: UserPlus, label: 'assigned', color: 'text-violet-500' },
-  UNASSIGNED: { icon: UserMinus, label: 'unassigned', color: 'text-slate-500' },
-  COMMENTED: { icon: MessageSquare, label: 'commented on', color: 'text-sky-500' },
-  LOGGED_TIME: { icon: Clock, label: 'logged time on', color: 'text-orange-500' },
-  STATUS_CHANGED: { icon: ArrowRight, label: 'changed status of', color: 'text-teal-500' },
-  SPRINT_STARTED: { icon: Play, label: 'started sprint', color: 'text-green-500' },
-  SPRINT_CLOSED: { icon: CheckCircle2, label: 'completed sprint', color: 'text-emerald-600' },
-  MEMBER_ADDED: { icon: UserPlus, label: 'added member to', color: 'text-indigo-500' },
-  MEMBER_REMOVED: { icon: UserMinus, label: 'removed member from', color: 'text-rose-500' },
-  ROLE_CHANGED: { icon: ShieldCheck, label: 'changed role in', color: 'text-purple-500' },
-};
-
-const ENTITY_LABEL: Record<ActivityEntity, string> = {
-  PROJECT: 'project',
-  ISSUE: 'issue',
-  SPRINT: 'sprint',
-  COMMENT: 'comment',
-  TEAM: 'team',
-  ORGANIZATION: 'organization',
-};
+import { ActivityIcon } from './activity-icons';
+import {
+  getActivityMessage,
+  getChangeDetails,
+  normalizeChanges,
+  type MessageFragment,
+} from './activity-helper';
+import {
+  AssigneeAction,
+  StatusAction,
+  PriorityAction,
+  LabelAction,
+  SprintAction,
+  DefaultAction,
+  type ActionRendererProps,
+} from './actions';
 
 // ==================== Helpers ====================
 
@@ -70,27 +45,85 @@ function formatRelativeTime(dateStr: string): string {
   }
 }
 
-// ==================== Changes display ====================
+// ==================== Fragment Renderer ====================
 
-function ChangesDetail({ changes }: { changes: any }) {
-  if (!changes || !Array.isArray(changes) || changes.length === 0) return null;
+function renderFragment(fragment: MessageFragment, index: number): React.ReactNode {
+  switch (fragment.type) {
+    case 'text':
+      return (
+        <span key={index} className='text-muted-foreground'>
+          {fragment.value}
+        </span>
+      );
+    case 'bold':
+      return (
+        <span key={index} className='font-semibold text-foreground'>
+          {fragment.value}
+        </span>
+      );
+    case 'entity':
+      return (
+        <span
+          key={index}
+          className='font-semibold text-primary hover:underline cursor-pointer'
+        >
+          {fragment.value}
+        </span>
+      );
+    case 'strikethrough':
+      return (
+        <span key={index} className='line-through text-muted-foreground/70'>
+          {fragment.value}
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
+
+// ==================== Action Renderer Dispatch ====================
+
+function getActionRenderer(field: string): React.FC<ActionRendererProps> {
+  switch (field) {
+    case 'assignee':
+    case 'assigneeId':
+      return AssigneeAction;
+    case 'status':
+    case 'statusId':
+      return StatusAction;
+    case 'priority':
+    case 'priorityId':
+      return PriorityAction;
+    case 'label':
+    case 'labelId':
+      return LabelAction;
+    case 'sprint':
+    case 'sprintId':
+      return SprintAction;
+    default:
+      return DefaultAction;
+  }
+}
+
+// ==================== Change Detail Lines ====================
+
+function ChangeDetailLines({ event }: { event: ActivityEventWithActor }) {
+  const changes = useMemo(() => normalizeChanges(event.changes), [event]);
+
+  // Only show details for UPDATED events with multiple changes
+  if (event.action !== 'UPDATED' || changes.length <= 1) return null;
 
   return (
-    <div className='mt-1.5 ml-10 text-xs text-muted-foreground space-y-0.5'>
-      {changes.slice(0, 3).map((change: any, i: number) => (
-        <div key={i} className='flex items-center gap-1.5'>
-          <span className='font-medium text-foreground/70'>{change.field}</span>
-          {change.old && (
-            <>
-              <span className='line-through opacity-60'>{String(change.old).slice(0, 30)}</span>
-              <ArrowRight className='size-3 text-muted-foreground/50' />
-            </>
-          )}
-          {change.new && <span>{String(change.new).slice(0, 30)}</span>}
-        </div>
-      ))}
-      {changes.length > 3 && (
-        <span className='text-muted-foreground/60'>+{changes.length - 3} more changes</span>
+    <div className='mt-1.5 ml-10 text-xs space-y-0.5'>
+      {changes.slice(0, 4).map((change, i) => {
+        const Renderer = getActionRenderer(change.field);
+        return <Renderer key={i} change={change} event={event} />;
+      })}
+      {changes.length > 4 && (
+        <span className='text-muted-foreground/60'>
+          +{changes.length - 4} more changes
+        </span>
       )}
     </div>
   );
@@ -105,11 +138,7 @@ type Props = {
 };
 
 export const ActivityFeedItem: React.FC<Props> = ({ event, showProject = true }) => {
-  const config = ACTION_CONFIG[event.action] ?? ACTION_CONFIG.UPDATED;
-  const Icon = config.icon;
-  const entityLabel = ENTITY_LABEL[event.entity] ?? event.entity.toLowerCase();
-
-  const entityDisplay = event.entityTitle || event.entityKey || event.entityId;
+  const message = useMemo(() => getActivityMessage(event), [event]);
 
   return (
     <div className='group relative flex items-start gap-3 py-3 px-3 rounded-lg hover:bg-accent/40 transition-colors'>
@@ -123,21 +152,12 @@ export const ActivityFeedItem: React.FC<Props> = ({ event, showProject = true })
 
       {/* Content */}
       <div className='flex-1 min-w-0'>
-        {/* Main line */}
-        <p className='text-sm leading-relaxed'>
+        {/* Main line — actor name + human-readable sentence */}
+        <p className='text-sm leading-relaxed flex flex-wrap items-baseline gap-x-1'>
           <span className='font-semibold text-foreground'>
             {event.actor?.name ?? event.actorName ?? 'Someone'}
-          </span>{' '}
-          <span className='text-muted-foreground'>{config.label} </span>
-          <span className='font-medium text-foreground'>{entityLabel}</span>
-          {entityDisplay && (
-            <>
-              {' '}
-              <span className='font-semibold text-primary hover:underline cursor-pointer'>
-                {entityDisplay}
-              </span>
-            </>
-          )}
+          </span>
+          {message.fragments.map((f, i) => renderFragment(f, i))}
           {showProject && event.entityKey && event.entity !== 'PROJECT' && (
             <>
               {' '}
@@ -149,20 +169,25 @@ export const ActivityFeedItem: React.FC<Props> = ({ event, showProject = true })
           )}
         </p>
 
-        {/* Changes */}
-        <ChangesDetail changes={event.changes} />
+        {/* Detailed change lines for multi-field updates */}
+        <ChangeDetailLines event={event} />
       </div>
 
       {/* Meta: timestamp + action icon */}
       <div className='flex items-center gap-2 shrink-0 mt-0.5'>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className={`p-1 rounded-md bg-muted/50 ${config.color}`}>
-              <Icon className='size-3.5' />
+            <div>
+              <ActivityIcon
+                action={event.action}
+                entity={event.entity}
+                field={message.primaryField}
+                size='md'
+              />
             </div>
           </TooltipTrigger>
           <TooltipContent side='left' className='text-xs'>
-            {config.label}
+            {event.action.toLowerCase().replace(/_/g, ' ')}
           </TooltipContent>
         </Tooltip>
 

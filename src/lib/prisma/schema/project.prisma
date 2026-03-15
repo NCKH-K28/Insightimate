@@ -7,6 +7,7 @@ model Project {
   type           ProjectType       @default(SOFTWARE)
   description    String?
   avatar         String?
+  archived       Boolean           @default(false)
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
   issueCounter   Int               @default(0) @map("issue_counter")
@@ -20,12 +21,27 @@ model Project {
   priorities     IssuePriority[]   @relation("ProjectIssuePriority")
   actors         ProjectActor[]    @relation("ProjectToActors")
   roles          ProjectRole[]     @relation("ProjectRoles")
+  favorites      ProjectFavorite[] @relation("ProjectFavorites")
   lead           User              @relation("ProjectLead", fields: [leadId], references: [id])
   organization   Organization      @relation("OrganizationProjects", fields: [orgId], references: [id], onDelete: Cascade)
 
   @@unique([orgId, key])
   @@index([orgId])
   @@map("projects")
+}
+
+model ProjectFavorite {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  projectId String   @map("project_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  project   Project  @relation("ProjectFavorites", fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation("UserProjectFavorites", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
+  @@index([userId])
+  @@index([projectId])
+  @@map("project_favorites")
 }
 
 model ProjectRole {

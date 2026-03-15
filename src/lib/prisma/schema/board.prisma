@@ -54,25 +54,41 @@ model ColumnStatus {
 }
 
 model Sprint {
-  id              String       @id
-  sequence        Int          @default(0)
+  id              String                 @id
+  sequence        Int                    @default(0)
   name            String
   goal            String?
   description     String?
   state           SprintState
-  boardId         String       @map("board_id")
-  startAt         DateTime?    @map("start_at")
-  endAt           DateTime?    @map("end_at")
-  startedAt       DateTime?    @map("started_at")
-  endedAt         DateTime?    @map("ended_at")
-  committedPoints Decimal?     @map("committed_points")
-  createdAt       DateTime     @default(now()) @map("created_at")
-  updatedAt       DateTime     @updatedAt @map("updated_at")
+  boardId         String                 @map("board_id")
+  startAt         DateTime?              @map("start_at")
+  endAt           DateTime?              @map("end_at")
+  startedAt       DateTime?              @map("started_at")
+  endedAt         DateTime?              @map("ended_at")
+  committedPoints Decimal?               @map("committed_points")
+  createdAt       DateTime               @default(now()) @map("created_at")
+  updatedAt       DateTime               @updatedAt @map("updated_at")
   boardIssues     BoardIssue[]
-  board           Board        @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  board           Board                  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  userPreferences SprintUserPreference[]
 
   @@unique([boardId, id])
   @@map("sprints")
+}
+
+model SprintUserPreference {
+  id                String   @id @default(cuid())
+  userId            String   @map("user_id")
+  sprintId          String   @map("sprint_id")
+  filters           Json?    @default("{}")
+  displayProperties Json?    @default("{}") @map("display_properties")
+  sortOrder         String?  @map("sort_order")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+  sprint            Sprint   @relation(fields: [sprintId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sprintId])
+  @@map("sprint_user_preferences")
 }
 
 enum BoardType {

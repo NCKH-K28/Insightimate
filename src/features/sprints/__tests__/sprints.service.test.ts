@@ -14,6 +14,7 @@ vi.mock('@/lib/prisma', () => {
     },
     boardIssue: {
       updateMany: vi.fn(),
+      findMany: vi.fn(),
     },
   };
   return { prisma: mockPrisma };
@@ -295,6 +296,104 @@ describe('sprintsService', () => {
       const result = await sprintsService.summary('sp_test1', ctx);
 
       expect(result.id).toBe('sp_test1');
+    });
+  });
+
+  describe('listByProject', () => {
+    it('should resolve board from projectId and list sprints', async () => {
+      vi.mocked(prisma.board.findUnique).mockResolvedValue(mockBoard as any);
+      vi.mocked(prisma.sprint.findMany).mockResolvedValue([mockSprint] as any);
+
+      const result = await sprintsService.listByProject('proj-1', {}, ctx);
+
+      expect(result.data).toHaveLength(1);
+      expect(prisma.board.findUnique).toHaveBeenCalledWith({
+        where: { projectId: 'proj-1' },
+        select: { id: true },
+      });
+    });
+
+    it('should throw if no board exists for project', async () => {
+      vi.mocked(prisma.board.findUnique).mockResolvedValue(null);
+
+      await expect(
+        sprintsService.listByProject('proj-no-board', {}, ctx),
+      ).rejects.toMatchObject({ code: 'BOARD_NOT_FOUND' });
+    });
+
+    it('should pass state filter through', async () => {
+      vi.mocked(prisma.board.findUnique).mockResolvedValue(mockBoard as any);
+      vi.mocked(prisma.sprint.findMany).mockResolvedValue([]);
+
+      await sprintsService.listByProject('proj-1', { state: 'ACTIVE' }, ctx);
+
+      expect(prisma.sprint.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { boardId: 'board-1', state: 'ACTIVE' },
+        }),
+      );
+    });
+  });
+
+  describe('transferIncomplete', () => {
+    const targetSprint = {
+      id: 'sp_target',
+      name: 'Sprint 2',
+      state: 'FUTURE',
+      boardId: 'board-1',
+      board: { id: 'board-1', projectId: 'proj-1' },
+    };
+
+    it('should transfer incomplete issues to target sprint', async () => {
+      vi.mocked(prisma.sprint.findUnique)
+        .mockResolvedValueOnce(mockSprint as any) // source
+        .mockResolvedValueOnce(targetSprint as any); // target
+
+      vi.mocked(prisma.boardIssue.findMany).mockResolvedValue([
+        { issueId: 'issue-1', boardId: 'board-1', sprintId: 'sp_test1', issue: { id: 'issue-1', status: { category: 'TODO' } } },
+        { issueId: 'issue-2', boardId: 'board-1', sprintId: 'sp_test1', issue: { id: 'issue-2', status: { category: 'DONE' } } },
+        { issueId: 'issue-3', boardId: 'board-1', sprintId: 'sp_test1', issue: { id: 'issue-3', status: { category: 'IN_PROGRESS' } } },
+      ] as any);
+
+      vi.mocked(prisma.boardIssue.updateMany).mockResolvedValue({ count: 2 });
+
+      const result = await sprintsService.transferIncomplete('sp_test1', 'sp_target', ctx);
+
+      expect(result.transferred).toBe(2);
+      expect(prisma.boardIssue.updateMany).toHaveBeenCalledWith({
+        where: {
+          boardId: 'board-1',
+          sprintId: 'sp_test1',
+          issueId: { in: ['issue-1', 'issue-3'] },
+        },
+        data: { sprintId: 'sp_target' },
+      });
+    });
+
+    it('should return 0 if all issues are done', async () => {
+      vi.mocked(prisma.sprint.findUnique)
+        .mockResolvedValueOnce(mockSprint as any)
+        .mockResolvedValueOnce(targetSprint as any);
+
+      vi.mocked(prisma.boardIssue.findMany).mockResolvedValue([
+        { issueId: 'issue-1', boardId: 'board-1', sprintId: 'sp_test1', issue: { id: 'issue-1', status: { category: 'DONE' } } },
+      ] as any);
+
+      const result = await sprintsService.transferIncomplete('sp_test1', 'sp_target', ctx);
+
+      expect(result.transferred).toBe(0);
+      expect(prisma.boardIssue.updateMany).not.toHaveBeenCalled();
+    });
+
+    it('should throw if sprints are on different boards', async () => {
+      const crossBoardSprint = { ...targetSprint, boardId: 'board-2', board: { id: 'board-2', projectId: 'proj-2' } };
+      vi.mocked(prisma.sprint.findUnique)
+        .mockResolvedValueOnce(mockSprint as any)
+        .mockResolvedValueOnce(crossBoardSprint as any);
+
+      await expect(
+        sprintsService.transferIncomplete('sp_test1', 'sp_target', ctx),
+      ).rejects.toMatchObject({ code: 'SPRINT_BOARD_MISMATCH' });
     });
   });
 });

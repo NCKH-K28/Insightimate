@@ -80,6 +80,13 @@ projsHono.get('/search', zValidator('query', ZSearchQuery), async (c) => {
   return c.json(result);
 });
 
+// GET /api/v3/projs/favorites - List user's favorite projects
+projsHono.get('/favorites', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const result = await projectsService.listFavorites({ actorId: auth.id });
+  return c.json(result);
+});
+
 // GET /api/v3/projs/:projId - Get project by ID
 projsHono.get('/:projId', async (c) => {
   const auth = await getUserAndThrow(c);
@@ -421,6 +428,42 @@ projsHono.get('/:projId/states', async (c) => {
   const auth = await getUserAndThrow(c);
   const { projId } = c.req.param();
   const result = await projectsService.listStatuses(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== PROJECT ARCHIVE APIs ==========================
+
+// POST /api/v3/projs/:projId/archive - Archive project
+projsHono.post('/:projId/archive', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.archive(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// POST /api/v3/projs/:projId/unarchive - Unarchive project
+projsHono.post('/:projId/unarchive', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.unarchive(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// ========================== PROJECT FAVORITES APIs ==========================
+
+// POST /api/v3/projs/:projId/favorites - Add favorite
+projsHono.post('/:projId/favorites', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.addFavorite(projId, { actorId: auth.id });
+  return c.json(result, 201);
+});
+
+// DELETE /api/v3/projs/:projId/favorites - Remove favorite
+projsHono.delete('/:projId/favorites', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.removeFavorite(projId, { actorId: auth.id });
   return c.json(result);
 });
 
