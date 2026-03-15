@@ -13,10 +13,17 @@ import {
 
 import { AppHeader } from './components/app-header';
 import { OrgListPageHeader } from './components/org-list-page-header';
-import { OrgList, OrgListSkeleton } from './components/organizations';
+import { OrgListSkeleton } from './components/organizations';
 import { CreateOrgForm, CreateOrgFormData } from './components/create-org-form';
+import dynamic from 'next/dynamic';
+
+const OrgList = dynamic(() => import('./components/organizations').then((m) => m.OrgList), {
+  ssr: false,
+});
+
 import { useCreateOrg } from '@/hooks/org';
 import { toast } from 'sonner';
+import { getErrorMsg } from '@/lib/api/helper';
 
 export default function Page() {
   const [createOrgDialogOpen, setCreateOrgDialogOpen] = useState(false);
@@ -31,10 +38,7 @@ export default function Page() {
         {
           loading: 'Creating organization...',
           success: 'Organization created successfully!',
-          error: (e) => {
-            const msg = e instanceof Error ? e.message : 'Failed to create organization.';
-            return msg;
-          },
+          error: (e) => getErrorMsg(e, 'Failed to create organization.'),
         },
       )
       .unwrap();

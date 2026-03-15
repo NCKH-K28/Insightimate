@@ -1,16 +1,10 @@
-enum CommentTargetType {
-  ISSUE
-}
-
 model CommentThread {
   id         String            @id @default(cuid())
   targetType CommentTargetType @map("target_type")
   targetId   String            @map("target_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  comments Comment[]
+  createdAt  DateTime          @default(now()) @map("created_at")
+  updatedAt  DateTime          @updatedAt @map("updated_at")
+  comments   Comment[]
 
   @@unique([targetType, targetId])
   @@index([targetType, targetId])
@@ -18,18 +12,20 @@ model CommentThread {
 }
 
 model Comment {
-  id       String @id @default(cuid())
-  threadId String @map("thread_id")
-  content  String
-  authorId String @map("author_id")
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  thread CommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
-  author User          @relation("UserComments", fields: [authorId], references: [id])
+  id        String        @id @default(cuid())
+  threadId  String        @map("thread_id")
+  content   String
+  authorId  String        @map("author_id")
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+  author    User          @relation("UserComments", fields: [authorId], references: [id])
+  thread    CommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
 
   @@index([threadId, createdAt])
   @@index([authorId, createdAt])
   @@map("comments")
+}
+
+enum CommentTargetType {
+  ISSUE
 }

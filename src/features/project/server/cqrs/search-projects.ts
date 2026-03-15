@@ -2,14 +2,14 @@ import z from 'zod';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
-import { loadPrincipal, projectResourceFactory } from '@/features/authz/server/pip';
+import { loadPrincipal, projectResourceFactory } from '@/features/project_v3/utils/authz';
 import { PROJECT_ACTIONS } from '@/contracts/project';
 import { checkResourcesMapped } from '@/lib/authz/clients/cerbos';
 
 export const ZProjectFilter = z.object({
   q: z.string().optional(),
   ids: z.array(z.string()).min(1).optional(),
-  workspaceId: z.string().optional(),
+  orgId: z.string().optional(),
 });
 
 export const ZProjectListInput = z.object({ filter: ZProjectFilter.optional() });
@@ -49,7 +49,9 @@ const buildWhere = async (
   if (allowedIds.length === 0) return null;
 
   const where: Prisma.ProjectWhereInput & { id: { in: string[] } } = { id: { in: [] } };
-  if (filter?.workspaceId) where.workspaceId = filter.workspaceId;
+  if (filter?.orgId) {
+    where.orgId = filter.orgId;
+  }
   if (filter?.ids) where.id = { in: filter.ids };
   if (filter?.q) {
     where.OR = [
@@ -76,7 +78,7 @@ export const searchProjects = async (input: ProjectListInput, context: ProjectCo
 
   const projects = await prisma.project.findMany({
     where,
-    include: { lead: true, workspace: true },
+    include: { lead: true, organization: true },
     orderBy: { createdAt: 'desc' },
   });
 

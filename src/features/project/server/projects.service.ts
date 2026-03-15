@@ -21,7 +21,7 @@ import {
   genSprintId,
 } from '../configs/id-generators';
 import { buildProjectActorTuples, buildProjectTuples } from '@/lib/authz/tuple-factory';
-import { projectResourceFactory, loadPrincipal } from '@/features/authz/server/pip';
+import { projectResourceFactory, loadPrincipal } from '@/features/project_v3/utils/authz';
 import { listStatuses } from './project-field.service';
 import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';
 import z from 'zod';

@@ -12,8 +12,7 @@ import {
 import { OrgInvitation } from '@/contracts/organization/organization';
 
 const getOrg = async (id: string, by: 'id' | 'slug' = 'id'): Promise<OrgItem> => {
-  const path = by === 'slug' ? `/v3/orgs/${id}?by=slug` : `/v3/orgs/${id}`;
-  const resp = await axiosInstance.get(path);
+  const resp = await axiosInstance.get(`/v3/orgs/${id}`, { params: { by } });
   const data = resp.data;
   return data as OrgItem;
 };

@@ -241,6 +241,7 @@ const MemberSettings: React.FC<MemberSettingsProps> = ({ form, className, hidden
 type CreateOrgFormProps = {
   defaultValues?: Partial<CreateOrgFormData>;
   onSubmit?: (data: CreateOrgFormData) => void | Promise<void>;
+  onError?: (error: Error) => void | Promise<void>;
   onCancel?: () => void;
   uploadLogo?: (file: File) => Promise<string>;
 };
@@ -271,10 +272,7 @@ export const CreateOrgForm = ({ defaultValues, onSubmit, onCancel }: CreateOrgFo
     mode: 'onChange',
   });
 
-  const handleSummit = form.handleSubmit(
-    (data) => onSubmit?.(data),
-    (error) => console.log(error),
-  );
+  const handleSummit = form.handleSubmit((data) => onSubmit?.(data));
 
   useEffect(() => {
     const callback = form.subscribe({
@@ -314,7 +312,10 @@ export const CreateOrgForm = ({ defaultValues, onSubmit, onCancel }: CreateOrgFo
               <Button
                 type='button'
                 key='continue'
-                onClick={() => setStep(2)}
+                onClick={async () => {
+                  const isValid = await form.trigger(['name', 'slug', 'logo']);
+                  if (isValid) setStep(2);
+                }}
                 disabled={isSubmitting}
                 className='font-medium text-sm'
               >
@@ -331,11 +332,7 @@ export const CreateOrgForm = ({ defaultValues, onSubmit, onCancel }: CreateOrgFo
               >
                 Back
               </Button>
-              <Button
-                type='submit'
-                className='font-medium text-sm'
-                disabled={!form.formState.isValid || isSubmitting}
-              >
+              <Button type='submit' className='font-medium text-sm' disabled={isSubmitting}>
                 {isSubmitting && <Loader2 className='animate-spin' />}
                 {isSubmitting ? 'Creating...' : 'Create Organization'}
               </Button>
