@@ -1,7 +1,7 @@
 import { TeamItem, TeamList, TeamMemberAddInput, TeamUpdateInput } from '@/contracts/teams';
 import { PathParams, baseApi } from '@/lib/api/_client';
 
-const TeamBaseURL = 'v2/teams' as const;
+const TeamBaseURL = 'v3/orgs/{orgId}/teams' as const;
 const TeamItemURL = `${TeamBaseURL}/{teamId}` as const;
 const TeamMemberBase = `${TeamItemURL}/members` as const;
 const TeamMemberItem = `${TeamMemberBase}/{memberId}` as const;
@@ -33,12 +33,13 @@ const TeamEndpoints = {
   },
 } as const;
 
+type TeamListCtx = PathParams<typeof TeamBaseURL>;
 type TeamCtx = PathParams<typeof TeamItemURL>;
 type TeamMemberCtx = PathParams<typeof TeamMemberItem>;
 export const teamApi = {
-  list: () => baseApi.get<TeamList>(TeamEndpoints.list),
+  list: (ctx: TeamListCtx) => baseApi.get<TeamList>(TeamEndpoints.list, ctx),
   get: (ctx: TeamCtx) => baseApi.get<TeamItem>(TeamEndpoints.get, ctx),
-  create: (data: any) => baseApi.post(TeamEndpoints.create, data),
+  create: (ctx: TeamListCtx, data: any) => baseApi.post(TeamEndpoints.create, data, ctx),
   delete: (ctx: TeamCtx) => baseApi.delete(TeamEndpoints.delete, ctx),
   update: (ctx: TeamCtx, data: TeamUpdateInput) =>
     baseApi.patch<TeamItem>(TeamEndpoints.update, data, ctx),

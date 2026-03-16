@@ -1,23 +1,29 @@
-// @/lib/services/teams.service.ts
 import { prisma } from '@/lib/prisma';
 import { openfgaClient } from '@/lib/authz/clients/openfga';
 import { createId } from '@paralleldrive/cuid2';
 import { TeamCreateInput, TeamUpdateInput, ZTeamItem } from '@/contracts/teams';
-import { workspaceService } from '@/features/workspaces/server/service';
+import { ensureCan } from '@/features/organization/utils/authz';
 import { buildTeamMemberTuples, buildTeamTuples } from '@/lib/authz/tuple-factory';
 
-type TeamServiceContext = { actorId: string };
+export type TeamServiceContext = { actorId: string; orgId: string };
 
 const genTeamId = () => `team_${createId()}`;
-const genMemberId = () => `tm_${createId()}`;
 
-const ensureCanViewTeam = async (teamId: string, actorId: string) => {
-  const canView = await openfgaClient.check({
+const ensureTeamAccess = async (teamId: string, actorId: string, relation: 'can_view' | 'can_edit' | 'can_delete') => {
+  const check = await openfgaClient.check({
     user: `user:${actorId}`,
     object: `team:${teamId}`,
-    relation: 'can_view',
+    relation,
   });
-  if (canView.allowed !== true) throw new Error('Permission denied');
+  if (check.allowed !== true) throw new Error('Permission denied');
+};
+
+const mapPrismaTeamToZTeamItem = (t: any) => {
+  return ZTeamItem.parse({
+    ...t,
+    members: t.memberships,
+    _count: t._count ? { members: t._count.memberships } : undefined,
+  });
 };
 
 const listTeams = async (input: unknown, context: TeamServiceContext) => {
@@ -30,20 +36,22 @@ const listTeams = async (input: unknown, context: TeamServiceContext) => {
   if (teamIds.length === 0) return { data: [], meta: { total: 0 } };
 
   const teams = await prisma.team.findMany({
-    where: { id: { in: teamIds } },
+    where: { 
+      id: { in: teamIds },
+      orgId: context.orgId,
+    },
     include: {
-      members: { include: { user: true } },
-      _count: { select: { members: true } },
+      memberships: { include: { user: true } },
+      _count: { select: { memberships: true } },
     },
   });
 
-  const parsed = teams.map((t) => ZTeamItem.parse(t));
+  const parsed = teams.map(mapPrismaTeamToZTeamItem);
   return { data: parsed, meta: { total: parsed.length } };
 };
 
 const createTeam = async (input: TeamCreateInput, context: TeamServiceContext) => {
-  // That will ensure the user can create team in that workspace
-  await workspaceService.getById(input.workspaceId, context);
+  await ensureCan('read', { kind: 'org', id: context.orgId, attr: { orgId: context.orgId } }, { actorId: context.actorId });
 
   return prisma.$transaction(async (tx) => {
     const team = await tx.team.create({
@@ -52,16 +60,21 @@ const createTeam = async (input: TeamCreateInput, context: TeamServiceContext) =
         name: input.name,
         description: input.description,
         avatar: input.avatar,
-        workspaceId: input.workspaceId,
+        orgId: context.orgId,
         leadId: context.actorId,
       },
-      include: { members: true },
+      include: { memberships: true },
     });
 
-    const tuples = buildTeamTuples(team);
+    const tuples = buildTeamTuples({
+      id: team.id,
+      orgId: team.orgId,
+      leadId: team.leadId!,
+      members: [],
+    });
     await openfgaClient.writeTuples(tuples);
 
-    return team;
+    return mapPrismaTeamToZTeamItem(team);
   });
 };
 
@@ -71,52 +84,58 @@ const getTeamById = async (
   options?: { include: { members: boolean } },
 ) => {
   const team = await prisma.team.findUnique({
-    where: { id: teamId },
+    where: { id: teamId, orgId: context.orgId },
     include: options?.include.members
       ? {
-          members: { include: { user: true } },
-          _count: { select: { members: true } },
+          memberships: { include: { user: true } },
+          _count: { select: { memberships: true } },
         }
       : undefined,
   });
   if (!team) throw new Error('Team not found');
-  await ensureCanViewTeam(teamId, context.actorId);
+  await ensureTeamAccess(teamId, context.actorId, 'can_view');
 
-  const parsed = ZTeamItem.parse(team);
-  return parsed;
+  return mapPrismaTeamToZTeamItem(team);
 };
 
 const deleteTeamById = async (teamId: string, context: TeamServiceContext) => {
-  await getTeamById(teamId, context);
-  // FIXME: missing check permission
+  const teamInfo = await prisma.team.findUnique({ where: { id: teamId }, include: { memberships: true } });
+  if (!teamInfo || teamInfo.orgId !== context.orgId) throw new Error('Team not found');
+  
+  await ensureTeamAccess(teamId, context.actorId, 'can_delete');
+  
   return prisma.$transaction(async (tx) => {
-    const team = await tx.team.delete({ where: { id: teamId }, include: { members: true } });
-    const tuples = buildTeamTuples(team);
+    const team = await tx.team.delete({ where: { id: teamId }, include: { memberships: true } });
+    const tuples = buildTeamTuples({
+      id: team.id,
+      orgId: team.orgId,
+      leadId: team.leadId!,
+      members: team.memberships.map((m: any) => ({ userId: m.userId, teamId: m.teamId })),
+    });
     await openfgaClient.deleteTuples(tuples);
-    return team;
+    return mapPrismaTeamToZTeamItem(team);
   });
 };
 
-const updateTeam = async (input: TeamUpdateInput, context: TeamServiceContext) => {
-  await getTeamById(input.id, context);
-  // FIXME: missing check permission
+const updateTeam = async (teamId: string, input: TeamUpdateInput, context: TeamServiceContext) => {
+  await getTeamById(teamId, context);
+  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
 
   return prisma.$transaction(async (tx) => {
-    const { id: teamId, ...rest } = input;
-    const updated = await tx.team.update({ where: { id: teamId }, data: { ...rest } });
-    return updated;
+    const updated = await tx.team.update({ where: { id: teamId }, data: { ...input } });
+    return mapPrismaTeamToZTeamItem(updated);
   });
 };
 
 const getMember = async (
-  params: { teamId: string; memberId: string },
+  teamId: string,
+  userId: string,
   context: TeamServiceContext,
 ) => {
-  const team = await getTeamById(params.teamId, context, { include: { members: false } });
-  if (!team) throw new Error('Team not found');
-  await ensureCanViewTeam(params.teamId, context.actorId);
+  await getTeamById(teamId, context, { include: { members: false } });
+  
   const member = await prisma.teamMember.findUnique({
-    where: { id: params.memberId },
+    where: { teamId_userId: { teamId, userId } },
     include: { user: true },
   });
   if (!member) throw new Error('Member not found');
@@ -124,17 +143,18 @@ const getMember = async (
 };
 
 const addMember = async (
-  params: { teamId: string; userId: string },
+  teamId: string,
+  userId: string,
   context: TeamServiceContext,
 ) => {
-  const team = await getTeamById(params.teamId, context);
-  if (!team) throw new Error('Team not found');
+  await getTeamById(teamId, context);
+  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+
   return prisma.$transaction(async (tx) => {
     const member = await tx.teamMember.create({
       data: {
-        id: genMemberId(),
-        userId: params.userId,
-        teamId: params.teamId,
+        userId,
+        teamId,
       },
     });
     const tuples = buildTeamMemberTuples(member);
@@ -144,19 +164,20 @@ const addMember = async (
 };
 
 const addMembers = async (
-  params: { teamId: string; userIds: string[] },
+  teamId: string,
+  userIds: string[],
   context: TeamServiceContext,
 ) => {
-  const team = await getTeamById(params.teamId, context);
-  if (!team) throw new Error('Team not found');
+  await getTeamById(teamId, context);
+  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+
   return prisma.$transaction(async (tx) => {
     const members = await Promise.all(
-      params.userIds.map((userId) =>
+      userIds.map((userId) =>
         tx.teamMember.create({
           data: {
-            id: genMemberId(),
             userId,
-            teamId: params.teamId,
+            teamId,
           },
         }),
       ),
@@ -168,19 +189,23 @@ const addMembers = async (
 };
 
 const removeMember = async (
-  params: { teamId: string; memberId: string },
+  teamId: string,
+  userId: string, 
   context: TeamServiceContext,
 ) => {
-  const team = await getTeamById(params.teamId, context, { include: { members: false } });
-  if (!team) throw new Error('Team not found');
+  await getTeamById(teamId, context, { include: { members: false } });
+  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+
   return prisma.$transaction(async (tx) => {
     const member = await tx.teamMember.findUnique({
-      where: { id: params.memberId },
-      select: { id: true, userId: true, teamId: true },
+      where: { teamId_userId: { teamId, userId } },
+      select: { teamId: true, userId: true },
     });
     if (!member) throw new Error('Member not found');
-    await tx.teamMember.delete({ where: { id: params.memberId } });
-    const tuples = buildTeamMemberTuples(member);
+    
+    await tx.teamMember.delete({ where: { teamId_userId: { teamId, userId } } });
+    
+    const tuples = buildTeamMemberTuples({ teamId, userId });
     await openfgaClient.deleteTuples(tuples);
     return member;
   });

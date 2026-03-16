@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useMutation } from '@tanstack/react-query';
 import { removeTeamMembershipMutationOptions } from '../../api/actionts';
 import { toast } from 'sonner';
+import { useParams } from 'next/navigation';
 
 type TeamMemberActionsProps = {
   params: { teamId: string; memberId: string };
@@ -21,7 +22,9 @@ type TeamMemberActionsProps = {
 export const TeamMemberActions = (props: TeamMemberActionsProps) => {
   // log pamra
   console.log('TeamMemberActions props:', props);
-  const deleteMember = useMutation(removeTeamMembershipMutationOptions(props.params));
+  const routerParams = useParams<{ workspaceId: string }>();
+  const orgId = routerParams?.workspaceId || '';
+  const deleteMember = useMutation(removeTeamMembershipMutationOptions({ orgId, ...props.params }));
 
   const handleDelete = async () => {
     await toast

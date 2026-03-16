@@ -10,13 +10,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 type TeamHeaderProps = { params: { workspaceId: string; teamId: string } };
-const TeamHeader = ({ params: { teamId } }: TeamHeaderProps) => {
+const TeamHeader = ({ params: { workspaceId: orgId, teamId } }: TeamHeaderProps) => {
   const pathname = usePathname();
   if (!pathname) throw new Error('pathname is undefined');
   const router = useRouter();
 
-  const deleteTeam = useMutation(deleteTeamMutationOptions(teamId));
-  const { data: team } = useQuery(getTeamQueryOptions(teamId));
+  const deleteTeam = useMutation(deleteTeamMutationOptions(orgId, teamId));
+  const { data: team } = useQuery(getTeamQueryOptions(orgId, teamId));
 
   const teamsPath = useMemo(() => {
     const segments = pathname.split('/');

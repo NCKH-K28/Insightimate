@@ -137,7 +137,7 @@ const EmptyState = () => {
   );
 };
 
-export const TeamsList = ({}: TeamListProps) => {
+export const TeamsList = ({ params }: TeamListProps) => {
   const pathname = usePathname();
   if (!pathname) throw new Error('pathname is undefined');
 
@@ -147,7 +147,7 @@ export const TeamsList = ({}: TeamListProps) => {
     return basePath + '/teams';
   }, [pathname]);
 
-  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions());
+  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions(params.workspaceId));
 
   const getInitials = (name: string) => {
     return name

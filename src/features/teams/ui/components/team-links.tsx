@@ -5,16 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { Suspense, useMemo } from 'react';
 import { getTeamQueryOptions, listTeamLinksQueryOptions } from '@/features/teams/api/actionts';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 const TeamLinks = (props: { teamId: string }) => {
   const pathname = usePathname();
+  const params = useParams<{ workspaceId: string }>();
+  const orgId = params?.workspaceId || '';
   if (!pathname) throw new Error('Pathname is undefined');
 
-  const { data: team } = useSuspenseQuery(getTeamQueryOptions(props.teamId));
-  const { data: links } = useQuery(listTeamLinksQueryOptions(props.teamId));
+  const { data: team } = useSuspenseQuery(getTeamQueryOptions(orgId, props.teamId));
+  const { data: links } = useQuery(listTeamLinksQueryOptions(orgId, props.teamId));
 
   const basePath = useMemo(() => {
     const reg = /\/wps\/([^/]+)\//;

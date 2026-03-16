@@ -1,4 +1,5 @@
 'use client';
+import { useParams } from 'next/navigation';
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,12 @@ import { UserInvite } from '@/features/user/ui/user-invite';
 
 type TeamShareProps = { teamId: string };
 export function TeamShare({ teamId }: TeamShareProps) {
-  const { data: team } = useSuspenseQuery(getTeamQueryOptions(teamId));
+  const params = useParams<{ workspaceId: string }>();
+  const orgId = params?.workspaceId || '';
 
-  const addMember = useMutation(addTeamMembershipMutationOptions(teamId));
+  const { data: team } = useSuspenseQuery(getTeamQueryOptions(orgId, teamId));
+
+  const addMember = useMutation(addTeamMembershipMutationOptions(orgId, teamId));
 
   const memberships: any[] = team.members || [];
 

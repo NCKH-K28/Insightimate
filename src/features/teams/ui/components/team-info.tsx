@@ -25,16 +25,19 @@ import { toast } from 'sonner';
 import { getTeamQueryOptions, updateTeamMutationOptions } from '@/features/teams/api/actionts';
 import { TeamUpdateInput, ZTeamUpdateInput } from '@/contracts/teams';
 import { Textarea } from '@/components/ui/textarea';
+import { useParams } from 'next/navigation';
 
 export const TeamInfo = (props: { teamId: string }) => {
-  const { data: team } = useQuery(getTeamQueryOptions(props.teamId));
-  const updateTeam = useMutation(updateTeamMutationOptions(props.teamId));
+  const params = useParams<{ workspaceId: string }>();
+  const orgId = params?.workspaceId || '';
+
+  const { data: team } = useQuery(getTeamQueryOptions(orgId, props.teamId));
+  const updateTeam = useMutation(updateTeamMutationOptions(orgId, props.teamId));
 
   const form = useForm<TeamUpdateInput>({
     resolver: zodResolver(ZTeamUpdateInput),
     mode: 'onChange',
     values: {
-      id: team?.id || '',
       name: team?.name || '',
       description: team?.description || '',
     },

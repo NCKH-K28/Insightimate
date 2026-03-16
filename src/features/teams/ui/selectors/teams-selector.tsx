@@ -13,7 +13,7 @@ import {
 import { useQuery } from '@tanstack/react-query';
 import { Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useParams } from 'next/navigation';
 
 type Team = { id: string; name: string; lead?: string };
 
@@ -31,6 +31,7 @@ export const TeamsSelector = ({
   excludeTeamIds,
   defaultTeam,
   className,
+  params,
 }: TeamsSelectorProps) => {
   const pathname = usePathname();
   if (!pathname) throw new Error('Missing pathname');
@@ -43,9 +44,14 @@ export const TeamsSelector = ({
 
   const [selectTeam, setSelectTeam] = React.useState<Team | null>(defaultTeam || null);
 
+  const routerParams = useParams<{ workspaceId: string }>();
+  const orgId = params?.workspaceId || routerParams?.workspaceId || '';
   const excludeTeamIdsSet = new Set(excludeTeamIds);
 
-  const { data: teams, isPending: isTeamsPending } = useQuery(listTeamsQueryOptions());
+  const { data: teams, isPending: isTeamsPending } = useQuery({
+    ...listTeamsQueryOptions(orgId),
+    enabled: !!orgId,
+  });
 
   const filteredTeams = teams?.filter((team) => !excludeTeamIdsSet.has(team.id)) || [];
 

@@ -27,7 +27,7 @@ type CreateTeamFormProps = {
 };
 
 export const CreateTeamForm = ({ params, onSubmit }: CreateTeamFormProps) => {
-  const createTeam = useMutation(createTeamMutationOptions());
+  const createTeam = useMutation(createTeamMutationOptions(params.workspaceId));
 
   const form = useForm<FormData>({
     resolver: zodResolver(ZFormData),
@@ -35,7 +35,6 @@ export const CreateTeamForm = ({ params, onSubmit }: CreateTeamFormProps) => {
       name: '',
       description: '',
       avatar: undefined,
-      workspaceId: params.workspaceId,
       members: [],
     },
   });
