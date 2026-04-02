@@ -15,6 +15,7 @@ model Organization {
   plans          Plan[]          @relation("OrganizationPlans")
   projects       Project[]       @relation("OrganizationProjects")
   teams          Team[]          @relation("OrganizationTeams")
+  notifications  Notification[]  @relation("OrganizationNotifications")
 
   @@map("organizations")
 }

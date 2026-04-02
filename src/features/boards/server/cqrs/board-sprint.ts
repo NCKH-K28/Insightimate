@@ -119,7 +119,12 @@ const getIssueAggregations = async (
   query: SprintQuery,
 ): Promise<SprintAggregations> => {
   const baseWhere: Prisma.IssueWhereInput = {
-    boards: { some: { boardId: ctx.boardId, sprintId: ctx.sprintId } },
+    boards: {
+      OR: [
+        { boardId: ctx.boardId, sprintId: ctx.sprintId },
+        { boardId: ctx.boardId, sprintId: null },
+      ],
+    },
   };
 
   const [completedStats, incompletedStats] = await Promise.all([
@@ -164,14 +169,11 @@ export const getSprintById = async (ctx: SprintContext, query: SprintQuery) => {
   const sprint = await ensureSprintExists(prisma, ctx);
   const aggregations = await getIssueAggregations(ctx, query);
 
-  return {
-    ...sprint,
-    _aggregations: aggregations,
-  };
+  return { ...sprint, _aggregations: aggregations };
 };
 
 export const createBoardSprint = async (
-  ctx: { boardId: string },
+  ctx: { boardId: string; actorId?: string },
   input: BoardSprintCreateInput,
   client: TransactionClient = prisma,
 ) => {

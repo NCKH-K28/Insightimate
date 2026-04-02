@@ -1,0 +1,42 @@
+model Notification {
+  id             String    @id @default(cuid())
+  organizationId String    @map("organization_id")
+  projectId      String?   @map("project_id")
+  issueId        String?   @map("issue_id")
+  type           String
+  title          String    @db.Text
+  message        String?   @db.Text
+  data           Json?
+  actorId        String?   @map("actor_id")
+  receiverId     String    @map("receiver_id")
+  readAt         DateTime? @map("read_at")
+  snoozedUntil   DateTime? @map("snoozed_until")
+  archivedAt     DateTime? @map("archived_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization @relation("OrganizationNotifications", fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project?     @relation("ProjectNotifications", fields: [projectId], references: [id], onDelete: Cascade)
+  issue        Issue?       @relation("IssueNotifications", fields: [issueId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+  receiver     User         @relation("NotificationReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverId, readAt])
+  @@index([receiverId, snoozedUntil, archivedAt])
+  @@index([organizationId, receiverId])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  id               String   @id @default(cuid())
+  userId           String   @unique @map("user_id")
+  emailMentions    Boolean  @default(true) @map("email_mentions")
+  emailAssignments Boolean  @default(true) @map("email_assignments")
+  emailUpdates     Boolean  @default(false) @map("email_updates")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}

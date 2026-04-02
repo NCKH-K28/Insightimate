@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import {
-  useReactTable,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -24,6 +23,7 @@ import { ColumnFilter } from '@/components/table/data-table-toolbar';
 import { CreateProjectDialog } from '@/features/project/ui/create-project-dialog';
 
 import { projectColumns } from './project-column';
+import { useNoMemoTable } from '@/hooks/use-nomemo-table';
 
 interface ProjectsTableProps {
   initialData: ProjectItem[];
@@ -70,7 +70,7 @@ export function ProjectsTable({ initialData, orgId, context }: ProjectsTableProp
     },
   ];
 
-  const table = useReactTable({
+  const table = useNoMemoTable({
     data: projects ?? [],
     columns: projectColumns,
     state: { sorting, columnFilters, columnVisibility, rowSelection },

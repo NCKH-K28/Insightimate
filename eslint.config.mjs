@@ -39,5 +39,8 @@ export default defineConfig([
     '.temp',
     'src/components/ui/**',
     'src/components/ai-elements/**',
+    'plane/**',
+    '.agent/**',
+    '.agents/**',
   ]),
 ]);

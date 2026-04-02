@@ -24,6 +24,8 @@ model Project {
   favorites      ProjectFavorite[] @relation("ProjectFavorites")
   lead           User              @relation("ProjectLead", fields: [leadId], references: [id])
   organization   Organization      @relation("OrganizationProjects", fields: [orgId], references: [id], onDelete: Cascade)
+  notifications  Notification[]    @relation("ProjectNotifications")
+  labels         Label[]           @relation("ProjectLabels")
 
   @@unique([orgId, key])
   @@index([orgId])

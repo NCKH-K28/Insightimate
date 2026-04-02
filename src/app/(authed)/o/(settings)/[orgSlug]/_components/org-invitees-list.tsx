@@ -5,14 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
 import {
   Table,
   TableBody,
@@ -27,7 +24,6 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
   type SortingState,
@@ -37,6 +33,7 @@ import { MoreHorizontal } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNoMemoTable } from '@/hooks/use-nomemo-table';
 
 export const ROLE_LABELS: Record<string, string> = {
   ORG_OWNER: 'Owner',
@@ -152,7 +149,7 @@ export function OrgInviteesList({
 
   const columns = React.useMemo(() => buildColumns({ onResend, onRevoke }), [onResend, onRevoke]);
 
-  const table = useReactTable({
+  const table = useNoMemoTable({
     data: invitees,
     columns,
     onSortingChange: setSorting,

@@ -10,6 +10,7 @@ import { boardsService } from '@/features/boards/server/service';
 import { sprintService } from '@/features/boards/server/sprint-service';
 import { ZBoardIssueQueryParams } from '@/contracts/boards/board.query';
 import {
+  BoardSprintUpdateInput,
   ZBoardIssueCreateInput,
   ZBoardIssueMoveInput,
   ZBoardIssueRankUpdate,
@@ -17,6 +18,7 @@ import {
   ZBoardSprintCompleteInput,
   ZMoveIssueInputV2,
 } from '@/contracts/boards/board.input';
+import { format } from 'date-fns';
 
 const boardsHono = new Hono().basePath('/api/v3/boards');
 boardsHono.use(authenticatedGuard);
@@ -235,11 +237,10 @@ boardsHono.patch(
     const auth = await getUserAndThrow(c);
     const { boardId, sprintId } = c.req.param();
     const input = c.req.valid('json');
-    // convert strings to Date if needed
-    const data = {
+    const data: BoardSprintUpdateInput = {
       ...input,
-      startAt: input.startAt ? new Date(input.startAt) : undefined,
-      endAt: input.endAt ? new Date(input.endAt) : undefined,
+      startAt: input.startAt ? format(new Date(input.startAt), 'yyyy-MM-dd') : undefined,
+      endAt: input.endAt ? format(new Date(input.endAt), 'yyyy-MM-dd') : undefined,
     };
     const result = await boardsService.updateSprint({ boardId, sprintId, actorId: auth.id }, data);
     return c.json(result);

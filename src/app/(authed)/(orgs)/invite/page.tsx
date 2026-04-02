@@ -249,7 +249,7 @@ export default function InvitePage() {
               <UserPlus className='h-6 w-6 text-primary' />
             </div>
             <div className='flex-1'>
-              <CardTitle className='text-2xl'>You're Invited!</CardTitle>
+              <CardTitle className='text-2xl'>You&apos;re Invited!</CardTitle>
               <CardDescription className='mt-1'>
                 Join <span className='font-semibold text-foreground'>{organization.name}</span> as a
                 team member

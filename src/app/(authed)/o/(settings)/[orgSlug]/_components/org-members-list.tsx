@@ -39,6 +39,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { OrgMemberItem } from '@/contracts/organization/organization.query';
+import { useNoMemoTable } from '@/hooks/use-nomemo-table';
 
 type Role = OrgMemberItem['role'];
 const ROLE_LABELS: Record<Role, string> = {
@@ -275,7 +276,7 @@ export function OrgMembersList({
     [roleChoices, onRemoveMember, canRemove, onAssignRole, canAssignRole, isAssigningRole],
   );
 
-  const table = useReactTable({
+  const table = useNoMemoTable({
     data: members,
     columns,
     getRowId: (row) => row.userId,

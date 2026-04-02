@@ -113,7 +113,11 @@ const getDestRanks = async (
   throw new Error('Invalid destination type');
 };
 
-export const updateIssueRank = async (boardId: string, input: BoardIssueRankUpdate) => {
+export const updateIssueRank = async (
+  boardId: string,
+  input: BoardIssueRankUpdate,
+  ctx: { actorId: string },
+) => {
   const { src, dest, in: boardType } = input;
   const parentField = boardType === 'SCRUM' ? 'sprintId' : 'columnId';
   const destRanks = await getDestRanks(src, dest, parentField);

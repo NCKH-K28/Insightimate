@@ -18,6 +18,8 @@ import { orgMemberService } from '@/features/organization/server/org-member.serv
 import { authenticatedGuard, getUserAndThrow } from '@/lib/auth';
 import { teamsService } from '@/features/teams/server/teams.service';
 import { ZTeamCreateInput, ZTeamUpdateInput } from '@/contracts/teams';
+import { ZNotificationListQuery, ZNotificationSnoozeInput } from '@/contracts/notifications';
+import { notificationsService } from '@/features/notifications/server/notifications.service';
 
 // == TODO: API for organizations ==
 // v GET /api/orgs (list organizations current user can access)
@@ -214,7 +216,11 @@ orgsHono.post('/:orgId/teams', zValidator('json', ZTeamCreateInput), async (c) =
 orgsHono.get('/:orgId/teams/:teamId', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
   const { orgId, teamId } = c.req.param();
-  const result = await teamsService.getTeamById(teamId, { actorId, orgId }, { include: { members: true } });
+  const result = await teamsService.getTeamById(
+    teamId,
+    { actorId, orgId },
+    { include: { members: true } },
+  );
   return c.json(result);
 });
 
@@ -236,25 +242,97 @@ orgsHono.delete('/:orgId/teams/:teamId', async (c) => {
 orgsHono.get('/:orgId/teams/:teamId/members', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
   const { orgId, teamId } = c.req.param();
-  const result = await teamsService.getTeamById(teamId, { actorId, orgId }, { include: { members: true } });
+  const result = await teamsService.getTeamById(
+    teamId,
+    { actorId, orgId },
+    { include: { members: true } },
+  );
   return c.json({ data: result.members || [] });
 });
 
 const ZTeamMemberAddInput = z.object({ userIds: z.array(z.string().min(1)) });
 
-orgsHono.post('/:orgId/teams/:teamId/members', zValidator('json', ZTeamMemberAddInput), async (c) => {
-  const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId } = c.req.param();
-  const { userIds } = c.req.valid('json');
-  const result = await teamsService.addMembers(teamId, userIds, { actorId, orgId });
-  return c.json(result, { status: 201 });
-});
+orgsHono.post(
+  '/:orgId/teams/:teamId/members',
+  zValidator('json', ZTeamMemberAddInput),
+  async (c) => {
+    const { id: actorId } = await getUserAndThrow(c);
+    const { orgId, teamId } = c.req.param();
+    const { userIds } = c.req.valid('json');
+    const result = await teamsService.addMembers(teamId, userIds, { actorId, orgId });
+    return c.json(result, { status: 201 });
+  },
+);
 
 orgsHono.delete('/:orgId/teams/:teamId/members/:userId', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
   const { orgId, teamId, userId } = c.req.param();
   await teamsService.removeMember(teamId, userId, { actorId, orgId });
   return c.json({ ok: true });
+});
+
+// ========================== NOTIFICATIONS APIs ==========================
+
+// GET /api/v3/orgs/:orgId/notifications - List notifications
+orgsHono.get('/:orgId/notifications', zValidator('query', ZNotificationListQuery), async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { orgId } = c.req.param();
+  const query = c.req.valid('query');
+  const result = await notificationsService.list(orgId, query, { actorId });
+  return c.json(result);
+});
+
+// GET /api/v3/orgs/:orgId/notifications/unread-count
+orgsHono.get('/:orgId/notifications/unread-count', async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { orgId } = c.req.param();
+  const result = await notificationsService.getUnreadCount(orgId, { actorId });
+  return c.json(result);
+});
+
+// POST /api/v3/orgs/:orgId/notifications/:id/read
+orgsHono.post('/:orgId/notifications/:id/read', async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { id } = c.req.param();
+  const result = await notificationsService.markRead(id, { actorId });
+  return c.json(result);
+});
+
+// DELETE /api/v3/orgs/:orgId/notifications/:id/read
+orgsHono.delete('/:orgId/notifications/:id/read', async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { id } = c.req.param();
+  const result = await notificationsService.markUnread(id, { actorId });
+  return c.json(result);
+});
+
+// POST /api/v3/orgs/:orgId/notifications/:id/archive
+orgsHono.post('/:orgId/notifications/:id/archive', async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { id } = c.req.param();
+  const result = await notificationsService.archive(id, { actorId });
+  return c.json(result);
+});
+
+// PATCH /api/v3/orgs/:orgId/notifications/:id - Snooze
+orgsHono.patch(
+  '/:orgId/notifications/:id',
+  zValidator('json', ZNotificationSnoozeInput),
+  async (c) => {
+    const { id: actorId } = await getUserAndThrow(c);
+    const { id } = c.req.param();
+    const input = c.req.valid('json');
+    const result = await notificationsService.snooze(id, input, { actorId });
+    return c.json(result);
+  },
+);
+
+// POST /api/v3/orgs/:orgId/notifications/mark-all-read
+orgsHono.post('/:orgId/notifications/mark-all-read', async (c) => {
+  const { id: actorId } = await getUserAndThrow(c);
+  const { orgId } = c.req.param();
+  const result = await notificationsService.markAllRead(orgId, { actorId });
+  return c.json(result);
 });
 
 export const GET = handle(orgsHono);

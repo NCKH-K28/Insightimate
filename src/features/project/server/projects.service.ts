@@ -20,7 +20,11 @@ import {
   genProjectId,
   genSprintId,
 } from '../configs/id-generators';
-import { buildProjectActorTuples, buildProjectTuples } from '@/lib/authz/tuple-factory';
+import {
+  buildProjectActorTuples,
+  buildProjectTuples,
+  ProjActorInput,
+} from '@/lib/authz/tuple-factory';
 import { projectResourceFactory, loadPrincipal } from '@/features/project_v3/utils/authz';
 import { listStatuses } from './project-field.service';
 import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';
@@ -260,7 +264,7 @@ const createProject = async (input: ProjectCreateInput, context: ProjectContext)
 
     const tuples = buildProjectTuples({
       ...project,
-      roles: roles.map((r) => ({ ...r, actors: [] })),
+      roles: roles.map((r) => ({ ...r, id: r.id!, actors: [] as ProjActorInput[] })),
       permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
     });
     await openfgaClient.writeTuples(tuples);
@@ -276,7 +280,7 @@ const updateProject = async (
 ) => {
   const exists = await prisma.project.findUnique({
     where: { id: projectId },
-    include: { workspace: true, actors: true },
+    include: { organization: true, actors: true },
   });
   if (!exists) throw new Error('Project not found');
 
@@ -563,7 +567,6 @@ export const projectsService = {
   // -- remove after migration
   listProjects,
   getProjectById,
-  createProject,
   deleteProject,
 
   listProjectActors,

@@ -55,8 +55,18 @@ export default function InvitePage() {
     retry: false,
   });
 
-  const acceptWsInvite = { isPending: false, mutateAsync: async () => {} };
-  const rejectWsInvite = { isPending: false, mutateAsync: async () => {} };
+  const acceptWsInvite = {
+    isPending: false,
+    mutateAsync: async (...args: any) => {
+      throw new Error('Not implemented');
+    },
+  };
+  const rejectWsInvite = {
+    isPending: false,
+    mutateAsync: async (...args: any) => {
+      throw new Error('Not implemented');
+    },
+  };
 
   const acceptOrgInvite = useMutation({
     ...acceptOrgInvitationMutationOptions(),

@@ -29,7 +29,6 @@
     "worker:start": "tsx workers/index.ts",
     "deps:why": "pnpm why",
     "deps:check": "pnpm install --resolution-only",
-    "deps:scan": "pnpm -s dlx tsx scripts/deps-usage-scan.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

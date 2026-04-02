@@ -150,7 +150,7 @@ const addIssue = async (
 
     // --- activity feed (v2) ---
     emitActivity({
-      orgId: board.project.organizationId || '', // FIXME: project->org relation should be loaded
+      orgId: board.project.orgId || '', // FIXME: project->org relation should be loaded
       projectId,
       actorId: context.actorId,
       action: 'CREATED',

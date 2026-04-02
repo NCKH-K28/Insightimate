@@ -17,6 +17,9 @@ import { rolesService } from '@/features/project_v3/server/roles.service';
 import { exportService } from '@/features/project_v3/server/export.service';
 import { searchProjects, ZProjectListInput } from '@/features/project/server/cqrs/search-projects';
 import { prisma } from '@/lib/prisma';
+import { labelsService } from '@/features/labels/server/labels.service';
+import { issueLabelsService } from '@/features/labels/server/issue-labels.service';
+import { ZLabelCreateInput, ZLabelUpdateInput, ZIssueLabelAttachInput } from '@/contracts/labels';
 
 const projsHono = new Hono().basePath('/api/v3/projs');
 projsHono.use(authenticatedGuard);
@@ -467,9 +470,80 @@ projsHono.delete('/:projId/favorites', async (c) => {
   return c.json(result);
 });
 
+// ========================== PROJECT LABELS APIs ==========================
+
+// GET /api/v3/projs/:projId/labels - List labels in project
+projsHono.get('/:projId/labels', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const result = await labelsService.list(null, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result);
+});
+
+// POST /api/v3/projs/:projId/labels - Create label in project
+projsHono.post('/:projId/labels', zValidator('json', ZLabelCreateInput), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const input = c.req.valid('json');
+  const result = await labelsService.create(input, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result, 201);
+});
+
+// PATCH /api/v3/projs/:projId/labels/:labelId - Update label
+projsHono.patch('/:projId/labels/:labelId', zValidator('json', ZLabelUpdateInput), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, labelId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const input = c.req.valid('json');
+  const result = await labelsService.update(labelId, input, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result);
+});
+
+// DELETE /api/v3/projs/:projId/labels/:labelId - Delete label
+projsHono.delete('/:projId/labels/:labelId', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, labelId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const result = await labelsService.remove(labelId, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result);
+});
+
+// ========================== ISSUE-LABEL APIs ==========================
+
+// GET /api/v3/projs/:projId/issues/:issueId/labels - List labels on issue
+projsHono.get('/:projId/issues/:issueId/labels', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, issueId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const result = await issueLabelsService.list(issueId, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result);
+});
+
+// POST /api/v3/projs/:projId/issues/:issueId/labels - Attach label to issue
+projsHono.post('/:projId/issues/:issueId/labels', zValidator('json', ZIssueLabelAttachInput), async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, issueId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const { labelId } = c.req.valid('json');
+  const result = await issueLabelsService.attach(issueId, labelId, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result, 201);
+});
+
+// DELETE /api/v3/projs/:projId/issues/:issueId/labels/:labelId - Detach label from issue
+projsHono.delete('/:projId/issues/:issueId/labels/:labelId', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId, issueId, labelId } = c.req.param();
+  const project = await projectsService.getById(projId, { actorId: auth.id });
+  const result = await issueLabelsService.detach(issueId, labelId, { actorId: auth.id, orgId: project.orgId, projectId: projId });
+  return c.json(result);
+});
+
 export const GET = handle(projsHono);
 export const POST = handle(projsHono);
 export const PUT = handle(projsHono);
 export const PATCH = handle(projsHono);
 export const DELETE = handle(projsHono);
 export const OPTIONS = handle(projsHono);
+

@@ -22,6 +22,9 @@ model User {
   sessions                Session[]
   teamMemberships         TeamMember[]    @relation("UserTeamMemberships")
   ledTeams                Team[]          @relation("UserLedTeams")
+  actedNotifications      Notification[]           @relation("NotificationActor")
+  receivedNotifications   Notification[]           @relation("NotificationReceiver")
+  notificationPreference  NotificationPreference?
 
   @@map("users")
 }

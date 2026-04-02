@@ -240,7 +240,7 @@ function MembersPageContent() {
                   </TooltipTrigger>
                   {!canInviteMembers && (
                     <TooltipContent>
-                      <p>You don't have permission to invite members</p>
+                      <p>You don&apos;t have permission to invite members</p>
                     </TooltipContent>
                   )}
                 </Tooltip>

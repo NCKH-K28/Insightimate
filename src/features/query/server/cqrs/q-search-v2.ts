@@ -1,8 +1,12 @@
 import { elasticClient, SearchQuery } from '@/lib/elastic';
 import { QueryOutput, QueryParams, ZQueryOutput } from '@/contracts/query/schema-v2';
 
-import { listAccessibleResources } from '@/features/authz/server/cqrs/q-allowed-objects';
 import { prisma } from '@/lib/prisma';
+
+const listAccessibleResources = async (...arg: any) => {
+  // FIXME: fix this
+  throw new Error('Not implemented');
+};
 
 const toCamelKey = (k: string) =>
   k.replace(/^_+/, '').replace(/[_-]([a-zA-Z0-9])/g, (_, c) => c.toUpperCase());
@@ -45,6 +49,7 @@ export const buildQuery = async (
   input: QueryParams,
   context: { actorId: string },
 ): Promise<SearchQuery> => {
+  throw new Error('Not implemented');
   const q = input.q?.trim() || '';
 
   let baseQuery: SearchQuery = { match_all: {} };
@@ -76,24 +81,24 @@ export const buildQuery = async (
     };
   }
 
-  let workspaceIds = await listAccessibleResources({
+  const workspaceIds = await listAccessibleResources({
     action: 'can_view',
     subject: { type: 'user', id: context.actorId },
     resource: { type: 'workspace' },
   });
-  let projectIds = await listAccessibleResources({
+  const projectIds = await listAccessibleResources({
     action: 'can_view',
     subject: { type: 'user', id: context.actorId },
     resource: { type: 'project' },
   });
 
-  if (input.workspaceId && workspaceIds.includes(input.workspaceId)) {
-    workspaceIds = [input.workspaceId];
-    const projects = await prisma.project.findMany({
-      where: { id: { in: projectIds }, workspaceId: input.workspaceId },
-    });
-    projectIds = projects.map((p) => p.id);
-  }
+  // if (input.workspaceId && workspaceIds.includes(input.workspaceId)) {
+  //   workspaceIds = [input.workspaceId];
+  //   const projects = await prisma.project.findMany({
+  //     where: { id: { in: projectIds }, workspaceId: input.workspaceId },
+  //   });
+  //   projectIds = projects.map((p) => p.id);
+  // }
 
   // Build authorization filters
   const authShould: SearchQuery[] = [];
@@ -106,11 +111,11 @@ export const buildQuery = async (
       ],
     },
   });
-  authShould.push({ term: { owner_id: context.actorId } });
-  authShould.push({ terms: { project_id: projectIds } });
-  authShould.push({
-    terms: { workspace_id: input.workspaceId ? [input.workspaceId] : workspaceIds },
-  });
+  // authShould.push({ term: { owner_id: context.actorId } });
+  // authShould.push({ terms: { project_id: projectIds } });
+  // authShould.push({
+  //   terms: { workspace_id: input.workspaceId ? [input.workspaceId] : workspaceIds },
+  // });
 
   return {
     bool: {

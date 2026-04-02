@@ -1,9 +1,17 @@
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
 import { getProjectQueryOptions } from '@/features/project/api/actions';
 import axiosInstance from '@/lib/api/_client';
 import { SprintItem } from '@/contracts/boards/board.query';
+
+const getWorkspaceQueryOptions = ({ workspaceId }: { workspaceId: string }) => ({
+  queryKey: ['workspaces', workspaceId],
+  queryFn: async () => {
+    const res = await axiosInstance.get(`/v2/workspaces/${workspaceId}`);
+    const data = res.data;
+    return data as any;
+  },
+});
 
 export const useDefaultContexts = () => {
   const params = useParams<{
@@ -49,7 +57,7 @@ export const useDefaultContexts = () => {
       id: project.id,
       type: 'project',
       name: project.name,
-      iconURL: project.avatar,
+      iconURL: project.avatar ?? undefined,
       value: project.id,
       label: project.name,
     });

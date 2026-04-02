@@ -35,6 +35,8 @@ model Issue {
   status           IssueStatus      @relation("IssueStatus", fields: [projectId, statusId], references: [projectId, id], onDelete: Cascade)
   type             IssueType        @relation("IssueType", fields: [projectId, typeId], references: [projectId, id], onDelete: Cascade)
   reporter         User?            @relation("IssueReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  notifications    Notification[]   @relation("IssueNotifications")
+  labels           IssueLabel[]     @relation("IssueLabels")
 
   @@unique([projectId, id])
   @@unique([projectId, key])

@@ -1,0 +1,27 @@
+model Label {
+  id        String   @id @default(cuid())
+  projectId String   @map("project_id")
+  name      String
+  color     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  project Project      @relation("ProjectLabels", fields: [projectId], references: [id], onDelete: Cascade)
+  issues  IssueLabel[]
+
+  @@unique([projectId, name])
+  @@map("labels")
+}
+
+model IssueLabel {
+  id        String   @id @default(cuid())
+  issueId   String   @map("issue_id")
+  labelId   String   @map("label_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  issue Issue @relation("IssueLabels", fields: [issueId], references: [id], onDelete: Cascade)
+  label Label @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([issueId, labelId])
+  @@map("issue_labels")
+}

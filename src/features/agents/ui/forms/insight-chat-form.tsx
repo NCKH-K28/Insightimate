@@ -3,9 +3,14 @@ import PromptInput from './prompt-input';
 import { useInsightChat } from '../../hooks/use-insight-chat';
 import { useParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
+// import { getWorkspaceQueryOptions } from '@/features/workspaces/api/actions';
 import { getProjectQueryOptions } from '@/features/project/api/actions';
 import { useMemo, useState } from 'react';
+
+const getWorkspaceQueryOptions = ({ workspaceId }: { workspaceId: string }) => {
+  throw new Error('Not implemented');
+  return {} as any;
+};
 
 const useDefaultContexts = () => {
   const params = useParams<{ workspaceId?: string; projectId?: string; issueId?: string }>();
@@ -22,15 +27,15 @@ const useDefaultContexts = () => {
   });
 
   const contexts: { id: string; type: string; name: string; iconURL?: string }[] = [];
-  if (workspace) {
-    contexts.push({ id: workspace.id, type: 'workspace', name: workspace.name });
-  }
-  if (project) {
-    contexts.push({ id: project.id, type: 'project', name: project.name, iconURL: project.avatar });
-  }
-  if (params.issueId) {
-    contexts.push({ id: params.issueId, type: 'issue', name: 'Issue' });
-  }
+  // if (workspace) {
+  //   contexts.push({ id: workspace.id, type: 'workspace', name: workspace.name });
+  // }
+  // if (project) {
+  //   contexts.push({ id: project.id, type: 'project', name: project.name, iconURL: project.avatar });
+  // }
+  // if (params.issueId) {
+  //   contexts.push({ id: params.issueId, type: 'issue', name: 'Issue' });
+  // }
 
   return contexts;
 };
