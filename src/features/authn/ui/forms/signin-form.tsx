@@ -26,7 +26,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ZSignInInput } from '@/contracts/auth/auth.input';
 
 import { GoogleIcon } from '@/components/icons/google-icon';
@@ -42,6 +42,7 @@ type SignInFormProps = { redirectTo?: string };
 
 export function SignInForm(props: SignInFormProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const signIn = useMutation({
     mutationFn: async (data: Parameters<typeof authClient.signIn.email>[0]) => {
       const result = await authClient.signIn.email(data);
@@ -49,7 +50,14 @@ export function SignInForm(props: SignInFormProps) {
       return result;
     },
     onSuccess: () => {
-      if (props.redirectTo) router.push(props.redirectTo);
+      const from = searchParams?.get('from');
+      if (props.redirectTo) {
+        router.push(props.redirectTo);
+      } else if (from && from.startsWith('/')) {
+        router.push(from);
+      } else {
+        router.push('/orgs'); // Default dashboard page
+      }
     },
   });
 

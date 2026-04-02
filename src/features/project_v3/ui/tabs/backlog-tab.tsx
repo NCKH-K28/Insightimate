@@ -7,6 +7,7 @@ import {
   listBoardIssuesQueryOptions,
 } from '@/features/boards/api/actions';
 import { useQuery } from '@tanstack/react-query';
+import { useParams } from 'next/navigation';
 import {
   getCoreRowModel,
   getFilteredRowModel,
@@ -61,6 +62,7 @@ const BacklogSkeleton = () => (
 type BacklogTabProps = { params: { boardId: string; projId: string } };
 
 export function BacklogTab({ params }: BacklogTabProps) {
+  const routeParams = useParams<{ orgSlug?: string }>();
   const { boardId, projId } = params;
   const { data: board } = useQuery(getBoardQueryOptions(boardId));
   const { data: issues, isPending } = useQuery(
@@ -127,7 +129,7 @@ export function BacklogTab({ params }: BacklogTabProps) {
   const filtered = useMemo(() => tableRows.map((row) => row.original), [tableRows]);
 
   // BacklogLayout & useIssuesToScrumRows expect { boardId, projectId, orgSlug }
-  const legacyParams = { boardId, projectId: projId, orgSlug: '' };
+  const legacyParams = { boardId, projectId: projId, orgSlug: routeParams?.orgSlug || '' };
   const rows = useIssuesToScrumRows(legacyParams, filtered, board?.sprints || []);
 
   if (isPending) return <BacklogSkeleton />;

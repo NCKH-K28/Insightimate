@@ -177,8 +177,15 @@ const leave = async (
 
   const result = await executeTransaction(client, async (tx) => {
     const orgId_userId = { orgId: input.orgId, userId: input.userId };
+    
+    const memToLeave = await tx.orgMember.findUnique({ where: { orgId_userId }, include: { user: true } });
+    if (!memToLeave) throw new Error('Failed to leave organization');
+    
+    if (memToLeave.role === 'ORG_OWNER') {
+      throw new Error('Owner cannot leave the organization.');
+    }
+
     const mem = await tx.orgMember.delete({ where: { orgId_userId }, include: { user: true } });
-    if (!mem) throw new Error('Failed to leave organization');
 
     await tx.orgInvitation.deleteMany({ where: { orgId: input.orgId, email: mem.user.email } });
     const job = await enqueueFgaJob(tx, {

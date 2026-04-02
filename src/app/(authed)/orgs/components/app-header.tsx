@@ -65,7 +65,7 @@ const AccountActions = () => {
     <DropdownMenu>
       <DropdownMenuTrigger asChild className='cursor-pointer'>
         <Avatar className='size-10 rounded-lg'>
-          <AvatarImage src={user?.avatar ?? undefined} alt={user?.name ?? 'User Avatar'} />
+          <AvatarImage src={user?.image ?? undefined} alt={user?.name ?? 'User Avatar'} />
           <AvatarFallback className='rounded-lg'>{initials}</AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>

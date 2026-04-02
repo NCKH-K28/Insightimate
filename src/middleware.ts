@@ -88,44 +88,51 @@ const PingSocket: ProxySideEffectHandler = {
 
 // ---- Chain: auth/redirect rules ----
 const AUTH_ROUTES = new Set(['/signin', '/signup']);
-const PROTECTED_PREFIXES = ['/orgs', '/o'];
-const AUTH_COOKIE = serverConfig.auth.cookieName;
+const PUBLIC_ROUTES = new Set(['/', '/forgot-password', '/reset-password', ...AUTH_ROUTES]);
 
 function isApiRoute(pathname: string) {
   return pathname.startsWith('/api/');
 }
 
 function isProtected(pathname: string) {
-  return PROTECTED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'));
-}
-
-function tokenOf(request: NextRequest) {
-  return request.cookies.get(AUTH_COOKIE)?.value || null;
+  // Bỏ qua các API route, webhook
+  if (isApiRoute(pathname)) return false;
+  // Bỏ qua các Public routes
+  if (PUBLIC_ROUTES.has(pathname)) return false;
+  
+  return true; // Tất cả các route còn lại đều là protected
 }
 
 const AuthGuard: ProxyChainHandler = {
   name: 'AuthGuard',
   handle({ request }) {
-    const { pathname } = request.nextUrl;
-
-    // Không áp auth cho API
-    if (isApiRoute(pathname)) return NextResponse.next();
+    const { pathname, searchParams } = request.nextUrl;
 
     const session = getSessionCookie(request);
     const isAuthPage = AUTH_ROUTES.has(pathname);
     const needsAuth = isProtected(pathname);
 
+    // Xử lý các API Routes bên trong AuthGuard
+    if (isApiRoute(pathname)) return NextResponse.next();
+
     if (!session && needsAuth) {
       const url = request.nextUrl.clone();
       url.pathname = '/signin';
-      url.searchParams.set('from', request.nextUrl.pathname + request.nextUrl.search);
+      url.searchParams.set('from', pathname + request.nextUrl.search);
       return NextResponse.redirect(url);
     }
 
     if (session && isAuthPage) {
       const url = request.nextUrl.clone();
-      url.pathname = '/orgs';
-      url.search = '';
+      const redirectTarget = searchParams.get('from');
+      
+      if (redirectTarget && redirectTarget.startsWith('/')) {
+        url.pathname = redirectTarget.split('?')[0]; // simple handling
+        url.search = redirectTarget.includes('?') ? redirectTarget.split('?')[1] : '';
+      } else {
+        url.pathname = '/orgs';
+        url.search = '';
+      }
       return NextResponse.redirect(url);
     }
 

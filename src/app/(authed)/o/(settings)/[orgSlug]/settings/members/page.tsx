@@ -160,6 +160,8 @@ function MembersPageContent() {
   };
 
   const canInviteMembers = roleOptions.length > 0;
+  const myMember = fetchOrgMems.data?.find((m) => m._me?.isMe);
+  const isOwner = myMember?.role === 'ORG_OWNER';
 
   return (
     <div className='size-full flex flex-col gap-4'>
@@ -208,13 +210,27 @@ function MembersPageContent() {
 
       <div className='h-12 px-4 flex items-center border-b justify-between'>
         <h1 className='text-sm text-muted-foreground'>Members Settings</h1>
-        <Button
-          variant='ghost'
-          className='text-red-600 hover:text-red-700 hover:bg-red-50'
-          onClick={() => setLeaveOrgDialog(true)}
-        >
-          Leave Organization
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button
+                  variant='ghost'
+                  className='text-red-600 hover:text-red-700 hover:bg-red-50 disabled:bg-transparent disabled:opacity-50 disabled:text-red-600'
+                  onClick={() => setLeaveOrgDialog(true)}
+                  disabled={isOwner}
+                >
+                  Leave Organization
+                </Button>
+              </span>
+            </TooltipTrigger>
+            {isOwner && (
+              <TooltipContent>
+                <p>You cannot leave the organization as you are the owner. Please transfer ownership or delete the organization.</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </div>
 
       <div className='px-4 pb-12 space-y-8'>

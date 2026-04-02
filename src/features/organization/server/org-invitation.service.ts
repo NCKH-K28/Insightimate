@@ -382,15 +382,21 @@ const accept = async (input: { token: string }, ctx: { actorId: string }) => {
       data: { status: 'ACCEPTED', acceptedAt: new Date() },
     });
 
-    await orgMemberService.add(
-      {
-        orgId,
-        userId: ctx.actorId,
-        role: invitation.role,
-      },
-      ctx,
-      tx,
-    );
+    const existingMem = await tx.orgMember.findUnique({
+      where: { orgId_userId: { orgId, userId: ctx.actorId } },
+    });
+    
+    if (!existingMem) {
+      await orgMemberService.add(
+        {
+          orgId,
+          userId: ctx.actorId,
+          role: invitation.role,
+        },
+        ctx,
+        tx,
+      );
+    }
   });
 
   return { ok: true, orgId };

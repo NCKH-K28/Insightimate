@@ -161,12 +161,17 @@ describe('OrgMemberService', () => {
         role: 'ORG_MEMBER',
       };
 
+      vi.mocked(prisma.orgMember.findUnique).mockResolvedValue(member as any);
       vi.mocked(prisma.orgMember.delete).mockResolvedValue(member as any);
       vi.mocked(enqueueFgaJob).mockResolvedValue({ id: 'job-1' } as any);
 
       // input userId matches actorId (user-1)
       await orgMemberService.leave({ orgId: 'org-1', userId: 'user-1' }, mockCtx);
 
+      expect(prisma.orgMember.findUnique).toHaveBeenCalledWith({
+        where: { orgId_userId: { orgId: 'org-1', userId: 'user-1' } },
+        include: { user: true },
+      });
       expect(prisma.orgMember.delete).toHaveBeenCalledWith(
         expect.objectContaining({ where: { orgId_userId: { orgId: 'org-1', userId: 'user-1' } } }),
       );
@@ -180,6 +185,22 @@ describe('OrgMemberService', () => {
       await expect(
         orgMemberService.leave({ orgId: 'org-1', userId: 'user-2' }, mockCtx),
       ).rejects.toThrow('Cannot leave organization on behalf of another user');
+    });
+
+    it('should throw if user is ORG_OWNER', async () => {
+      const member = {
+        id: 'mem-owner',
+        userId: 'user-1',
+        orgId: 'org-1',
+        user: { email: 'owner@test.com' },
+        role: 'ORG_OWNER',
+      };
+
+      vi.mocked(prisma.orgMember.findUnique).mockResolvedValue(member as any);
+
+      await expect(
+        orgMemberService.leave({ orgId: 'org-1', userId: 'user-1' }, mockCtx),
+      ).rejects.toThrow('Owner cannot leave the organization.');
     });
   });
 });

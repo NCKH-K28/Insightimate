@@ -7,8 +7,8 @@ import { useParams } from 'next/navigation';
 import { Suspense } from 'react';
 
 export default function TeamsPage() {
-  const params = useParams<{ workspaceId: string }>();
-  if (!params) throw new Error('TeamsPage must be used within a route with workspaceId param');
+  const params = useParams<{ orgSlug: string }>();
+  if (!params) throw new Error('TeamsPage must be used within a route with orgSlug param');
 
   return (
     <Suspense
@@ -20,9 +20,9 @@ export default function TeamsPage() {
       }
     >
       <div className='space-y-4'>
-        <TeamsHeader params={{ workspaceId: params.workspaceId }} />
+        <TeamsHeader params={{ workspaceId: params.orgSlug }} />
         <Separator />
-        <TeamsList params={{ workspaceId: params.workspaceId }} />
+        <TeamsList params={{ workspaceId: params.orgSlug }} />
       </div>
     </Suspense>
   );
