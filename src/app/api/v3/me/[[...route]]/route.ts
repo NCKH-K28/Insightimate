@@ -40,27 +40,9 @@ meHono.patch('/', zValidator('json', ZMeUpdateInput), async (c) => {
 
 meHono.get('/orgs/invitees', async (c) => {
   const user = await getUserAndThrow(c);
-
-  const now = new Date();
-  const where = { email: user.email, expiresAt: { gt: now } };
-  const invitations = await prisma.orgInvitation.findMany({
-    where,
-    select: {
-      id: true,
-      email: true,
-      role: true,
-      createdAt: true,
-      expiresAt: true,
-      organization: { select: { id: true, name: true, logo: true } },
-      inviter: { select: { id: true, name: true, email: true, avatar: true } },
-    },
-  });
-
-  const total = await prisma.orgInvitation.count({ where });
+  const invitations = await orgInvitationService.listMy({ email: user.email });
   const data = ZOrgInviteItem.array().parse(invitations);
-  const result = { data, meta: { total } };
-
-  return c.json(result);
+  return c.json({ data, meta: { total: data.length } });
 });
 
 

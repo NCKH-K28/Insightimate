@@ -105,11 +105,9 @@ const AppLeftbar: React.FC<AppLeftbarProps> = (props) => {
           </SidebarMenuItem>
 
           <SidebarMenuItem className='opacity-50 pointer-events-none'>
-            <SidebarMenuButton asChild disabled={true}>
-              <Link href={`/o/${orgSlug}/reports`}>
-                <BarChart3 />
-                <span>Reports</span>
-              </Link>
+            <SidebarMenuButton disabled={true}>
+              <BarChart3 />
+              <span>Reports</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
 

@@ -5,8 +5,11 @@ import { prisma } from '@/lib/prisma';
 import { verifyToken } from '@/lib/authn/session';
 import { UnauthorizedError, UserNotFoundError } from '@/lib/http/errors/auth.error';
 
+import serverConfig from '@/configs/server';
+
 export async function getAuthFromRequest(req: NextApiRequest) {
-  const token = req.cookies?.access_token ?? cookie.parse(req.headers.cookie ?? '').access_token;
+  const cookieName = serverConfig.auth.cookieName;
+  const token = req.cookies?.[cookieName] ?? cookie.parse(req.headers.cookie ?? '')[cookieName];
 
   if (!token) throw new UnauthorizedError();
 

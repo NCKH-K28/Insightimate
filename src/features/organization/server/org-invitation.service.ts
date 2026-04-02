@@ -9,6 +9,7 @@ import { OrgRole } from '@/contracts/organization/organization';
 import { OrgInvitationItem } from '@/contracts/organization/organization.query';
 import { orgMemberService } from './org-member.service';
 import { OrgInvitation } from '@prisma/client';
+import { logger } from '@/lib/logger';
 
 const INVITE_EXPIRES_IN_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
 
@@ -19,6 +20,14 @@ const ROLE_TO_MANAGE_ACTION: Record<OrgRole, string> = {
 };
 
 const normalizeEmail = (email: string) => email.toLowerCase().trim();
+
+const escapeHtml = (str: string) =>
+  str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
 
 const buildExpiry = () => {
   const expiresAt = new Date(Date.now() + INVITE_EXPIRES_IN_MS);
@@ -39,15 +48,17 @@ type MailPayload = {
 
 const sendOrgInvitation = async (p: MailPayload) => {
   const inviteLink = buildInviteLink(p.organization.id, p.token);
+  const safeOrgName = escapeHtml(p.organization.name);
+  const safeInviterName = escapeHtml(p.inviter.name);
 
   await transporter.sendMail({
     from: `Insightimate <no-reply@insightimate.com>`,
-    replyTo: `"${p.inviter.name}" <${p.inviter.email}>`,
+    replyTo: `"${safeInviterName}" <${p.inviter.email}>`,
     to: p.email,
-    subject: `You're invited to join ${p.organization.name} on Insightimate`,
+    subject: `You're invited to join ${safeOrgName} on Insightimate`,
     text: `You are invited to join "${p.organization.name}". Accept: ${inviteLink}. Expires: ${p.expiresAt.toUTCString()}`,
     html: `
-      <p>You have been invited to join <b>${p.organization.name}</b>.</p>
+      <p>You have been invited to join <b>${safeOrgName}</b>.</p>
       <p><a href="${inviteLink}">Accept invitation</a></p>
       <p>This invitation expires on ${p.expiresAt.toUTCString()}.</p>
     `,
@@ -123,7 +134,21 @@ const invite = async (
       where: { orgId_email: { orgId, email } },
     });
 
-    if (!existing) {
+    let targetToUpdate: any = existing;
+
+    if (targetToUpdate && targetToUpdate.status === 'ACCEPTED') {
+      const user = await tx.user.findUnique({ where: { email } });
+      const member = user ? await tx.orgMember.findUnique({ where: { orgId_userId: { orgId, userId: user.id } } }) : null;
+
+      if (member) {
+        throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED', 'Invitation already accepted');
+      } else {
+        await tx.orgInvitation.delete({ where: { orgId_email: { orgId, email } } });
+        targetToUpdate = null;
+      }
+    }
+
+    if (!targetToUpdate) {
       const invitation = await tx.orgInvitation.create({
         data: {
           id: genOrgInviteId(),
@@ -139,13 +164,9 @@ const invite = async (
       return { invitation, outcome: 'SENT' as const, reason: 'CREATED' as const };
     }
 
-    if (existing.status === 'ACCEPTED') {
-      throw new OrgError('ORG_INVITE_ALREADY_ACCEPTED', 'Invitation already accepted');
-    }
-
-    const stillValid = existing.status === 'PENDING' && existing.expiresAt > now;
+    const stillValid = targetToUpdate.status === 'PENDING' && targetToUpdate.expiresAt > now;
     if (stillValid) {
-      return { invitation: existing, outcome: 'SKIPPED' as const, reason: 'EXISTS_VALID' as const };
+      return { invitation: targetToUpdate, outcome: 'SKIPPED' as const, reason: 'EXISTS_VALID' as const };
     }
 
     const invitation = await tx.orgInvitation.update({
@@ -231,6 +252,20 @@ const bulkInvite = async (
     });
     const existingByEmail = new Map(existing.map((e) => [e.email, e]));
 
+    const existingUsers = await tx.user.findMany({
+      where: { email: { in: invitees.map((i) => i.email) } },
+      select: { id: true, email: true },
+    });
+    const userByEmail = new Map(existingUsers.map((u) => [u.email, u]));
+
+    const existingMembers = existingUsers.length > 0
+      ? await tx.orgMember.findMany({
+          where: { orgId, userId: { in: existingUsers.map((u) => u.id) } },
+          select: { userId: true },
+        })
+      : [];
+    const memberUserIdSet = new Set(existingMembers.map((m) => m.userId));
+
     const writes: Array<Promise<unknown>> = [];
 
     for (const inv of invitees) {
@@ -257,13 +292,18 @@ const bulkInvite = async (
       }
 
       if (prev.status === 'ACCEPTED') {
-        results.push({
-          email: inv.email,
-          role: inv.role,
-          outcome: 'ERROR',
-          reason: 'ALREADY_ACCEPTED',
-        });
-        continue;
+        const user = userByEmail.get(inv.email);
+        const isMember = user ? memberUserIdSet.has(user.id) : false;
+
+        if (isMember) {
+          results.push({
+            email: inv.email,
+            role: inv.role,
+            outcome: 'ERROR',
+            reason: 'ALREADY_ACCEPTED',
+          });
+          continue;
+        }
       }
 
       const stillValid = prev.status === 'PENDING' && prev.expiresAt > now;
@@ -280,7 +320,16 @@ const bulkInvite = async (
       writes.push(
         tx.orgInvitation.update({
           where: { orgId_email: { orgId, email: inv.email } },
-          data: { token, expiresAt, role: inv.role, status: 'PENDING', invitedBy: ctx.actorId },
+          data: { 
+            token, 
+            expiresAt, 
+            role: inv.role, 
+            status: 'PENDING', 
+            invitedBy: ctx.actorId,
+            acceptedAt: null,
+            rejectedAt: null,
+            revokedAt: null
+          },
         }),
       );
       results.push({ email: inv.email, role: inv.role, outcome: 'SENT', reason: 'REFRESHED' });
@@ -323,11 +372,13 @@ const revoke = async (input: { orgId: string; email: string }, ctx: { actorId: s
   const orgId = input.orgId;
   const email = normalizeEmail(input.email);
   const org = await getOrgOrThrow(orgId);
-  await ensureCanInviteRole('ORG_MEMBER', org, ctx);
+  const invitation = await getInviteOrThrow(orgId, email);
+  await ensureCanInviteRole(invitation.role, org, ctx);
   await prisma.orgInvitation.updateMany({
     where: { orgId, email, status: 'PENDING' },
-    data: { status: 'REVOKED' },
+    data: { status: 'REVOKED', revokedAt: new Date() },
   });
+  logger.info({ orgId, email, actorId: ctx.actorId }, 'Invitation revoked');
 };
 
 const resend = async (input: { orgId: string; email: string }, ctx: { actorId: string }) => {
@@ -420,8 +471,9 @@ const reject = async (input: { token: string }, ctx: { actorId: string }) => {
 
   await prisma.orgInvitation.updateMany({
     where: { orgId, email, status: 'PENDING' },
-    data: { status: 'REJECTED' },
+    data: { status: 'REJECTED', rejectedAt: new Date() },
   });
+  logger.info({ orgId, email, actorId: ctx.actorId }, 'Invitation rejected');
 };
 
 const list = async (input: { orgId: string }, ctx: { actorId: string }) => {

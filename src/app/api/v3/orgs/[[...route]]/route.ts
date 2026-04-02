@@ -139,17 +139,6 @@ orgsHono.get('/:orgId/invitations', async (c) => {
   return c.json({ data: result });
 });
 
-orgsHono.post(
-  '/invitations/accept',
-  zValidator('json', z.object({ token: z.string() })),
-  async (c) => {
-    const { id: actorId } = await getUserAndThrow(c);
-    const { token } = c.req.valid('json');
-    const result = await orgInvitationService.accept({ token }, { actorId });
-    return c.json(result);
-  },
-);
-
 const ZInviteAction = z.object({ email: z.string().email() });
 
 orgsHono.post('/:orgId/invitations/revoke', zValidator('json', ZInviteAction), async (c) => {

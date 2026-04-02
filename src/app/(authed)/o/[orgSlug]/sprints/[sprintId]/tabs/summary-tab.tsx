@@ -222,10 +222,11 @@ const SprintSummaryTab: React.FC<SprintSummaryTabProps> = ({ sprint }) => {
   } = useQuery({
     queryKey: ['sprintSummary', sprint.id],
     queryFn: async () => {
-      const res = await fetch(`/api/v2/sprints/${sprint.id}/summary`);
+      const res = await fetch(`/api/v3/sprints/${sprint.id}/summary`);
       if (!res.ok) throw new Error('Failed to fetch sprint summary');
       return res.json() as Promise<SprintSummary>;
     },
+    throwOnError: false,
   });
 
   const sMetrics = summary?.metrics;

@@ -73,8 +73,8 @@ const resendInvitation = async (orgId: string, email: string): Promise<void> => 
 };
 
 const acceptInvitation = async (token: string): Promise<{ ok: boolean; orgId: string }> => {
-  const resp = await axiosInstance.post(`/v3/orgs/invitations/accept`, { token });
-  return resp.data;
+  const resp = await axiosInstance.post(`/v3/me/orgs/invitees/accept`, { token });
+  return resp.data?.data ?? resp.data;
 };
 
 const previewInvitation = async (token: string): Promise<OrgInvitationItem> => {

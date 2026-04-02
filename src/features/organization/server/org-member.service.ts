@@ -55,6 +55,7 @@ const remove = async (input: { orgId: string; userId: string }, ctx: OrgMemConte
     // We fetch first to get data for FGA
     const member = await tx.orgMember.findUnique({
       where: { orgId_userId },
+      include: { user: true },
     });
     if (!member) return null;
 
@@ -62,6 +63,12 @@ const remove = async (input: { orgId: string; userId: string }, ctx: OrgMemConte
     await tx.orgMember.delete({
       where: { orgId_userId },
     });
+    
+    if (member.user?.email) {
+      await tx.orgInvitation.deleteMany({
+        where: { orgId: input.orgId, email: member.user.email },
+      });
+    }
 
     // Enqueue FGA removal
     const job = await enqueueFgaJob(tx, {

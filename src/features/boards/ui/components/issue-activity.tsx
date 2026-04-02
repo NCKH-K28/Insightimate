@@ -20,7 +20,7 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
   const { data, isPending, refetch } = useQuery({
     queryKey: ['comments', issueId],
     queryFn: async () => {
-      const path = `/comments?targetType=ISSUE&targetId=${issueId}`;
+      const path = `/v3/comments?targetType=ISSUE&targetId=${issueId}`;
       const res = await axiosInstance.get<CommentList>(path);
       return res.data;
     },
@@ -31,7 +31,7 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
   useEffect(() => {
     if (!threadId) return;
 
-    const socket = io({ path: '/api/socketio' });
+    const socket = io({ path: '/api/socket' });
     socketRef.current = socket;
 
     socket.on('connect', () => socket.emit('thread:join', threadId));
@@ -48,15 +48,19 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
 
   const sendComment = useCallback(
     async (content: string) => {
-      await axiosInstance.post('/comments', { threadId, content });
+      const res = await axiosInstance.post('/v3/comments', { threadId, content });
+      const newComment = res.data.data;
+      setComments((prev) =>
+        sortBy([...(prev ?? data?.data ?? []), newComment], ['createdAt', 'id']).reverse(),
+      );
     },
-    [threadId],
+    [threadId, data?.data],
   );
 
   const editComment = useCallback(
     async (commentId: string, content: string) => {
       try {
-        await axiosInstance.patch(`/comments/${commentId}`, { content });
+        await axiosInstance.patch(`/v3/comments/${commentId}`, { content });
         // Update local state optimistically
         setComments((prev) =>
           (prev ?? data?.data ?? []).map((c) =>
@@ -73,7 +77,7 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
   const deleteComment = useCallback(
     async (commentId: string) => {
       try {
-        await axiosInstance.delete(`/comments/${commentId}`);
+        await axiosInstance.delete(`/v3/comments/${commentId}`);
         // Remove from local state
         setComments((prev) =>
           (prev ?? data?.data ?? []).filter((c) => c.id !== commentId),

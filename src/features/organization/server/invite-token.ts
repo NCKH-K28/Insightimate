@@ -1,7 +1,6 @@
 import z from 'zod';
 import * as jose from 'jose';
 import serverConfig from '@/configs/server';
-import { hash, compare } from 'bcryptjs';
 
 export const ZInviteTokenPayload = z.object({
   sub: z.string().min(1, 'Invalid token payload'),
@@ -27,12 +26,8 @@ const verifyInviteToken = async (token: string) => {
   return ZInviteTokenPayload.parse(payload);
 };
 
-const hashToken = async (token: string) => hash(token, 12);
-const compareToken = async (token: string, hashed: string) => compare(token, hashed);
-
 export const inviteToken = {
   generate: generateInviteToken,
   verify: verifyInviteToken,
-  hash: hashToken,
-  compare: compareToken,
 };
+
