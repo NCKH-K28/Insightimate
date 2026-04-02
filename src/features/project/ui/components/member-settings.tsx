@@ -18,7 +18,7 @@ export const MemberSettings = (props: { projectId: string }) => {
   const pathname = usePathname();
 
   const { projectId } = props;
-  const context = useMemo(() => ({ projectId }), [projectId]);
+  const context = useMemo(() => ({ projId: projectId }), [projectId]);
 
   const addMember = useMutation(addProjectMemberMutationOptions(context));
   const { data: members, isPending: isLoadingMembers } = useQuery(

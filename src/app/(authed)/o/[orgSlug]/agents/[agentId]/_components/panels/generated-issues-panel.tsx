@@ -24,7 +24,7 @@ export function GeneratedIssuesPanel({
     setIsSaving(true);
     try {
       // TODO: đổi endpoint cho khớp với project của bạn
-      await fetch(`/api/projects/${projectId}/issues/bulk`, {
+      await fetch(`/api/projs/${projectId}/issues/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ issues }),

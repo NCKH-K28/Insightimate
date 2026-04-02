@@ -1,6 +1,6 @@
 // pages/api/comments.ts
 import type { NextApiRequest } from 'next';
-import { NextApiResponseServerIO } from './socket';
+import { NextApiResponseServerIO } from '../socket';
 import { prisma } from '@/lib/prisma';
 import {
   CommentThread,
@@ -10,9 +10,9 @@ import {
 } from '@/contracts/collab/collab';
 import { getAuthFromRequest } from '@/lib/authn/authenticated-for-page-route';
 
-const GET = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
-  await getAuthFromRequest(req as any);
+const authorSelect = { id: true, name: true, avatar: true } as const;
 
+const GET = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
   const query = req.query;
   const parseResult = ZCommentListQuery.safeParse(query);
   if (!parseResult.success) {
@@ -36,7 +36,7 @@ const GET = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
 
   const comments = await prisma.comment.findMany({
     where: { threadId: thread.id },
-    include: { author: true },
+    include: { author: { select: authorSelect } },
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
   });
 
@@ -58,7 +58,7 @@ const POST = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
 
   const comment = await prisma.comment.create({
     data: { ...input, authorId },
-    include: { author: true },
+    include: { author: { select: authorSelect } },
   });
 
   const validComment = ZCommentList.shape.data.element.parse(comment);
@@ -68,7 +68,15 @@ const POST = async (req: NextApiRequest, res: NextApiResponseServerIO) => {
 };
 
 export default async function handler(req: NextApiRequest, res: NextApiResponseServerIO) {
-  if (req.method === 'GET') return GET(req, res);
-  if (req.method === 'POST') return POST(req, res);
-  return res.status(405).json({ error: 'Method not allowed' });
+  try {
+    await getAuthFromRequest(req as any);
+
+    if (req.method === 'GET') return await GET(req, res);
+    if (req.method === 'POST') return await POST(req, res);
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err: any) {
+    console.error('[comments] Error:', err?.message ?? err, err?.stack);
+    const status = err?.statusCode ?? err?.status ?? 500;
+    return res.status(status).json({ error: err?.message ?? 'Internal server error' });
+  }
 }

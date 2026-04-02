@@ -17,7 +17,7 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
   const [comments, setComments] = useState<CommentItem[]>();
   const socketRef = useRef<Socket | null>(null);
 
-  const { data, isPending } = useQuery({
+  const { data, isPending, refetch } = useQuery({
     queryKey: ['comments', issueId],
     queryFn: async () => {
       const path = `/comments?targetType=ISSUE&targetId=${issueId}`;
@@ -53,12 +53,46 @@ const CommentsTab: React.FC<CommentsTabProps> = ({ issueId }) => {
     [threadId],
   );
 
+  const editComment = useCallback(
+    async (commentId: string, content: string) => {
+      try {
+        await axiosInstance.patch(`/comments/${commentId}`, { content });
+        // Update local state optimistically
+        setComments((prev) =>
+          (prev ?? data?.data ?? []).map((c) =>
+            c.id === commentId ? { ...c, content } : c,
+          ),
+        );
+      } catch {
+        refetch();
+      }
+    },
+    [data?.data, refetch],
+  );
+
+  const deleteComment = useCallback(
+    async (commentId: string) => {
+      try {
+        await axiosInstance.delete(`/comments/${commentId}`);
+        // Remove from local state
+        setComments((prev) =>
+          (prev ?? data?.data ?? []).filter((c) => c.id !== commentId),
+        );
+      } catch {
+        refetch();
+      }
+    },
+    [data?.data, refetch],
+  );
+
   if (isPending) return <CommentThreadSkeleton />;
 
   return (
     <CommentThread
       comments={comments ?? data?.data ?? []}
       onSend={sendComment}
+      onEdit={editComment}
+      onDelete={deleteComment}
       isLoading={isPending}
     />
   );

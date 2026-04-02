@@ -52,19 +52,16 @@ const validateSprintDateOverlap = async (
       startAt: { not: null },
       endAt: { not: null },
       // Standard interval overlap: A.start <= B.end AND A.end >= B.start
-      AND: [
-        { startAt: { lte: end } },
-        { endAt: { gte: start } },
-      ],
+      AND: [{ startAt: { lte: end } }, { endAt: { gte: start } }],
     },
     select: { id: true, name: true, startAt: true, endAt: true },
   });
 
   if (overlapping) {
-    throw Object.assign(
-      new Error(`Sprint dates overlap with "${overlapping.name}"`),
-      { code: 'SPRINT_DATE_OVERLAP', overlappingSprintId: overlapping.id },
-    );
+    throw Object.assign(new Error(`Sprint dates overlap with "${overlapping.name}"`), {
+      code: 'SPRINT_DATE_OVERLAP',
+      overlappingSprintId: overlapping.id,
+    });
   }
 };
 
@@ -120,7 +117,8 @@ const listByProject = async (
     where: { projectId },
     select: { id: true },
   });
-  if (!board) throw Object.assign(new Error('Board not found for project'), { code: 'BOARD_NOT_FOUND' });
+  if (!board)
+    throw Object.assign(new Error('Board not found for project'), { code: 'BOARD_NOT_FOUND' });
 
   return list({ boardId: board.id, state: params.state }, ctx);
 };
@@ -165,14 +163,13 @@ const update = async (sprintId: string, input: SprintUpdateInput, ctx: SprintCon
   await ensureProjectAccess(sprint.board.projectId, ctx);
 
   // If dates are being changed, validate no overlap (exclude self)
-  const effectiveStart = input.startAt !== undefined ? input.startAt : sprint.startAt?.toISOString() ?? null;
-  const effectiveEnd = input.endAt !== undefined ? input.endAt : sprint.endAt?.toISOString() ?? null;
+  const effectiveStart =
+    input.startAt !== undefined ? input.startAt : (sprint.startAt?.toISOString() ?? null);
+  const effectiveEnd =
+    input.endAt !== undefined ? input.endAt : (sprint.endAt?.toISOString() ?? null);
   await validateSprintDateOverlap(sprint.boardId, effectiveStart, effectiveEnd, sprintId);
 
-  const updated = await updateBoardSprint(
-    { boardId: sprint.boardId, sprintId },
-    input,
-  );
+  const updated = await updateBoardSprint({ boardId: sprint.boardId, sprintId }, input);
   return updated;
 };
 
@@ -202,11 +199,7 @@ const start = async (sprintId: string, ctx: SprintContext) => {
 
 // ── Complete ─────────────────────────────────────────────────────────────
 
-const complete = async (
-  sprintId: string,
-  input: SprintCompleteInput,
-  ctx: SprintContext,
-) => {
+const complete = async (sprintId: string, input: SprintCompleteInput, ctx: SprintContext) => {
   const sprint = await resolveSprintWithBoard(sprintId);
   await ensureProjectAccess(sprint.board.projectId, ctx);
 
@@ -229,11 +222,7 @@ const listIssues = async (sprintId: string, ctx: SprintContext) => {
 
 // ── Add Issues ───────────────────────────────────────────────────────────
 
-const addIssues = async (
-  sprintId: string,
-  input: SprintAddIssuesInput,
-  ctx: SprintContext,
-) => {
+const addIssues = async (sprintId: string, input: SprintAddIssuesInput, ctx: SprintContext) => {
   const sprint = await resolveSprintWithBoard(sprintId);
   await ensureProjectAccess(sprint.board.projectId, ctx);
 
@@ -251,11 +240,7 @@ const addIssues = async (
 
 // ── Remove Issue ─────────────────────────────────────────────────────────
 
-const removeIssue = async (
-  sprintId: string,
-  issueId: string,
-  ctx: SprintContext,
-) => {
+const removeIssue = async (sprintId: string, issueId: string, ctx: SprintContext) => {
   const sprint = await resolveSprintWithBoard(sprintId);
   await ensureProjectAccess(sprint.board.projectId, ctx);
 
@@ -358,7 +343,7 @@ const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
 
   // Base filter: issues linked to this sprint
   const baseWhere = {
-    boards: { some: { sprintId } },
+    boards: { sprintId },
   };
 
   // Assignee distribution
@@ -371,8 +356,8 @@ const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
 
   const assigneeDistribution: DistributionEntry[] = assigneeRaw.map((row) => ({
     id: row.assigneeId,
-    count: row._count.id,
-    points: row._sum.storyPoints ?? 0,
+    count: row._count!.id,
+    points: row._sum!.storyPoints ?? 0,
   }));
 
   // Status distribution
@@ -385,8 +370,8 @@ const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
 
   const statusDistribution: DistributionEntry[] = statusRaw.map((row) => ({
     id: row.statusId,
-    count: row._count.id,
-    points: row._sum.storyPoints ?? 0,
+    count: row._count!.id,
+    points: row._sum!.storyPoints ?? 0,
   }));
 
   // Priority distribution
@@ -399,8 +384,8 @@ const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
 
   const priorityDistribution: DistributionEntry[] = priorityRaw.map((row) => ({
     id: row.priorityId,
-    count: row._count.id,
-    points: row._sum.storyPoints ?? 0,
+    count: row?._count!.id,
+    points: row?._sum!.storyPoints ?? 0,
   }));
 
   // Reuse existing burndown data
@@ -416,21 +401,16 @@ const getAnalytics = async (sprintId: string, ctx: SprintContext) => {
 
 // ── Transfer Incomplete ──────────────────────────────────────────────────
 
-const transferIncomplete = async (
-  sprintId: string,
-  targetSprintId: string,
-  ctx: SprintContext,
-) => {
+const transferIncomplete = async (sprintId: string, targetSprintId: string, ctx: SprintContext) => {
   const sourceSprint = await resolveSprintWithBoard(sprintId);
   await ensureProjectAccess(sourceSprint.board.projectId, ctx);
 
   const targetSprint = await resolveSprintWithBoard(targetSprintId);
   // Ensure both sprints belong to the same board
   if (sourceSprint.boardId !== targetSprint.boardId) {
-    throw Object.assign(
-      new Error('Source and target sprints must belong to the same board'),
-      { code: 'SPRINT_BOARD_MISMATCH' },
-    );
+    throw Object.assign(new Error('Source and target sprints must belong to the same board'), {
+      code: 'SPRINT_BOARD_MISMATCH',
+    });
   }
 
   // Find all board issues in source sprint whose issue status category ≠ DONE
@@ -480,4 +460,3 @@ export const sprintsService = {
   getAnalytics,
   transferIncomplete,
 };
-

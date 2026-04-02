@@ -37,7 +37,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 
-export default function InvitePage() {
+import { Suspense } from 'react';
+
+function InvitePageContent() {
   const searchParams = useSearchParams();
   if (!searchParams) throw new Error('Search params are not available');
   const router = useRouter();
@@ -324,5 +326,13 @@ export default function InvitePage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense>
+      <InvitePageContent />
+    </Suspense>
   );
 }

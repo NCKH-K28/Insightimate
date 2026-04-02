@@ -104,8 +104,8 @@ describe('OrgService', () => {
       const result = await orgService.get({ id: 'org-1' }, mockCtx);
 
       expect(result.id).toBe('org-1');
-      expect(result._me.role).toBe('ORG_OWNER');
-      expect(result._me.perms).toEqual(['update', 'delete']);
+      expect(result._me!.role).toBe('ORG_OWNER');
+      expect(result._me!.perms).toEqual(['update', 'delete']);
     });
   });
 
@@ -122,7 +122,7 @@ describe('OrgService', () => {
 
       expect(result.data).toHaveLength(1);
       expect(result.meta.total).toBe(1);
-      expect(result.data[0]._me.role).toBe('ORG_OWNER');
+      expect(result.data[0]._me!.role).toBe('ORG_OWNER');
     });
 
     it('should return empty if no accessible orgs', async () => {

@@ -119,7 +119,7 @@ const EpicCard = ({
               />
             )}
             <Link
-              href={`/o/${params.orgSlug}/projects/${params.projectId}/issues/${epic.id}`}
+              href={`/o/${params.orgSlug}/projs/${params.projectId}/issues/${epic.id}`}
               className={cn('text-xs font-medium text-muted-foreground')}
             >
               {epic.key}

@@ -38,7 +38,7 @@ class AuthClient {
     }
 
     if (this.token) {
-      const meRes = await this.get('/api/v2/auth/me');
+      const meRes: any = await this.get('/api/v2/auth/me');
       if (meRes.ok) {
         const me = await meRes.json();
         this.userId = me.id;
@@ -92,7 +92,7 @@ describe('Organization Authorization Integration Tests', () => {
     });
 
     if (res.ok) {
-      const org = await res.json();
+      const org: any = await res.json();
       testOrgId = org.id;
 
       // Add Member to Org if not skipped
@@ -121,7 +121,7 @@ describe('Organization Authorization Integration Tests', () => {
         // Then POST /accept
 
         const invRes = await ownerClient.get(`/api/v3/orgs/${testOrgId}/invitations`);
-        const invData = await invRes.json();
+        const invData: any = await invRes.json();
         const token = invData.data?.find((i: any) => i.email === MEMBER_EMAIL)?.token;
 
         if (token) {
@@ -162,7 +162,7 @@ describe('Organization Authorization Integration Tests', () => {
     it('Owner can list members', async () => {
       const res = await ownerClient.get(`/api/v3/orgs/${testOrgId}/members`);
       expect(res.status).toBe(200);
-      const body = await res.json();
+      const body: any = await res.json();
       expect(body.data).toHaveLength(2); // Owner + Member
     });
 
@@ -190,7 +190,7 @@ describe('Organization Authorization Integration Tests', () => {
 
       // Verify left
       const listRes = await ownerClient.get(`/api/v3/orgs/${testOrgId}/members`);
-      const body = await listRes.json();
+      const body: any = await listRes.json();
       const memberFound = body.data.find((m: any) => m.userId === memberClient.userId);
       expect(memberFound).toBeUndefined();
     });

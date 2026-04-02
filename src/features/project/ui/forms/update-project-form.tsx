@@ -19,7 +19,7 @@ type UpdateProjectFormProps = {
   onSuccess?: () => void;
 };
 export const UpdateProjectForm = (props: UpdateProjectFormProps) => {
-  const updateProject = useMutation(updateProjectMutationOptions(props.params));
+  const updateProject = useMutation(updateProjectMutationOptions({ projId: props.params.projectId }));
 
   const getDirtyValues = () => {
     const dirtyFields = form.formState.dirtyFields;

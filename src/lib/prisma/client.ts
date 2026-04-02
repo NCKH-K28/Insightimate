@@ -1,13 +1,12 @@
-import serverConfig from '@/configs/server';
 import { PrismaClient } from '@prisma/client';
 
-const dbConfig = serverConfig.db;
+const dbUrl = process.env.DATABASE_URL;
 const getGlobalPrisma = () => {
   const globalForPrisma = globalThis as unknown as any;
   const { prisma } = globalForPrisma;
   if (prisma) return prisma as typeof client;
 
-  const client = new PrismaClient({ datasources: { db: { url: dbConfig.url } } });
+  const client = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 
   Object.assign(globalForPrisma, { prisma: client });
   return client;

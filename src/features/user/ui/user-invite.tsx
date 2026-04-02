@@ -126,7 +126,7 @@ export const UserInvite = (props: UserInviteProps) => {
                   : 'No users found.'}
             </CommandEmpty>
             <CommandGroup>
-              {users?.map((user) => (
+              {users?.map((user: UserPublic) => (
                 <CommandItem
                   key={user.email}
                   value={`${user.name} (${user.email})`}

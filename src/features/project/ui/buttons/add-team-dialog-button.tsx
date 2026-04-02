@@ -40,8 +40,8 @@ export const ProjectRoleSelector = (props: {
     props.defaultRole || null,
   );
 
-  const { projectId } = props.params;
-  const { data: roles } = useQuery(listProjectRolesQueryOptions({ projectId }));
+  const { projectId: projId } = props.params;
+  const { data: roles } = useQuery(listProjectRolesQueryOptions({ projId }));
 
   const handleValueChange = (value: string) => {
     const role = roles?.find((r) => r.id === value) || null;

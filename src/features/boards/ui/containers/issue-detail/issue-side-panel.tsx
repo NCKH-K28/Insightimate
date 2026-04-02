@@ -6,7 +6,6 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -16,11 +15,11 @@ import {
   GitBranch,
   Clock,
   Target,
-  ChevronRight,
   Sparkles,
   AlertCircle,
-  Copy,
-  ExternalLink,
+  Layers,
+  Flag,
+  CheckCircle2,
 } from 'lucide-react';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import { formatDistanceToNow, format } from 'date-fns';
@@ -34,12 +33,15 @@ import { IssueAssigneeSelector } from '../../selectors/issue-assignee-selector';
 import { IssueStartDateSelector } from '../../selectors/issue-start-date-selector';
 import { IssueDueDateSelector } from '../../selectors/issue-due-date-selector';
 import { IssueStoryPointInput } from '../../selectors/issue-story-point-input';
+import { IssuePrioritySelector } from '../../selectors/issue-priority-selector';
+import { IssueResolutionSelector } from '../../selectors/issue-resolution-selector';
+import { IssueTypeSelectors } from '../../selectors/issue-type-selectors';
 import BoardIssueSelectors from '../../selectors/board-issue-selectors';
 
 // ============ Types ============
 
 interface IssueSidePanelProps {
-  params: { boardId: string; projectId: string; issueId: string };
+  params: { boardId: string; projectId: string; issueId: string; orgSlug?: string };
   className?: string;
 }
 
@@ -80,42 +82,6 @@ const FieldRow = ({ icon, label, children, className, tooltip }: FieldRowProps) 
     <div className='pl-6'>{children}</div>
   </div>
 );
-
-interface SprintBadgeProps {
-  sprint?: { id: string; name: string } | null;
-  onClick?: () => void;
-}
-
-const SprintBadge = ({ sprint, onClick }: SprintBadgeProps) => {
-  if (!sprint) {
-    return (
-      <Button
-        variant='outline'
-        size='sm'
-        className='h-8 text-muted-foreground border-dashed hover:border-solid hover:bg-accent/50'
-        onClick={onClick}
-      >
-        <Zap className='h-3.5 w-3.5 mr-1.5' />
-        Add to sprint
-      </Button>
-    );
-  }
-
-  return (
-    <Button
-      variant='ghost'
-      size='sm'
-      className='h-auto py-1.5 px-2 justify-start gap-2 hover:bg-accent/50 group'
-      onClick={onClick}
-    >
-      <div className='flex items-center gap-2 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30'>
-        <Zap className='h-3.5 w-3.5 text-blue-600 dark:text-blue-400' />
-        <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>{sprint.name}</span>
-      </div>
-      <ChevronRight className='h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity ml-auto' />
-    </Button>
-  );
-};
 
 interface MetadataFooterProps {
   createdAt: Date | string;
@@ -204,29 +170,43 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
       {/* Scrollable content */}
       <div className='flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent'>
         <div className='p-5 space-y-5'>
-          {/* Header Actions */}
-          <div className='flex items-center justify-between gap-3'>
-            <div className='group'>
-              <IssueStatusSelector params={params} />
-            </div>
+          {/* Status — prominent at top */}
+          <div className='group'>
+            <IssueStatusSelector params={params} />
           </div>
 
-          {/* Details Accordion */}
-          <Accordion type='multiple' defaultValue={['details', 'planning']} className='space-y-3'>
-            {/* Details Section */}
+          {/* Properties Section */}
+          <Accordion type='multiple' defaultValue={['properties', 'planning']} className='space-y-3'>
+            {/* Properties */}
             <AccordionItem
-              value='details'
+              value='properties'
               className='border rounded-lg bg-card shadow-sm overflow-hidden'
             >
               <AccordionTrigger className='px-4 py-3 hover:no-underline hover:bg-accent/50 transition-colors'>
                 <div className='flex items-center gap-2'>
                   <Target className='h-4 w-4 text-muted-foreground' />
-                  <span className='text-sm font-semibold'>Details</span>
+                  <span className='text-sm font-semibold'>Properties</span>
                 </div>
               </AccordionTrigger>
 
               <AccordionContent className='px-4 pb-4 pt-2'>
                 <div className='space-y-5'>
+                  {/* Type */}
+                  <FieldRow icon={<Layers className='h-4 w-4' />} label='Type'>
+                    <IssueTypeSelectors
+                      params={{ projectId: params.projectId }}
+                      value={issue.typeId}
+                      onChange={(typeId) => {
+                        if (typeId) handleUpdate({ typeId });
+                      }}
+                    />
+                  </FieldRow>
+
+                  {/* Priority */}
+                  <FieldRow icon={<Flag className='h-4 w-4' />} label='Priority'>
+                    <IssuePrioritySelector params={params} />
+                  </FieldRow>
+
                   {/* Assignee */}
                   <FieldRow icon={<User className='h-4 w-4' />} label='Assignee'>
                     <IssueAssigneeSelector params={params} />
@@ -238,7 +218,7 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
                       className='max-w-40 overflow-hidden'
                       placeholder={issue.parent ? issue.parent.summary : 'Select epic'}
                       disabled={updateIssue.isPending}
-                      params={{ orgSlug: '', boardId: issue.boardId }}
+                      params={{ orgSlug: params.orgSlug ?? '', boardId: issue.boardId }}
                       defaultValue={issue.parentId ?? null}
                       onChange={(value) => handleUpdate({ parentId: value })}
                       queryFilter={{
@@ -249,7 +229,21 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
 
                   {/* Sprint */}
                   <FieldRow icon={<Zap className='h-4 w-4' />} label='Sprint'>
-                    <SprintBadge sprint={issue.sprint} />
+                    {issue.sprint ? (
+                      <div className='flex items-center gap-2 px-2 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30'>
+                        <Zap className='h-3.5 w-3.5 text-blue-600 dark:text-blue-400' />
+                        <span className='text-sm font-medium text-blue-700 dark:text-blue-300'>
+                          {issue.sprint.name}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className='text-sm text-muted-foreground italic'>No sprint</span>
+                    )}
+                  </FieldRow>
+
+                  {/* Resolution */}
+                  <FieldRow icon={<CheckCircle2 className='h-4 w-4' />} label='Resolution'>
+                    <IssueResolutionSelector params={params} />
                   </FieldRow>
                 </div>
               </AccordionContent>
@@ -307,37 +301,6 @@ function IssueSidePanel({ className, params }: IssueSidePanelProps) {
             updatedAt={issue.updatedAt}
             reporter={issue.reporter}
           />
-        </div>
-      </div>
-
-      {/* Quick Actions Footer */}
-      <div className='border-t border-border p-3 bg-muted/30'>
-        <div className='flex items-center justify-between gap-2'>
-          <TooltipProvider delayDuration={300}>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant='ghost' size='sm' className='h-8 gap-1.5 text-xs'>
-                  <Copy className='h-3.5 w-3.5' />
-                  Copy ID
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side='top'>
-                <p>Copy issue ID: {issue.key}</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant='ghost' size='sm' className='h-8 gap-1.5 text-xs'>
-                  <ExternalLink className='h-3.5 w-3.5' />
-                  Open in new tab
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side='top'>
-                <p>Open issue in new tab</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
     </aside>

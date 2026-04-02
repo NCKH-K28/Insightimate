@@ -145,7 +145,7 @@ export const IssueCard = ({ item, isDragging, dragProps, onRemove, onEdit }: Iss
   if (!router) throw new Error('No router found');
   const issue = item.data;
 
-  const href = `/o/${params.orgSlug}/projects/${issue.projectId}/issues/${item.id}`;
+  const href = `/o/${params.orgSlug}/projs/${issue.projectId}/issues/${item.id}`;
   return (
     <Card
       className={cn(

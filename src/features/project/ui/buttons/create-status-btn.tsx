@@ -35,7 +35,7 @@ export const CreateStatusButton = ({
 
   const queryClient = useQueryClient();
   const createMutationOptions = mutationOptions({
-    mutationFn: (data: FormData) => projectApi.issueStatuses.create({ projectId }, data),
+    mutationFn: (data: FormData) => projectApi.issueStatuses.create({ projId: projectId }, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', projectId, 'fields', 'statuses'] });
       queryClient.invalidateQueries({ queryKey: ['projects', projectId] });

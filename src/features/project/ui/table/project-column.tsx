@@ -67,7 +67,7 @@ const ProjectActionsCell = (props: { project: ProjectItem }) => {
     const idx = pathname.indexOf(marker);
 
     const base = idx === -1 ? pathname : pathname.substring(0, idx);
-    return `${base}/projects/${project.id}`;
+    return `${base}/projs/${project.id}`;
   }, [project.id, pathname]);
 
   const deleteProject = useMutation(deleteProjectMutationOptions({ projId: project.id }));

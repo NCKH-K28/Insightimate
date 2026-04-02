@@ -1,4 +1,4 @@
-import { BoardIssueMoveInput, BoardIssueUpdateInput } from '@/contracts/boards/board.input';
+import { BoardIssueMoveInput, BoardIssueRankUpdate, BoardIssueUpdateInput } from '@/contracts/boards/board.input';
 import { mutationOptions, queryOptions } from '@tanstack/react-query';
 import { boardApi } from './http';
 import { BoardIssueQueryParams } from '@/contracts/boards/board.query';
@@ -86,6 +86,15 @@ export const moveBoardIssueMutationOptions = (contex: { boardId: string; issueId
       return boardApi.issues.move({ boardId: contex.boardId, issueId }, data);
     },
     meta: { invalidateQueries: [['boards', contex.boardId, 'issues']] },
+  });
+};
+
+export const reorderBoardIssueMutationOptions = (context: { boardId: string }) => {
+  return mutationOptions({
+    mutationKey: ['boards', context.boardId, 'issues', 'reorder'],
+    mutationFn: (data: BoardIssueRankUpdate) =>
+      boardApi.issues.reorder({ boardId: context.boardId }, data),
+    meta: { invalidateQueries: [['boards', context.boardId, 'issues']] },
   });
 };
 

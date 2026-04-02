@@ -121,7 +121,7 @@ export const StatusSettings = (props: StatusSettingsProps) => {
   const [overId, setOverId] = useState<string | null>(null);
 
   const { data: statusesResponse } = useQuery(
-    listProjectStatusesQueryOptions({ projectId: props.projectId }),
+    listProjectStatusesQueryOptions({ projId: props.projectId }),
   );
 
   const statuses = useMemo(() => {

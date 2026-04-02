@@ -23,7 +23,7 @@ export const GeneratedIssuesNodeView: React.FC<NodeViewProps> = ({ node, updateA
 
     setSaving(true);
     try {
-      await fetch(`/api/projects/${projectId}/issues/bulk`, {
+      await fetch(`/api/projs/${projectId}/issues/bulk`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ issues }),

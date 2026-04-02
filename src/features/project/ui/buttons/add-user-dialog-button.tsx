@@ -6,9 +6,9 @@ import { addProjectMemberMutationOptions, listProjectRolesQueryOptions } from '.
 import { useMemo } from 'react';
 
 type AddUserDialogButtonProps = { projectId: string };
-export const AddUserDialogButton = ({ projectId }: AddUserDialogButtonProps) => {
-  const addUser = useMutation(addProjectMemberMutationOptions({ projectId }));
-  const { data: roles } = useQuery(listProjectRolesQueryOptions({ projectId }));
+export const AddUserDialogButton = ({ projectId: projId }: AddUserDialogButtonProps) => {
+  const addUser = useMutation(addProjectMemberMutationOptions({ projId }));
+  const { data: roles } = useQuery(listProjectRolesQueryOptions({ projId }));
 
   const handleAddUser = async (data: Parameters<typeof addUser.mutateAsync>[0]) => {
     await toast
@@ -34,10 +34,10 @@ export const AddUserDialogButton = ({ projectId }: AddUserDialogButtonProps) => 
       onInviteClick={({ users, role }) => {
         if (!role) return;
         users.forEach((u) => {
-          handleAddUser({ roleId: role, actorType: 'USER', actorId: u.id, projectId });
+          handleAddUser({ roleId: role, actorType: 'USER', actorId: u.id, projectId: projId });
         });
       }}
-      params={{ resourceType: 'PROJECT', resourceId: projectId }}
+      params={{ resourceType: 'PROJECT', resourceId: projId }}
       renderTrigger={() => <Button size='sm'>Add User</Button>}
     />
   );

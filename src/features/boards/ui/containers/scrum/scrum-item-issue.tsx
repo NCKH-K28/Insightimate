@@ -117,7 +117,7 @@ export const ItemIssue = ({ issue, dnd }: IssueItemProps) => {
       </div>
 
       <Link
-        href={`${wspRoot}/projects/${issue.projectId}/issues/${issue.id}`}
+        href={`${wspRoot}/projs/${issue.projectId}/issues/${issue.id}`}
         className='text-xs font-medium text-muted-foreground opacity-90'
       >
         {issue.key}

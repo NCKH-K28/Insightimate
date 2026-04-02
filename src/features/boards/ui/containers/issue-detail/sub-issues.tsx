@@ -44,6 +44,7 @@ import {
   createBoardIssueMutationOptions,
   updateBoardIssueMutationOptions,
   deleteBoardIssueMutationOptions,
+  reorderBoardIssueMutationOptions,
 } from '@/features/boards/api/actions';
 import Link from 'next/link';
 import {
@@ -325,7 +326,7 @@ const SubIssueItem = ({
 
       {/* Issue Key */}
       <Link
-        href={`/o/${orgSlug}/projects/${projectId}/issues/${issue.id}`}
+        href={`/o/${orgSlug}/projs/${projectId}/issues/${issue.id}`}
         className='shrink-0'
       >
         <Badge
@@ -338,7 +339,7 @@ const SubIssueItem = ({
 
       {/* Summary */}
       <Link
-        href={`/o/${orgSlug}/projects/${projectId}/issues/${issue.id}`}
+        href={`/o/${orgSlug}/projs/${projectId}/issues/${issue.id}`}
         className={cn(
           'flex-1 text-sm truncate hover:text-primary transition-colors',
           issue.status.category === 'DONE' && 'line-through text-muted-foreground',
@@ -540,6 +541,7 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
   const createMutation = useMutation(createBoardIssueMutationOptions(params));
   const updateMutation = useMutation(updateBoardIssueMutationOptions(params));
   const deleteMutation = useMutation(deleteBoardIssueMutationOptions(params));
+  const reorderMutation = useMutation(reorderBoardIssueMutationOptions({ boardId: params.boardId }));
 
   // DnD Sensors
   const sensors = useSensors(
@@ -570,21 +572,32 @@ export default function SubIssues({ params, statuses = [], className }: SubIssue
       const { active, over } = event;
 
       if (over && active.id !== over.id) {
-        // const oldIndex = subIssues.findIndex((item) => item.id === active.id);
-        // const newIndex = subIssues.findIndex((item) => item.id === over.id);
-        // FIXME: Update order in local state for instant UI feedback
-        // Update order in backend
-        // newOrder.forEach((issue, index) => {
-        //   if (issue.order !== index) {
-        //     updateMutation.mutate({
-        //       issueId: issue.id,
-        //       data: { order: index } as any,
-        //     });
-        //   }
-        // });
+        const oldIndex = subIssues.findIndex((item) => item.id === active.id);
+        const newIndex = subIssues.findIndex((item) => item.id === over.id);
+
+        if (oldIndex === -1 || newIndex === -1) return;
+
+        const movedItem = subIssues[oldIndex];
+        const targetItem = subIssues[newIndex];
+
+        // Determine if placing before or after the target
+        const type = newIndex > oldIndex ? 'after' : 'before';
+
+        reorderMutation.mutate({
+          src: {
+            id: movedItem.id,
+            parentId: params.issueId,
+          },
+          dest: {
+            id: targetItem.id,
+            parentId: params.issueId,
+            type,
+          },
+          in: 'SCRUM',
+        });
       }
     },
-    [subIssues],
+    [subIssues, params.issueId, reorderMutation],
   );
 
   // Filtered & Sorted Issues

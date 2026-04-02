@@ -187,7 +187,7 @@ export default function StarredPage() {
           {starredIssues.map((issue) => (
             <Link
               key={issue.id}
-              href={`/wps/${workspaceId}/projects/${issue.projectId}/issues/${issue.id}`}
+              href={`/wps/${workspaceId}/projs/${issue.projectId}/issues/${issue.id}`}
               className='block group bg-white border rounded-lg p-4 hover:shadow-md hover:border-yellow-300 cursor-pointer transition'
             >
               <div className='flex items-start justify-between'>

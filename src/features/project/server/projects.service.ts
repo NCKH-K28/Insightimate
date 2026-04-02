@@ -508,7 +508,9 @@ const listMembers = async (params: { projectId: string }, context: ProjectContex
       ...[context.actorId], // current user
     ]),
   );
-  const users = await prisma.user.findMany({ where: { id: { in: allUserIds } } });
+
+  const validUserIds = allUserIds.filter((id) => id !== null);
+  const users = await prisma.user.findMany({ where: { id: { in: validUserIds } } });
   const result = { data: users };
   return result;
 };

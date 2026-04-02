@@ -125,7 +125,9 @@ function ErrorState({ error, onRetry }: { error: Error; onRetry?: () => void }) 
   );
 }
 
-export default function InvitePage() {
+import { Suspense } from 'react';
+
+function InvitePageContent() {
   const router = useRouter();
   const query = useSearchParamsRequired();
   const token = query.get('token') ?? undefined;
@@ -352,5 +354,13 @@ export default function InvitePage() {
         </CardFooter>
       </Card>
     </div>
+  );
+}
+
+export default function InvitePage() {
+  return (
+    <Suspense fallback={<LoadingSkeleton />}>
+      <InvitePageContent />
+    </Suspense>
   );
 }

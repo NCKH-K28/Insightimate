@@ -228,7 +228,7 @@ const RolePermissionMatrix: React.FC<{
 // Main Component
 export const PermissionSettings: React.FC<{ projectId: string }> = ({ projectId }) => {
   const { data: rawRoles, isPending: isLoadingRoles } = useQuery(
-    listProjectRolesQueryOptions({ projectId }),
+    listProjectRolesQueryOptions({ projId: projectId }),
   );
 
   const {
@@ -277,7 +277,7 @@ export const PermissionSettings: React.FC<{ projectId: string }> = ({ projectId 
     form.setValue('delete', formData.delete, { shouldDirty: true, shouldValidate: true });
   }, [formData, form]);
 
-  const writeProjectRoles = useMutation(writeProjectRolesMutationOptions({ projectId }));
+  const writeProjectRoles = useMutation(writeProjectRolesMutationOptions({ projId: projectId }));
 
   const handleSubmit = form.handleSubmit(async (data: WriteRoleFormData) => {
     await toast
