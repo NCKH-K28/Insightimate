@@ -57,6 +57,24 @@ export const POST = middlewareHandler<Params>([authenticated], async (req, { par
     return NextResponse.json(result, { status: 200 });
   }
 
+  if (action === 'set-points') {
+    const body = await req.json().catch(() => ({}));
+    const finalPoints = Number(body?.finalPoints);
+    if (!Number.isFinite(finalPoints)) {
+      return NextResponse.json(
+        { error: 'finalPoints must be a number' },
+        { status: 400 },
+      );
+    }
+    const story = await planingPokeService.setStoryFinalPoints(
+      params.sessionId,
+      params.storyId,
+      { finalPoints },
+      { actorId: auth.user.id },
+    );
+    return NextResponse.json(story, { status: 200 });
+  }
+
   // default: submit vote value
   const body = await req.json();
   const input = ZPokerVoteSubmitInput.parse(body);

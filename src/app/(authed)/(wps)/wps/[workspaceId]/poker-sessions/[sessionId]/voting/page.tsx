@@ -11,6 +11,7 @@ import {
   listPokerStoriesQueryOptions,
   resetPokerRoundMutationOptions,
   revealPokerStoryMutationOptions,
+  setPokerStoryFinalPointsMutationOptions,
   startPokerSessionMutationOptions,
   submitPokerVoteMutationOptions,
 } from '@/features/planingpoke/api/actions';
@@ -24,8 +25,6 @@ import type {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { SkipForward } from 'lucide-react';
 
 export default function PokerSessionVotingPage() {
   const params = useParams<{ workspaceId: string; sessionId: string }>();
@@ -61,6 +60,9 @@ export default function PokerSessionVotingPage() {
   );
   const resetMutation = useMutation(
     resetPokerRoundMutationOptions({ sessionId, storyId: storyId ?? '' }),
+  );
+  const setFinalPointsMutation = useMutation(
+    setPokerStoryFinalPointsMutationOptions({ sessionId, storyId: storyId ?? '' }),
   );
   const startMutation = useMutation(startPokerSessionMutationOptions({ sessionId }));
   const completeMutation = useMutation(completePokerSessionMutationOptions({ sessionId }));
@@ -99,6 +101,13 @@ export default function PokerSessionVotingPage() {
       revealedValue: revealed && v ? String(v.value) : undefined,
     };
   });
+
+  // Numeric min/max from current votes
+  const numericVotes: number[] = (activeStory?.votes ?? [])
+    .map((v: any) => Number(v.value))
+    .filter((n: number) => Number.isFinite(n));
+  const minVote = numericVotes.length ? Math.min(...numericVotes) : null;
+  const maxVote = numericVotes.length ? Math.max(...numericVotes) : null;
 
   const story: PokerVotingStory & { description?: string; acceptanceCriteria?: string[] } =
     activeStory
@@ -188,6 +197,25 @@ export default function PokerSessionVotingPage() {
     toast.success(`Now voting: ${next.code}`);
   };
 
+  const handleSaveAndNext = async (finalPoints: number) => {
+    if (!storyId) return;
+    try {
+      await setFinalPointsMutation.mutateAsync({ finalPoints });
+      toast.success(`Saved estimate: ${finalPoints}`);
+      await handleNextStory();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Save failed');
+    }
+  };
+
+  const handleTabChange = (tab: 'voting' | 'backlog' | 'participants' | string) => {
+    if (tab === 'backlog') {
+      router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/backlog`);
+    } else if (tab === 'participants') {
+      router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/participants`);
+    }
+  };
+
   if (isHost) {
     return (
       <div className='relative h-screen w-full'>
@@ -200,6 +228,8 @@ export default function PokerSessionVotingPage() {
           totalSeats={participants.length || undefined}
           revealed={revealed}
           finalPoints={activeStory?.finalPoints ?? null}
+          minVote={minVote}
+          maxVote={maxVote}
           roundStartedAt={
             activeStory
               ? new Date(activeStory.updatedAt ?? activeStory.createdAt).getTime()
@@ -207,25 +237,17 @@ export default function PokerSessionVotingPage() {
           }
           busyReveal={revealMutation.isPending}
           busyReset={resetMutation.isPending}
+          busySave={setFinalPointsMutation.isPending || startMutation.isPending}
           moderatorEstimate={initialEstimate}
           onInvite={handleInvite}
           onExit={handleExit}
           onReveal={handleReveal}
           onReset={handleReset}
+          onSaveAndNext={handleSaveAndNext}
+          onRevote={handleReset}
+          onTabChange={handleTabChange}
           onModeratorVote={handleSelectCard}
         />
-        {revealed && (
-          <div className='pointer-events-auto fixed bottom-24 right-8 z-50'>
-            <Button
-              onClick={handleNextStory}
-              disabled={startMutation.isPending}
-              className='h-10 rounded-full px-5 shadow-lg'
-            >
-              <SkipForward className='mr-2 size-4' />
-              Next Story
-            </Button>
-          </div>
-        )}
       </div>
     );
   }
@@ -245,6 +267,7 @@ export default function PokerSessionVotingPage() {
         onSelectCard={handleSelectCard}
         onConfirmVote={handleConfirmVote}
         onClearVote={handleClearVote}
+        onTabChange={handleTabChange}
       />
     </div>
   );

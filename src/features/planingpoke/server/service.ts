@@ -386,12 +386,13 @@ const joinSession = async (sessionId: string, ctx: Ctx) => {
 
   return prisma.pokerSessionParticipant.upsert({
     where: { sessionId_userId: { sessionId, userId: ctx.actorId } },
-    update: {},
+    update: { acceptedAt: new Date() },
     create: {
       id: genId('psp'),
       sessionId,
       userId: ctx.actorId,
       role: 'VOTER',
+      acceptedAt: new Date(),
     },
     include: { user: true },
   });
@@ -431,6 +432,117 @@ const listHostCandidates = async (workspaceId: string, ctx: Ctx) => {
   return { data, meta: { total: data.length } };
 };
 
+// ============ FINAL ESTIMATE / SAVE =============
+
+const setStoryFinalPoints = async (
+  sessionId: string,
+  storyId: string,
+  input: { finalPoints: number },
+  ctx: Ctx,
+) => {
+  await ensureSessionHost(sessionId, ctx.actorId);
+  const story = await prisma.pokerStory.findFirst({
+    where: { id: storyId, sessionId },
+    select: { id: true },
+  });
+  if (!story) throw new Error('Story not found in session');
+  return prisma.pokerStory.update({
+    where: { id: storyId },
+    data: {
+      status: 'ESTIMATED',
+      finalPoints: input.finalPoints,
+      estimatedAt: new Date(),
+    },
+  });
+};
+
+// ============ INVITES =============
+
+const inviteParticipant = async (
+  sessionId: string,
+  input: { userId: string; role?: 'VOTER' | 'OBSERVER' | 'HOST' },
+  ctx: Ctx,
+) => {
+  await ensureSessionHost(sessionId, ctx.actorId);
+  const session = await prisma.pokerSession.findUnique({
+    where: { id: sessionId },
+    select: { workspaceId: true },
+  });
+  if (!session) throw new Error('Session not found');
+  await ensureWorkspaceMember(session.workspaceId, input.userId);
+
+  const role = input.role ?? 'VOTER';
+  return prisma.pokerSessionParticipant.upsert({
+    where: { sessionId_userId: { sessionId, userId: input.userId } },
+    update: { role, invitedAt: new Date() },
+    create: {
+      id: genId('psp'),
+      sessionId,
+      userId: input.userId,
+      role,
+      status: 'IDLE',
+      invitedAt: new Date(),
+    },
+    include: { user: true },
+  });
+};
+
+const updateParticipantRole = async (
+  sessionId: string,
+  participantId: string,
+  input: { role: 'VOTER' | 'OBSERVER' | 'HOST' },
+  ctx: Ctx,
+) => {
+  await ensureSessionHost(sessionId, ctx.actorId);
+  return prisma.pokerSessionParticipant.update({
+    where: { id: participantId },
+    data: { role: input.role },
+    include: { user: true },
+  });
+};
+
+const removeParticipant = async (
+  sessionId: string,
+  participantId: string,
+  ctx: Ctx,
+) => {
+  await ensureSessionHost(sessionId, ctx.actorId);
+  await prisma.pokerSessionParticipant.delete({ where: { id: participantId } });
+  return { ok: true };
+};
+
+const searchInviteCandidates = async (
+  workspaceId: string,
+  q: string,
+  ctx: Ctx,
+) => {
+  await ensureWorkspaceMember(workspaceId, ctx.actorId);
+  const ws = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: {
+      owner: { select: { id: true, name: true, email: true, avatar: true } },
+      members: {
+        select: {
+          user: { select: { id: true, name: true, email: true, avatar: true } },
+        },
+      },
+    },
+  });
+  if (!ws) return { data: [] };
+  const all = new Map<string, { id: string; name: string; email: string; avatar: string | null }>();
+  if (ws.owner) all.set(ws.owner.id, ws.owner);
+  for (const m of ws.members) all.set(m.user.id, m.user);
+  const needle = q.trim().toLowerCase();
+  const data = Array.from(all.values()).filter((u) => {
+    if (!needle) return true;
+    return (
+      u.name?.toLowerCase().includes(needle) ||
+      u.email?.toLowerCase().includes(needle)
+    );
+  });
+  return { data: data.slice(0, 20) };
+};
+
 export const planingPokeService = {
   createSession,
   getSession,
@@ -445,8 +557,13 @@ export const planingPokeService = {
   clearVote,
   revealStory,
   resetRound,
+  setStoryFinalPoints,
   completeSession,
   joinSession,
   listParticipants,
   listHostCandidates,
+  inviteParticipant,
+  updateParticipantRole,
+  removeParticipant,
+  searchInviteCandidates,
 };

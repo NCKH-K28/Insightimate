@@ -82,7 +82,9 @@ model PokerSessionParticipant {
   role      PokerParticipantRole   @default(VOTER)
   status    PokerParticipantStatus @default(IDLE)
 
-  joinedAt DateTime @default(now()) @map("joined_at")
+  joinedAt   DateTime  @default(now()) @map("joined_at")
+  invitedAt  DateTime? @map("invited_at")
+  acceptedAt DateTime? @map("accepted_at")
 
   session PokerSession @relation("PokerSessionParticipants", fields: [sessionId], references: [id], onDelete: Cascade)
   user    User         @relation("PokerParticipantUser", fields: [userId], references: [id], onDelete: Cascade)

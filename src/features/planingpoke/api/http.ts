@@ -51,14 +51,34 @@ export const planingPokeApi = {
     baseApi.post<any>(`${StoryItem}?action=reveal` as const, data ?? {}, ctx),
   resetRound: (ctx: PokerStoryCtx) =>
     baseApi.post<any>(`${StoryItem}?action=reset` as const, undefined, ctx),
+  setStoryFinalPoints: (ctx: PokerStoryCtx, data: { finalPoints: number }) =>
+    baseApi.post<any>(`${StoryItem}?action=set-points` as const, data, ctx),
 
   // participants
   listParticipants: (ctx: PokerSessionCtx) =>
     baseApi.get<{ data: any[]; meta: { total: number } }>(Participants, ctx),
   joinSession: (ctx: PokerSessionCtx) =>
     baseApi.post<any>(Participants, undefined, ctx),
+  inviteParticipant: (
+    ctx: PokerSessionCtx,
+    data: { userId: string; role?: 'VOTER' | 'OBSERVER' | 'HOST' },
+  ) =>
+    baseApi.post<any>(`${Participants}?action=invite` as const, data, ctx),
+  updateParticipantRole: (
+    ctx: PokerSessionCtx & { participantId: string },
+    data: { role: 'VOTER' | 'OBSERVER' | 'HOST' },
+  ) =>
+    baseApi.patch<any>(
+      `${Participants}/{participantId}` as const,
+      data,
+      ctx,
+    ),
+  removeParticipant: (ctx: PokerSessionCtx & { participantId: string }) =>
+    baseApi.delete<any>(`${Participants}/{participantId}` as const, ctx),
 
-  // hosts
+  // hosts / search
   listHostCandidates: (ctx: { workspaceId: string }) =>
     baseApi.get<{ data: any[] }>(HostCandidates, ctx),
+  searchInviteCandidates: (ctx: { workspaceId: string }, q: string) =>
+    baseApi.get<{ data: any[] }>(HostCandidates, ctx, { params: { q } }),
 };

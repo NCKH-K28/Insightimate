@@ -133,6 +133,56 @@ export const resetPokerRoundMutationOptions = (params: { sessionId: string; stor
     meta: { invalidateQueries: [[KEY, params.sessionId]] },
   });
 
+export const setPokerStoryFinalPointsMutationOptions = (params: {
+  sessionId: string;
+  storyId: string;
+}) =>
+  mutationOptions({
+    mutationKey: [KEY, params.sessionId, params.storyId, 'set-points'],
+    mutationFn: (data: { finalPoints: number }) =>
+      planingPokeApi.setStoryFinalPoints(params, data),
+    meta: { invalidateQueries: [[KEY, params.sessionId]] },
+  });
+
+export const invitePokerParticipantMutationOptions = (params: { sessionId: string }) =>
+  mutationOptions({
+    mutationKey: [KEY, params.sessionId, 'participants', 'invite'],
+    mutationFn: (data: { userId: string; role?: 'VOTER' | 'OBSERVER' | 'HOST' }) =>
+      planingPokeApi.inviteParticipant(params, data),
+    meta: { invalidateQueries: [[KEY, params.sessionId, 'participants']] },
+  });
+
+export const updatePokerParticipantRoleMutationOptions = (params: { sessionId: string }) =>
+  mutationOptions({
+    mutationKey: [KEY, params.sessionId, 'participants', 'role'],
+    mutationFn: (data: { participantId: string; role: 'VOTER' | 'OBSERVER' | 'HOST' }) =>
+      planingPokeApi.updateParticipantRole(
+        { sessionId: params.sessionId, participantId: data.participantId },
+        { role: data.role },
+      ),
+    meta: { invalidateQueries: [[KEY, params.sessionId, 'participants']] },
+  });
+
+export const removePokerParticipantMutationOptions = (params: { sessionId: string }) =>
+  mutationOptions({
+    mutationKey: [KEY, params.sessionId, 'participants', 'remove'],
+    mutationFn: (participantId: string) =>
+      planingPokeApi.removeParticipant({ sessionId: params.sessionId, participantId }),
+    meta: { invalidateQueries: [[KEY, params.sessionId, 'participants']] },
+  });
+
+export const searchPokerInviteCandidatesQueryOptions = (params: {
+  workspaceId: string;
+  q: string;
+}) =>
+  queryOptions({
+    queryKey: [KEY, 'invite-candidates', params.workspaceId, params.q],
+    queryFn: () =>
+      planingPokeApi.searchInviteCandidates({ workspaceId: params.workspaceId }, params.q),
+    select: (res) => res.data,
+    enabled: !!params.workspaceId,
+  });
+
 export const joinPokerSessionMutationOptions = (params: { sessionId: string }) =>
   mutationOptions({
     mutationKey: [KEY, params.sessionId, 'join'],

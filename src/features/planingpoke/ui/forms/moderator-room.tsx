@@ -4,7 +4,17 @@ import * as React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Bell, Eye, RotateCcw, Search, Settings, CheckCircle2, Hourglass } from 'lucide-react';
+import {
+  Bell,
+  Eye,
+  RotateCcw,
+  Search,
+  Settings,
+  CheckCircle2,
+  Hourglass,
+  ArrowRight,
+  Sparkles,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import {
@@ -46,10 +56,19 @@ type ModeratorRoomProps = {
   busyReset?: boolean;
   /** Moderator có vote bypass hay không (mặc định off) */
   moderatorEstimate?: string;
+  /** Min/Max numeric vote (after reveal) */
+  minVote?: number | null;
+  maxVote?: number | null;
+  /** Loading flags for save/revote */
+  busySave?: boolean;
+  /** Callbacks */
   onInvite?: () => void;
   onExit?: () => void;
   onReveal?: () => void;
   onReset?: () => void;
+  onSaveAndNext?: (finalPoints: number) => void;
+  onRevote?: () => void;
+  onTabChange?: (tab: PokerSidebarTab) => void;
   /** Bypass vote — host pick a card */
   onModeratorVote?: (value: string) => void;
 };
@@ -73,17 +92,33 @@ export function ModeratorRoom({
   roundStartedAt,
   busyReveal,
   busyReset,
+  busySave,
   moderatorEstimate,
+  minVote,
+  maxVote,
   onInvite,
   onExit,
   onReveal,
   onReset,
+  onSaveAndNext,
+  onRevote,
+  onTabChange,
   onModeratorVote,
 }: ModeratorRoomProps) {
   const [activeTab, setActiveTab] = React.useState<PokerSidebarTab>('voting');
+  const handleTabChange = (t: PokerSidebarTab) => {
+    setActiveTab(t);
+    onTabChange?.(t);
+  };
+
+  // Editable final-points input (host can override average)
+  const [finalInput, setFinalInput] = React.useState<string>('');
+  React.useEffect(() => {
+    if (revealed && finalPoints != null) setFinalInput(String(finalPoints));
+  }, [revealed, finalPoints]);
   const [search, setSearch] = React.useState('');
 
-  // ⏱ live elapsed
+  //  live elapsed
   const [now, setNow] = React.useState(() => Date.now());
   React.useEffect(() => {
     const id = setInterval(() => setNow(Date.now()), 1000);
@@ -103,7 +138,7 @@ export function ModeratorRoom({
         sessionName={sessionName}
         host={host}
         active={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onInvite={onInvite}
         onExit={onExit}
       />
@@ -225,30 +260,89 @@ export function ModeratorRoom({
               </div>
 
               {/* Buttons */}
-              <Button
-                className='mt-4 h-11 w-full text-sm font-semibold'
-                onClick={onReveal}
-                disabled={!!busyReveal || revealed || votedCount === 0}
-              >
-                <Eye className='mr-2 size-4' />
-                {revealed ? 'Cards Revealed' : 'Reveal Cards'}
-              </Button>
-              <Button
-                variant='outline'
-                className='mt-2 h-11 w-full text-sm font-semibold'
-                onClick={onReset}
-                disabled={!!busyReset}
-              >
-                <RotateCcw className='mr-2 size-4' />
-                Reset Round
-              </Button>
+              {!revealed && (
+                <>
+                  <Button
+                    className='mt-4 h-11 w-full text-sm font-semibold'
+                    onClick={onReveal}
+                    disabled={!!busyReveal || votedCount === 0}
+                  >
+                    <Eye className='mr-2 size-4' />
+                    Reveal Cards
+                  </Button>
+                  <Button
+                    variant='outline'
+                    className='mt-2 h-11 w-full text-sm font-semibold'
+                    onClick={onReset}
+                    disabled={!!busyReset}
+                  >
+                    <RotateCcw className='mr-2 size-4' />
+                    Reset Round
+                  </Button>
+                </>
+              )}
 
-              {revealed && finalPoints != null && (
-                <div className='mt-4 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center'>
-                  <p className='text-[10px] font-semibold uppercase tracking-wider text-emerald-700'>
-                    Average Estimate
-                  </p>
-                  <p className='mt-1 text-2xl font-extrabold text-emerald-700'>{finalPoints}</p>
+              {revealed && (
+                <div className='mt-4 space-y-3'>
+                  {/* Statistics */}
+                  <div className='rounded-lg border bg-muted/30 p-3'>
+                    <p className='text-[10px] font-semibold uppercase tracking-wider text-muted-foreground'>
+                      Statistics
+                    </p>
+                    <div className='mt-2 grid grid-cols-3 gap-2 text-center'>
+                      <div>
+                        <p className='text-[10px] font-medium text-muted-foreground'>Average</p>
+                        <p className='mt-0.5 text-lg font-extrabold text-emerald-600'>
+                          {finalPoints != null ? finalPoints : '—'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className='text-[10px] font-medium text-muted-foreground'>Min</p>
+                        <p className='mt-0.5 text-lg font-extrabold'>{minVote ?? '—'}</p>
+                      </div>
+                      <div>
+                        <p className='text-[10px] font-medium text-muted-foreground'>Max</p>
+                        <p className='mt-0.5 text-lg font-extrabold'>{maxVote ?? '—'}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Final Estimate */}
+                  <div className='rounded-lg border border-blue-200 bg-blue-50 p-3'>
+                    <div className='flex items-center gap-2'>
+                      <Sparkles className='size-4 text-blue-600' />
+                      <p className='text-[10px] font-semibold uppercase tracking-wider text-blue-700'>
+                        Final Estimate
+                      </p>
+                    </div>
+                    <Input
+                      type='number'
+                      step='0.5'
+                      value={finalInput}
+                      onChange={(e) => setFinalInput(e.target.value)}
+                      className='mt-2 h-12 bg-background text-center text-2xl font-extrabold'
+                    />
+                    <Button
+                      className='mt-3 h-10 w-full text-sm font-semibold'
+                      onClick={() => {
+                        const n = Number(finalInput);
+                        if (Number.isFinite(n)) onSaveAndNext?.(n);
+                      }}
+                      disabled={!!busySave || finalInput === ''}
+                    >
+                      Save &amp; Next
+                      <ArrowRight className='ml-2 size-4' />
+                    </Button>
+                    <Button
+                      variant='outline'
+                      className='mt-2 h-10 w-full text-sm font-semibold'
+                      onClick={onRevote}
+                      disabled={!!busyReset}
+                    >
+                      <RotateCcw className='mr-2 size-4' />
+                      Revote
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -310,36 +404,61 @@ export function ModeratorRoom({
           </section>
         </div>
 
-        {/* Floating moderator hand (bypass) */}
+        {/* Floating bottom: Consensus strip when revealed, Bypass cards otherwise */}
         <div className='pointer-events-none absolute inset-x-0 bottom-6 flex justify-center'>
-          <div className='pointer-events-auto flex items-center gap-3 rounded-2xl border bg-background px-4 py-3 shadow-lg'>
-            <div className='flex flex-col pr-3'>
-              <span className='text-[10px] font-bold uppercase tracking-wider text-primary'>
-                Your Estimate
-              </span>
-              <span className='text-[10px] font-medium text-muted-foreground'>
-                Moderator bypass enabled
-              </span>
+          {revealed ? (
+            <div className='pointer-events-auto flex items-center gap-3 rounded-2xl border bg-background px-5 py-3 shadow-lg'>
+              <div className='flex items-center gap-2 pr-2'>
+                <CheckCircle2 className='size-5 text-emerald-500' />
+                <span className='text-sm font-bold tracking-tight'>Consensus Reached</span>
+              </div>
+              {cards.map((v) => {
+                const wasVoted = participants.some((p) => p.revealedValue === v);
+                return (
+                  <span
+                    key={v}
+                    className={cn(
+                      'flex h-9 w-9 items-center justify-center rounded-md border text-sm font-bold transition',
+                      wasVoted
+                        ? 'border-blue-600 bg-blue-600 text-white'
+                        : 'border-border bg-muted/40 text-muted-foreground',
+                    )}
+                  >
+                    {v}
+                  </span>
+                );
+              })}
             </div>
-            {cards.map((v) => {
-              const active = v === moderatorEstimate;
-              return (
-                <button
-                  key={v}
-                  type='button'
-                  onClick={() => onModeratorVote?.(v)}
-                  className={cn(
-                    'flex h-10 w-10 items-center justify-center rounded-md border text-sm font-bold transition',
-                    active
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background text-foreground hover:border-primary/40 hover:text-primary',
-                  )}
-                >
-                  {v}
-                </button>
-              );
-            })}
-          </div>
+          ) : (
+            <div className='pointer-events-auto flex items-center gap-3 rounded-2xl border bg-background px-4 py-3 shadow-lg'>
+              <div className='flex flex-col pr-3'>
+                <span className='text-[10px] font-bold uppercase tracking-wider text-primary'>
+                  Your Estimate
+                </span>
+                <span className='text-[10px] font-medium text-muted-foreground'>
+                  Moderator bypass enabled
+                </span>
+              </div>
+              {cards.map((v) => {
+                const active = v === moderatorEstimate;
+                return (
+                  <button
+                    key={v}
+                    type='button'
+                    onClick={() => onModeratorVote?.(v)}
+                    className={cn(
+                      'flex h-10 w-10 items-center justify-center rounded-md border text-sm font-bold transition',
+                      active
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-foreground hover:border-primary/40 hover:text-primary',
+                    )}
+                  >
+                    {v}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </main>
     </div>

@@ -43,6 +43,7 @@ type VotingRoomProps = {
   onClearVote?: () => void | Promise<void>;
   /** Legacy single callback (called once on confirm) — kept for back-compat */
   onSubmitVote?: (estimate: string) => void;
+  onTabChange?: (tab: PokerSidebarTab) => void;
 };
 
 export function VotingRoom({
@@ -59,8 +60,13 @@ export function VotingRoom({
   onConfirmVote,
   onClearVote,
   onSubmitVote,
+  onTabChange,
 }: VotingRoomProps) {
   const [activeTab, setActiveTab] = React.useState<PokerSidebarTab>('voting');
+  const handleTabChange = (t: PokerSidebarTab) => {
+    setActiveTab(t);
+    onTabChange?.(t);
+  };
   const [estimate, setEstimate] = React.useState<string | undefined>(initialEstimate);
   const [confirmed, setConfirmed] = React.useState(!!initialConfirmed);
   const [search, setSearch] = React.useState('');
@@ -109,7 +115,7 @@ export function VotingRoom({
         sessionName={sessionName}
         host={host}
         active={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onInvite={onInvite}
         onExit={onExit}
       />
