@@ -208,11 +208,13 @@ export default function PokerSessionVotingPage() {
     }
   };
 
-  const handleTabChange = (tab: 'voting' | 'backlog' | 'participants' | string) => {
+  const handleTabChange = (tab: 'voting' | 'backlog' | 'participants' | 'summary' | string) => {
     if (tab === 'backlog') {
       router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/backlog`);
     } else if (tab === 'participants') {
       router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/participants`);
+    } else if (tab === 'summary') {
+      router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/summary`);
     }
   };
 

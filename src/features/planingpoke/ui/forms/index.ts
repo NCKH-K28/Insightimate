@@ -3,3 +3,4 @@ export * from './backlog-selector';
 export * from './voting-room';
 export * from './moderator-room';
 export * from './participants-page';
+export * from './summary-page';

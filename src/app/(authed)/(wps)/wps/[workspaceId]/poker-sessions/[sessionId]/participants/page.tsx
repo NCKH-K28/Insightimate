@@ -115,11 +115,13 @@ export default function PokerSessionParticipantsPage() {
     }
   };
 
-  const handleTabChange = (tab: 'voting' | 'backlog' | 'participants' | string) => {
+  const handleTabChange = (tab: 'voting' | 'backlog' | 'participants' | 'summary' | string) => {
     if (tab === 'voting') {
       router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/voting`);
     } else if (tab === 'backlog') {
       router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/backlog`);
+    } else if (tab === 'summary') {
+      router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/summary`);
     }
   };
 
