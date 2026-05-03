@@ -1,26 +1,31 @@
 'use client';
 
-import { VotingRoom } from '@/features/planingpoke';
+import * as React from 'react';
+import { ModeratorRoom, VotingRoom } from '@/features/planingpoke';
 import {
+  clearPokerVoteMutationOptions,
   completePokerSessionMutationOptions,
+  confirmPokerVoteMutationOptions,
   getPokerSessionQueryOptions,
   listPokerParticipantsQueryOptions,
+  listPokerStoriesQueryOptions,
+  resetPokerRoundMutationOptions,
   revealPokerStoryMutationOptions,
   startPokerSessionMutationOptions,
   submitPokerVoteMutationOptions,
-  confirmPokerVoteMutationOptions,
-  listPokerStoriesQueryOptions,
 } from '@/features/planingpoke/api/actions';
+import { getMeQueryOptions } from '@/features/authn/api/actions';
 import type {
   PokerHostCandidate,
   PokerParticipant,
   PokerVotingStory,
+  ModeratorParticipantView,
 } from '@/features/planingpoke';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { Eye, SkipForward, CheckCircle2 } from 'lucide-react';
+import { SkipForward } from 'lucide-react';
 
 export default function PokerSessionVotingPage() {
   const params = useParams<{ workspaceId: string; sessionId: string }>();
@@ -30,9 +35,13 @@ export default function PokerSessionVotingPage() {
   const workspaceId = params?.workspaceId ?? '';
   const sessionId = params?.sessionId ?? '';
 
+  const meQuery = useQuery(getMeQueryOptions());
   const sessionQuery = useQuery(getPokerSessionQueryOptions({ sessionId }));
   const participantsQuery = useQuery(listPokerParticipantsQueryOptions({ sessionId }));
   const storiesQuery = useQuery(listPokerStoriesQueryOptions({ sessionId }));
+
+  const me: any = meQuery.data;
+  const meId: string | undefined = me?.id ?? me?.user?.id;
 
   const session: any = sessionQuery.data;
   const activeStory: any = session?.activeStory;
@@ -44,8 +53,14 @@ export default function PokerSessionVotingPage() {
   const confirmVoteMutation = useMutation(
     confirmPokerVoteMutationOptions({ sessionId, storyId: storyId ?? '' }),
   );
+  const clearVoteMutation = useMutation(
+    clearPokerVoteMutationOptions({ sessionId, storyId: storyId ?? '' }),
+  );
   const revealMutation = useMutation(
     revealPokerStoryMutationOptions({ sessionId, storyId: storyId ?? '' }),
+  );
+  const resetMutation = useMutation(
+    resetPokerRoundMutationOptions({ sessionId, storyId: storyId ?? '' }),
   );
   const startMutation = useMutation(startPokerSessionMutationOptions({ sessionId }));
   const completeMutation = useMutation(completePokerSessionMutationOptions({ sessionId }));
@@ -59,25 +74,42 @@ export default function PokerSessionVotingPage() {
       }
     : { id: 'host', name: 'Host', email: '' };
 
-  const participants: PokerParticipant[] = (participantsQuery.data ?? []).map(
-    (p: any) => ({
-      id: p.user?.id ?? p.userId,
-      name: p.user?.name ?? 'Member',
-      email: p.user?.email,
-      avatarUrl: p.user?.avatar ?? undefined,
-      role: p.role === 'HOST' ? 'Host' : p.role === 'OBSERVER' ? 'Observer' : undefined,
-      status: p.status,
-    }),
-  );
+  const isHost = !!meId && !!session && meId === session.hostUserId;
 
-  const story: PokerVotingStory = activeStory
-    ? {
-        code: activeStory.code,
-        title: activeStory.title,
-        description: activeStory.description ?? undefined,
-        source: 'Sprint Backlog',
-      }
-    : { code: '—', title: 'No story selected', source: 'Idle' };
+  // Voter state derived from server vote (so refresh keeps state).
+  const myVote: any =
+    activeStory?.votes?.find((v: any) => (v.user?.id ?? v.userId) === meId) ?? null;
+  const initialEstimate: string | undefined = myVote?.value;
+  const initialConfirmed: boolean = !!myVote?.confirmed;
+
+  const participants: PokerParticipant[] = (participantsQuery.data ?? []).map((p: any) => ({
+    id: p.user?.id ?? p.userId,
+    name: p.user?.name ?? 'Member',
+    email: p.user?.email,
+    avatarUrl: p.user?.avatar ?? undefined,
+    role: p.role === 'HOST' ? 'Host' : p.role === 'OBSERVER' ? 'Observer' : undefined,
+    status: p.status,
+  }));
+
+  const revealed = activeStory?.status === 'ESTIMATED';
+  const moderatorParticipants: ModeratorParticipantView[] = participants.map((p) => {
+    const v = activeStory?.votes?.find((vv: any) => (vv.user?.id ?? vv.userId) === p.id);
+    return {
+      ...p,
+      revealedValue: revealed && v ? String(v.value) : undefined,
+    };
+  });
+
+  const story: PokerVotingStory & { description?: string; acceptanceCriteria?: string[] } =
+    activeStory
+      ? {
+          code: activeStory.code,
+          title: activeStory.title,
+          description: activeStory.description ?? undefined,
+          source: 'Sprint Backlog',
+          acceptanceCriteria: parseAcceptanceCriteria(activeStory.description),
+        }
+      : { code: '—', title: 'No story selected', source: 'Idle' };
 
   const handleInvite = () => {
     const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/wps/${workspaceId}/poker-sessions/${sessionId}/voting`;
@@ -89,15 +121,33 @@ export default function PokerSessionVotingPage() {
     router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/backlog`);
   };
 
-  const handleSubmitVote = async (estimate: string) => {
+  const handleSelectCard = async (estimate: string) => {
     if (!storyId) return;
     try {
       await submitVoteMutation.mutateAsync({ value: estimate });
-      await confirmVoteMutation.mutateAsync();
-      toast.success(`Vote submitted: ${estimate}`);
       queryClient.invalidateQueries({ queryKey: ['poker-sessions', sessionId] });
     } catch (err: any) {
       toast.error(err?.response?.data?.message ?? err?.message ?? 'Vote failed');
+    }
+  };
+
+  const handleConfirmVote = async () => {
+    if (!storyId) return;
+    try {
+      await confirmVoteMutation.mutateAsync();
+      queryClient.invalidateQueries({ queryKey: ['poker-sessions', sessionId] });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Confirm failed');
+    }
+  };
+
+  const handleClearVote = async () => {
+    if (!storyId) return;
+    try {
+      await clearVoteMutation.mutateAsync();
+      queryClient.invalidateQueries({ queryKey: ['poker-sessions', sessionId] });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Clear failed');
     }
   };
 
@@ -115,6 +165,16 @@ export default function PokerSessionVotingPage() {
     }
   };
 
+  const handleReset = async () => {
+    if (!storyId) return;
+    try {
+      await resetMutation.mutateAsync();
+      toast.success('Round reset');
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Reset failed');
+    }
+  };
+
   const handleNextStory = async () => {
     const stories: any[] = storiesQuery.data ?? [];
     const next = stories.find((s) => s.status === 'PENDING' && s.id !== storyId);
@@ -128,8 +188,47 @@ export default function PokerSessionVotingPage() {
     toast.success(`Now voting: ${next.code}`);
   };
 
-  const isHost =
-    !!session && (session.host?.id === session.creator?.id || true /* TODO: compare to current user */);
+  if (isHost) {
+    return (
+      <div className='relative h-screen w-full'>
+        <ModeratorRoom
+          sessionName={session?.name ?? 'Planning Session'}
+          host={host}
+          story={story}
+          deckType={session?.deckType ?? 'FIBONACCI'}
+          participants={moderatorParticipants}
+          totalSeats={participants.length || undefined}
+          revealed={revealed}
+          finalPoints={activeStory?.finalPoints ?? null}
+          roundStartedAt={
+            activeStory
+              ? new Date(activeStory.updatedAt ?? activeStory.createdAt).getTime()
+              : undefined
+          }
+          busyReveal={revealMutation.isPending}
+          busyReset={resetMutation.isPending}
+          moderatorEstimate={initialEstimate}
+          onInvite={handleInvite}
+          onExit={handleExit}
+          onReveal={handleReveal}
+          onReset={handleReset}
+          onModeratorVote={handleSelectCard}
+        />
+        {revealed && (
+          <div className='pointer-events-auto fixed bottom-24 right-8 z-50'>
+            <Button
+              onClick={handleNextStory}
+              disabled={startMutation.isPending}
+              className='h-10 rounded-full px-5 shadow-lg'
+            >
+              <SkipForward className='mr-2 size-4' />
+              Next Story
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className='relative h-screen w-full'>
@@ -139,38 +238,27 @@ export default function PokerSessionVotingPage() {
         story={story}
         deckType={session?.deckType ?? 'FIBONACCI'}
         participants={participants}
+        initialEstimate={initialEstimate}
+        initialConfirmed={initialConfirmed}
         onInvite={handleInvite}
         onExit={handleExit}
-        onSubmitVote={handleSubmitVote}
+        onSelectCard={handleSelectCard}
+        onConfirmVote={handleConfirmVote}
+        onClearVote={handleClearVote}
       />
-      {storyId ? (
-        <div className='pointer-events-auto fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border bg-background/95 px-3 py-2 shadow-lg backdrop-blur'>
-          <Button
-            size='sm'
-            variant='outline'
-            onClick={handleReveal}
-            disabled={!isHost || revealMutation.isPending}
-          >
-            <Eye className='mr-1 size-4' />
-            Reveal
-          </Button>
-          <Button
-            size='sm'
-            variant='outline'
-            onClick={handleNextStory}
-            disabled={!isHost || startMutation.isPending}
-          >
-            <SkipForward className='mr-1 size-4' />
-            Next story
-          </Button>
-          {activeStory?.status === 'ESTIMATED' && activeStory?.finalPoints != null ? (
-            <span className='ml-2 inline-flex items-center gap-1 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700'>
-              <CheckCircle2 className='size-3.5' />
-              Avg {activeStory.finalPoints}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
+}
+
+/** Best-effort parse of "Acceptance Criteria" bullet list from a description string. */
+function parseAcceptanceCriteria(desc?: string | null): string[] | undefined {
+  if (!desc) return undefined;
+  const idx = desc.toLowerCase().indexOf('acceptance criteria');
+  if (idx < 0) return undefined;
+  const tail = desc.slice(idx).split(/\r?\n/).slice(1);
+  const items = tail
+    .map((l) => l.trim())
+    .filter((l) => l.startsWith('-') || l.startsWith('*') || /^\d+\./.test(l))
+    .map((l) => l.replace(/^[-*]\s*/, '').replace(/^\d+\.\s*/, ''));
+  return items.length ? items : undefined;
 }

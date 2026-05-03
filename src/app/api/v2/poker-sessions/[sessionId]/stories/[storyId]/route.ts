@@ -50,6 +50,13 @@ export const POST = middlewareHandler<Params>([authenticated], async (req, { par
     return NextResponse.json(result, { status: 200 });
   }
 
+  if (action === 'reset') {
+    const result = await planingPokeService.resetRound(params.sessionId, params.storyId, {
+      actorId: auth.user.id,
+    });
+    return NextResponse.json(result, { status: 200 });
+  }
+
   // default: submit vote value
   const body = await req.json();
   const input = ZPokerVoteSubmitInput.parse(body);

@@ -248,13 +248,13 @@ const submitVote = async (
   // Auto-add as participant if missing
   await prisma.pokerSessionParticipant.upsert({
     where: { sessionId_userId: { sessionId, userId: ctx.actorId } },
-    update: { status: 'READY' },
+    update: { status: 'THINKING' },
     create: {
       id: genId('psp'),
       sessionId,
       userId: ctx.actorId,
       role: 'VOTER',
-      status: 'READY',
+      status: 'THINKING',
     },
   });
 
@@ -332,6 +332,38 @@ const revealStory = async (
     include: { votes: { include: { user: true } } },
   });
   return story;
+};
+
+const resetRound = async (sessionId: string, storyId: string, ctx: Ctx) => {
+  await ensureSessionHost(sessionId, ctx.actorId);
+  const story = await prisma.pokerStory.findFirst({
+    where: { id: storyId, sessionId },
+  });
+  if (!story) throw new Error('Story not found in session');
+
+  await prisma.pokerVote.deleteMany({ where: { storyId } });
+  await prisma.pokerStory.update({
+    where: { id: storyId },
+    data: {
+      status: 'VOTING',
+      revealedAt: null,
+      estimatedAt: null,
+      finalPoints: null,
+    },
+  });
+  await prisma.pokerSessionParticipant.updateMany({
+    where: { sessionId },
+    data: { status: 'THINKING' },
+  });
+  return prisma.pokerSession.findUnique({
+    where: { id: sessionId },
+    include: {
+      host: true,
+      creator: true,
+      activeStory: { include: { votes: { include: { user: true } } } },
+      participants: { include: { user: true } },
+    },
+  });
 };
 
 const completeSession = async (sessionId: string, ctx: Ctx) => {
@@ -412,6 +444,7 @@ export const planingPokeService = {
   confirmVote,
   clearVote,
   revealStory,
+  resetRound,
   completeSession,
   joinSession,
   listParticipants,

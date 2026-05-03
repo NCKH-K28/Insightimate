@@ -1,4 +1,4 @@
-import { isAuthed } from '@/lib/utils/api';
+ import { isAuthed } from '@/lib/utils/api';
 import { queryOptions } from '@tanstack/react-query';
 import { authApi } from './http';
 

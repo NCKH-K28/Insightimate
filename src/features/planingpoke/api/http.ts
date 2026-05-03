@@ -49,6 +49,8 @@ export const planingPokeApi = {
     baseApi.post<any>(`${StoryItem}?action=clear` as const, undefined, ctx),
   revealStory: (ctx: PokerStoryCtx, data?: PokerStoryRevealInput) =>
     baseApi.post<any>(`${StoryItem}?action=reveal` as const, data ?? {}, ctx),
+  resetRound: (ctx: PokerStoryCtx) =>
+    baseApi.post<any>(`${StoryItem}?action=reset` as const, undefined, ctx),
 
   // participants
   listParticipants: (ctx: PokerSessionCtx) =>

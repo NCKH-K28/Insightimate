@@ -30,8 +30,18 @@ type VotingRoomProps = {
   /** Loại deck đã chọn ở step 1 */
   deckType?: PokerDeckType;
   participants: PokerParticipant[];
+  /** External controlled state (when wired to backend) */
+  initialEstimate?: string;
+  initialConfirmed?: boolean;
   onInvite?: () => void;
   onExit?: () => void;
+  /** Pick / change card → submit unconfirmed vote to server */
+  onSelectCard?: (estimate: string) => void | Promise<void>;
+  /** Confirm vote on server */
+  onConfirmVote?: (estimate: string) => void | Promise<void>;
+  /** Clear vote on server */
+  onClearVote?: () => void | Promise<void>;
+  /** Legacy single callback (called once on confirm) — kept for back-compat */
   onSubmitVote?: (estimate: string) => void;
 };
 
@@ -41,29 +51,43 @@ export function VotingRoom({
   story,
   deckType = 'FIBONACCI',
   participants,
+  initialEstimate,
+  initialConfirmed,
   onInvite,
   onExit,
+  onSelectCard,
+  onConfirmVote,
+  onClearVote,
   onSubmitVote,
 }: VotingRoomProps) {
   const [activeTab, setActiveTab] = React.useState<PokerSidebarTab>('voting');
-  const [estimate, setEstimate] = React.useState<string | undefined>(undefined);
-  const [confirmed, setConfirmed] = React.useState(false);
+  const [estimate, setEstimate] = React.useState<string | undefined>(initialEstimate);
+  const [confirmed, setConfirmed] = React.useState(!!initialConfirmed);
   const [search, setSearch] = React.useState('');
+
+  // Sync from props (server state)
+  React.useEffect(() => {
+    setEstimate(initialEstimate);
+  }, [initialEstimate]);
+  React.useEffect(() => {
+    setConfirmed(!!initialConfirmed);
+  }, [initialConfirmed]);
 
   const cards = POKER_DECKS[deckType].values;
 
   const handleSelect = (value: string) => {
     if (confirmed) return;
     setEstimate(value);
+    void onSelectCard?.(value);
   };
 
   const handleClear = () => {
     setEstimate(undefined);
     setConfirmed(false);
+    void onClearVote?.();
   };
 
   const handleEdit = () => {
-    // Cho phép chọn lại; giữ nguyên estimate cũ.
     setConfirmed(false);
     toast.info('You can change your estimate now.');
   };
@@ -71,7 +95,11 @@ export function VotingRoom({
   const handleConfirm = () => {
     if (estimate === undefined) return;
     setConfirmed(true);
-    onSubmitVote?.(estimate);
+    if (onConfirmVote) {
+      void onConfirmVote(estimate);
+    } else {
+      onSubmitVote?.(estimate);
+    }
     toast.success(`Vote confirmed: ${estimate}`);
   };
 

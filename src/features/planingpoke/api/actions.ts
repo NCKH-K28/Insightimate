@@ -126,6 +126,13 @@ export const revealPokerStoryMutationOptions = (params: { sessionId: string; sto
     meta: { invalidateQueries: [[KEY, params.sessionId]] },
   });
 
+export const resetPokerRoundMutationOptions = (params: { sessionId: string; storyId: string }) =>
+  mutationOptions({
+    mutationKey: [KEY, params.sessionId, params.storyId, 'reset'],
+    mutationFn: () => planingPokeApi.resetRound(params),
+    meta: { invalidateQueries: [[KEY, params.sessionId]] },
+  });
+
 export const joinPokerSessionMutationOptions = (params: { sessionId: string }) =>
   mutationOptions({
     mutationKey: [KEY, params.sessionId, 'join'],
