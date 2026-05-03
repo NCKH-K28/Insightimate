@@ -2,41 +2,57 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { CreatePokerSessionForm } from '@/features/planingpoke';
-import type { PokerHostCandidate } from '@/features/planingpoke';
+import {
+  createPokerSessionMutationOptions,
+  listPokerHostCandidatesQueryOptions,
+} from '@/features/planingpoke/api/actions';
+import type { PokerHostCandidate, PokerSessionCreateInput } from '@/features/planingpoke';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { Bell, HelpCircle, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-
-// TODO: thay bằng dữ liệu từ API (members của workspace) khi backend sẵn sàng.
-const MOCK_CREATOR: PokerHostCandidate = {
-  id: 'me',
-  name: 'You (Creator)',
-  email: 'you@architect.app',
-};
-
-const MOCK_TEAM: PokerHostCandidate[] = [
-  { id: 'u1', name: 'Linh Nguyen', email: 'linh@team.app' },
-  { id: 'u2', name: 'Huy Tran', email: 'huy@team.app' },
-  { id: 'u3', name: 'Mai Pham', email: 'mai@team.app' },
-  { id: 'u4', name: 'Khanh Le', email: 'khanh@team.app' },
-  { id: 'u5', name: 'An Vu', email: 'an@team.app' },
-];
+import { toast } from 'sonner';
 
 export default function CreatePokerSessionLandingPage() {
   const params = useParams<{ workspaceId: string }>();
   const router = useRouter();
-  const workspaceId = params?.workspaceId ?? 'demo';
+  const workspaceId = params?.workspaceId ?? '';
 
-  const inviteUrl = `architect.app/join/${workspaceId}/sprint-42-ritual`;
+  const candidatesQuery = useQuery(
+    listPokerHostCandidatesQueryOptions({ workspaceId }),
+  );
+  const candidates: PokerHostCandidate[] = (candidatesQuery.data ?? []).map(
+    (u: any) => ({
+      id: u.id,
+      name: u.name,
+      email: u.email,
+      avatarUrl: u.avatar ?? undefined,
+    }),
+  );
+  const creator: PokerHostCandidate = candidates[0] ?? {
+    id: 'me',
+    name: 'You',
+    email: '',
+  };
 
-  const handleCreate = async (data: { name: string }) => {
-    const sessionId =
-      data.name
-        .toLowerCase()
-        .trim()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '') || 'new-session';
-    router.push(`/wps/${workspaceId}/poker-sessions/${sessionId}/backlog`);
+  const inviteUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/wps/${workspaceId}/poker-sessions/join`
+      : `/wps/${workspaceId}/poker-sessions/join`;
+
+  const createMutation = useMutation(createPokerSessionMutationOptions());
+
+  const handleCreate = async (data: PokerSessionCreateInput) => {
+    try {
+      const session: any = await createMutation.mutateAsync({
+        workspaceId,
+        ...data,
+      });
+      toast.success('Session created');
+      router.push(`/wps/${workspaceId}/poker-sessions/${session.id}/backlog`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? err?.message ?? 'Failed to create session');
+    }
   };
 
   return (
@@ -96,7 +112,7 @@ export default function CreatePokerSessionLandingPage() {
 
           <div className='mt-6 flex items-center gap-3'>
             <div className='flex -space-x-2'>
-              {MOCK_TEAM.slice(0, 3).map((m) => (
+              {candidates.slice(0, 3).map((m) => (
                 <Avatar key={m.id} className='size-8 border-2 border-background'>
                   <AvatarImage src={m.avatarUrl} alt={m.name} />
                   <AvatarFallback className='text-[10px]'>
@@ -112,8 +128,8 @@ export default function CreatePokerSessionLandingPage() {
         {/* RIGHT - Form */}
         <section className='order-1 flex justify-center lg:order-2'>
           <CreatePokerSessionForm
-            creator={MOCK_CREATOR}
-            candidates={MOCK_TEAM}
+            creator={creator}
+            candidates={candidates}
             inviteUrl={inviteUrl}
             onSubmit={handleCreate}
           />

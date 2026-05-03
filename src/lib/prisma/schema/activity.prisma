@@ -1,34 +1,34 @@
 enum ActivityType {
-    VIEWED
-    ASSIGNED
-    CREATED
-    UPDATED
-    COMMENTED
-    STARRED
-    DELETED
+  VIEWED
+  ASSIGNED
+  CREATED
+  UPDATED
+  COMMENTED
+  STARRED
+  DELETED
 }
 
 enum SourceType {
-    ISSUE
-    PROJECT
+  ISSUE
+  PROJECT
 }
 
 model Activity {
-    id          String  @id @default(cuid()) @map("id")
-    userId      String  @map("user_id")
-    workspaceId String? @map("workspace_id")
+  id          String  @id @default(cuid()) @map("id")
+  userId      String  @map("user_id")
+  workspaceId String? @map("workspace_id")
 
-    type ActivityType @map("type")
+  type ActivityType @map("type")
 
-    sourceType SourceType @map("source_type")
-    sourceId   String     @map("source_id") // id của issue / project
+  sourceType SourceType @map("source_type")
+  sourceId   String     @map("source_id") // id của issue / project
 
-    context   Json?    @map("context")
-    createdBy String?  @map("created_by")
-    createdAt DateTime @default(now()) @map("created_at")
+  context   Json?    @map("context")
+  createdBy String?  @map("created_by")
+  createdAt DateTime @default(now()) @map("created_at")
 
-    @@index([userId, workspaceId, createdAt])
-    @@index([workspaceId, sourceType, sourceId, createdAt])
-    @@index([userId, sourceType, sourceId])
-    @@map("activities")
+  @@index([userId, workspaceId, createdAt])
+  @@index([workspaceId, sourceType, sourceId, createdAt])
+  @@index([userId, sourceType, sourceId])
+  @@map("activities")
 }

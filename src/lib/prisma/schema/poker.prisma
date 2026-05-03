@@ -1,0 +1,140 @@
+// -- PLANNING POKER SERVICE
+// -- ======================================================
+
+enum PokerDeckType {
+  FIBONACCI
+  T_SHIRT
+  SEQUENTIAL
+}
+
+enum PokerHostMode {
+  ME
+  ANOTHER
+}
+
+enum PokerSessionStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+}
+
+enum PokerStoryPriority {
+  HIGH
+  MEDIUM
+  LOW
+  UNESTIMATED
+}
+
+enum PokerStoryStatus {
+  PENDING
+  VOTING
+  ESTIMATED
+  SKIPPED
+}
+
+enum PokerParticipantRole {
+  HOST
+  VOTER
+  OBSERVER
+}
+
+enum PokerParticipantStatus {
+  READY
+  THINKING
+  IDLE
+}
+
+model PokerSession {
+  id          String             @id
+  workspaceId String             @map("workspace_id")
+  name        String
+  deckType    PokerDeckType      @map("deck_type")
+  hostMode    PokerHostMode      @map("host_mode")
+  hostUserId  String             @map("host_user_id")
+  creatorId   String             @map("creator_id")
+  status      PokerSessionStatus @default(DRAFT)
+  inviteToken String             @unique @map("invite_token")
+
+  /**
+   * Active story id when status = ACTIVE
+   */
+  activeStoryId String? @unique @map("active_story_id")
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  endedAt   DateTime? @map("ended_at")
+
+  workspace    Workspace                 @relation("WorkspacePokerSessions", fields: [workspaceId], references: [id], onDelete: Cascade)
+  host         User                      @relation("PokerSessionHost", fields: [hostUserId], references: [id])
+  creator      User                      @relation("PokerSessionCreator", fields: [creatorId], references: [id])
+  stories      PokerStory[]              @relation("PokerSessionStories")
+  participants PokerSessionParticipant[] @relation("PokerSessionParticipants")
+  activeStory  PokerStory?               @relation("PokerSessionActiveStory", fields: [activeStoryId], references: [id])
+
+  @@index([workspaceId])
+  @@map("poker_sessions")
+}
+
+model PokerSessionParticipant {
+  id        String                 @id
+  sessionId String                 @map("session_id")
+  userId    String                 @map("user_id")
+  role      PokerParticipantRole   @default(VOTER)
+  status    PokerParticipantStatus @default(IDLE)
+
+  joinedAt DateTime @default(now()) @map("joined_at")
+
+  session PokerSession @relation("PokerSessionParticipants", fields: [sessionId], references: [id], onDelete: Cascade)
+  user    User         @relation("PokerParticipantUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@map("poker_session_participants")
+}
+
+model PokerStory {
+  id          String             @id
+  sessionId   String             @map("session_id")
+  /**
+   * Optional reference to an existing Issue
+   */
+  issueId     String?            @map("issue_id")
+  code        String
+  title       String
+  description String?
+  priority    PokerStoryPriority @default(UNESTIMATED)
+  tags        Json?
+  position    Int                @default(0)
+  status      PokerStoryStatus   @default(PENDING)
+  finalPoints Float?             @map("final_points")
+
+  revealedAt  DateTime? @map("revealed_at")
+  estimatedAt DateTime? @map("estimated_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  session   PokerSession  @relation("PokerSessionStories", fields: [sessionId], references: [id], onDelete: Cascade)
+  votes     PokerVote[]   @relation("PokerStoryVotes")
+  activeFor PokerSession? @relation("PokerSessionActiveStory")
+
+  @@index([sessionId])
+  @@map("poker_stories")
+}
+
+model PokerVote {
+  id        String  @id
+  storyId   String  @map("story_id")
+  userId    String  @map("user_id")
+  value     String
+  confirmed Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  story PokerStory @relation("PokerStoryVotes", fields: [storyId], references: [id], onDelete: Cascade)
+  user  User       @relation("PokerVoteUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+  @@index([storyId])
+  @@map("poker_votes")
+}

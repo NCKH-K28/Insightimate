@@ -9,11 +9,12 @@ model Workspace {
   updatedAt DateTime  @updatedAt @map("updated_at")
   removedAt DateTime? @map("removed_at")
 
-  owner    User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
-  members  WorkspaceMember[] @relation("WorkspaceMembers")
-  projects Project[]         @relation("WorkspaceProjects")
-  plans    Plan[]            @relation("WorkspacePlans")
-  teams    Team[]            @relation("WorkspaceTeams")
+  owner         User              @relation("WorkspaceOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members       WorkspaceMember[] @relation("WorkspaceMembers")
+  projects      Project[]         @relation("WorkspaceProjects")
+  plans         Plan[]            @relation("WorkspacePlans")
+  teams         Team[]            @relation("WorkspaceTeams")
+  pokerSessions PokerSession[]    @relation("WorkspacePokerSessions")
 
   @@map("workspaces")
 }
