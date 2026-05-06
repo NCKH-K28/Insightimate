@@ -1,4 +1,4 @@
-import { ProjectTabs } from '@/features/project_v3/ui/project-tabs';
+import { ProjectTabs } from '@/features/project/ui/project-tabs';
 
 type PageProps = { params: Promise<{ orgSlug: string; projId: string }> };
 

@@ -15,7 +15,7 @@ import {
   ListTab,
   GanttTab,
   CalendarTab,
-} from '@/features/project_v3/ui/tabs';
+} from '@/features/project/ui/tabs';
 
 // ---------- Wrapper ----------
 

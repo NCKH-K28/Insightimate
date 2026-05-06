@@ -7,6 +7,7 @@
   },
   "packageManager": "pnpm@10.10.0",
   "scripts": {
+    "clean": "rm -rf .next && rm -rf node_modules && rm -rf dist && rm -rf pnpm-lock.yaml",
     "dev": "next dev",
     "dev:clean": "rm -rf .next && pnpm dev",
     "build": "pnpm run prisma:gen && next build",

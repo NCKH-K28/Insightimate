@@ -38,7 +38,7 @@ vi.mock('@/features/boards/server/sprint-service', () => ({
   },
 }));
 
-vi.mock('@/features/project_v3/server/projects.service', () => ({
+vi.mock('@/features/project/server/projects.service', () => ({
   projectsService: {
     getById: vi.fn(),
   },
@@ -54,7 +54,7 @@ import {
   getSprintById,
 } from '@/features/boards/server/cqrs/board-sprint';
 import { sprintService as legacySprintService } from '@/features/boards/server/sprint-service';
-import { projectsService } from '@/features/project_v3/server/projects.service';
+import { projectsService } from '@/features/project/server/projects.service';
 
 // ── Helpers ──────────────────────────────────────────────────────────────
 

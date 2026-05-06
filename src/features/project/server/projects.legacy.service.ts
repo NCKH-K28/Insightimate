@@ -1,0 +1,583 @@
+import {
+  PROJECT_ACTIONS,
+  PROJECT_ROLE_PERMISSION_KEYS,
+  ProjectCreateInput,
+  ProjectUpdateInput,
+  ZProject,
+  ZProjectItem,
+  ZProjectListRes,
+} from '@/contracts/project';
+import { addSeconds } from 'date-fns';
+import { Prisma } from '@prisma/client';
+import { templateConfigs } from '../configs/template';
+import { prisma } from '@/lib/prisma';
+import { checkResourcesMapped } from '@/lib/authz/clients/cerbos';
+import { openfgaClient } from '@/lib/authz/clients/openfga';
+import {
+  genBoardId,
+  genColumnId,
+  genProjectActorId,
+  genProjectId,
+  genSprintId,
+} from '../configs/id-generators';
+import {
+  buildProjectActorTuples,
+  buildProjectTuples,
+  ProjActorInput,
+} from '@/lib/authz/tuple-factory';
+import { projectResourceFactory, loadPrincipal } from '@/features/project/utils/authz';
+import { listStatuses } from './project-field.service';
+import { IssueStatusCategory, ZIssueStatusCreateInput } from '@/contracts/issues';
+import z from 'zod';
+import {
+  genIssuePriorityId,
+  genIssueResolutionId,
+  genIssueStatusId,
+  genIssueTypeId,
+  genProjectRoleId,
+} from '../configs/id-generators';
+
+class ProjectError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'ProjectError';
+    Object.setPrototypeOf(this, ProjectError.prototype);
+  }
+}
+
+// =============================== HELPERS (extracted)
+type TxClient = Prisma.TransactionClient;
+type TemplateConfig = (typeof templateConfigs)['SCRUM'];
+
+type PrismaRoleCreateInput = Omit<Prisma.ProjectRoleCreateManyInput, 'permissions'> & {
+  permissions: string[];
+};
+const buildRoleCreateManyData = (
+  input: ProjectCreateInput,
+  projectId: string,
+): PrismaRoleCreateInput[] => {
+  if (!input.roles || input.roles.length === 0) return [];
+  return input.roles
+    .map((r) => ({ ...r, projectId }))
+    .map((r) => ({ ...r, id: genProjectRoleId() }));
+};
+
+const buildPriorityCreateManyData = (
+  templateConfig: TemplateConfig,
+): Prisma.IssuePriorityCreateManyProjectInput[] => {
+  const { priorities } = templateConfig;
+  if (!priorities || priorities.length === 0) return [];
+  return priorities.map((p) => ({ ...p, id: genIssuePriorityId() }));
+};
+
+const buildStatusCreateManyData = (
+  templateConfig: TemplateConfig,
+): Prisma.IssueStatusCreateManyProjectInput[] => {
+  const { statuses } = templateConfig;
+  if (!statuses || statuses.length === 0) return [];
+  return statuses.map((s) => ({ ...s, id: genIssueStatusId() }));
+};
+
+const buildTypeCreateManyData = (
+  templateConfig: TemplateConfig,
+): Prisma.IssueTypeCreateManyProjectInput[] => {
+  const { types } = templateConfig;
+  if (!types || types.length === 0) return [];
+  return types.map((t) => ({ ...t, id: genIssueTypeId() }));
+};
+
+const buildResolutionCreateManyData = (
+  templateConfig: TemplateConfig,
+): Prisma.IssueResolutionCreateManyProjectInput[] => {
+  const { resolutions } = templateConfig;
+  if (!resolutions || resolutions.length === 0) return [];
+  return resolutions.map((r) => ({ ...r, id: genIssueResolutionId() }));
+};
+
+export const assertProjectKeyAvailable = async (
+  tx: TxClient,
+  orgId: string,
+  key: string,
+): Promise<void> => {
+  const orgId_key = { orgId, key };
+  const exists = await tx.project.findUnique({ where: { orgId_key } });
+  if (exists) throw new Error(`Conflict: project key ${key} already exists`);
+};
+
+const createDefaultBoard = async (
+  tx: TxClient,
+  params: {
+    projectId: string;
+    projectLeadId: string;
+    inputKey: string;
+    statuses: Prisma.IssueStatusCreateManyProjectInput[];
+  },
+) => {
+  const { projectId, projectLeadId, inputKey, statuses } = params;
+
+  const { sprintCounter } = await tx.project.update({
+    where: { id: projectId },
+    data: { sprintCounter: { increment: 1 } },
+    select: { sprintCounter: true },
+  });
+
+  return tx.board.create({
+    data: {
+      id: genBoardId(),
+      type: 'SCRUM',
+      ownerId: projectLeadId,
+      name: `${inputKey} Board`,
+      projectId,
+      columns: {
+        create: statuses.map((status, index) => ({
+          id: genColumnId(),
+          name: status.name,
+          sequence: index,
+          statuses: {
+            create: { statusId: status.id },
+          },
+        })),
+      },
+      sprints: {
+        create: {
+          id: genSprintId(),
+          name: `Sprint ${sprintCounter}`,
+          sequence: 0,
+          state: 'FUTURE',
+        },
+      },
+    },
+  });
+};
+
+// =============================== SERVICES
+type ProjectContext = { actorId: string };
+
+const listProjects = async (
+  params: { filter?: { orgId?: string } },
+  context: ProjectContext,
+  _options?: { include?: { permissions: boolean } },
+) => {
+  const options = { include: { permissions: false }, ..._options };
+
+  const { filter } = params;
+  const { objects } = await openfgaClient.listObjects({
+    user: `user:${context.actorId}`,
+    type: 'proj',
+    relation: 'read',
+  });
+  const projectIds = objects.map((obj) => obj.replace('proj:', ''));
+  if (projectIds.length === 0) return ZProjectListRes.parse({ data: [], meta: { total: 0 } });
+
+  const where: Prisma.ProjectWhereInput = { id: { in: projectIds } };
+  if (filter?.orgId) where.orgId = filter.orgId;
+
+  const projects = await prisma.project.findMany({
+    where,
+    include: { lead: true, organization: true },
+    orderBy: { createdAt: 'desc' },
+  });
+
+  if (projects.length === 0) return ZProjectListRes.parse({ data: [], meta: { total: 0 } });
+  if (!options.include.permissions) return ZProjectListRes.parse({ data: projects });
+
+  // === With permissions
+  const resources = projects.map(projectResourceFactory);
+  const principal = await loadPrincipal(context, {}, resources);
+  const actions = Array.from(PROJECT_ACTIONS);
+
+  const resourcesWithActions = resources.map((r) => ({ resource: r, actions }));
+  const { results } = await checkResourcesMapped({
+    resources: resourcesWithActions,
+    principal: principal,
+  });
+
+  const data = projects.map((p) => ({ ...p, permissions: results[p.id]?._actions }));
+
+  return ZProjectListRes.parse({ data, meta: { total: data.length } });
+};
+
+const createProject = async (input: ProjectCreateInput, context: ProjectContext) => {
+  if (input.leadId !== context.actorId) {
+    // chua xu ly case nay
+    throw new Error('Project lead must be the actor creating the project');
+  }
+
+  const organization = await prisma.organization.findUnique({ where: { id: input.orgId } });
+  if (!organization) throw new Error('Organization not found');
+
+  // const resource = workspaceResourceFactory(workspace);
+  // await ensureCan('projects:create', resource, context); FIXME: BUG (loi khi tao project voi WS_AMDIN role)
+
+  const templateConfig = templateConfigs['SCRUM'];
+  const project = ZProject.parse({
+    ...input,
+    id: genProjectId(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
+
+  const roles = buildRoleCreateManyData(input, project.id).map((r, idx) => ({
+    ...r,
+    createdAt: addSeconds(new Date(), idx),
+    updatedAt: addSeconds(new Date(), idx),
+  }));
+
+  const priorities = buildPriorityCreateManyData(templateConfig);
+  const statuses = buildStatusCreateManyData(templateConfig);
+  const types = buildTypeCreateManyData(templateConfig);
+  const resolutions = buildResolutionCreateManyData(templateConfig);
+
+  await prisma.$transaction(async (tx) => {
+    await assertProjectKeyAvailable(tx, project.orgId, project.key);
+
+    const persisted = await tx.project.create({
+      data: {
+        ...project,
+        // FIXME: Unknown argument `projectId`. Available options are marked with ?.
+        // roles: { createMany: { data: roles } },
+        // priorities: { createMany: { data: priorities } },
+        // statuses: { createMany: { data: statuses } },
+        // types: { createMany: { data: types } },
+        // resolutions: { createMany: { data: resolutions } },
+      },
+    });
+
+    const projectId = persisted.id;
+
+    await Promise.all([
+      tx.projectRole.createMany({ data: roles.map((r) => ({ ...r, projectId })) }),
+      tx.issuePriority.createMany({ data: priorities.map((p) => ({ ...p, projectId })) }),
+      tx.issueStatus.createMany({ data: statuses.map((s) => ({ ...s, projectId })) }),
+      tx.issueType.createMany({ data: types.map((t) => ({ ...t, projectId })) }),
+      tx.issueResolution.createMany({ data: resolutions.map((r) => ({ ...r, projectId })) }),
+    ]);
+
+    await createDefaultBoard(tx, {
+      projectId,
+      projectLeadId: project.leadId,
+      inputKey: input.key,
+      statuses,
+    });
+
+    // --- authz ---
+
+    const tuples = buildProjectTuples({
+      ...project,
+      roles: roles.map((r) => ({ ...r, id: r.id!, actors: [] as ProjActorInput[] })),
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
+    });
+    await openfgaClient.writeTuples(tuples);
+  });
+
+  return project;
+};
+
+const updateProject = async (
+  projectId: string,
+  input: Partial<ProjectUpdateInput>,
+  context: ProjectContext,
+) => {
+  const exists = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { organization: true, actors: true },
+  });
+  if (!exists) throw new Error('Project not found');
+
+  const resources = [projectResourceFactory(exists)];
+  const principal = await loadPrincipal(context, {}, resources);
+  const withActions = resources.map((r) => ({ resource: r, actions: ['update'] }));
+  const { results } = await checkResourcesMapped({ principal, resources: withActions });
+  const perm = results[exists.id]?._actions || [];
+  if (!perm['update']) throw new Error('Permission denied to update this project');
+
+  return prisma.$transaction(async (tx) => {
+    const updated = await tx.project.update({
+      where: { id: projectId },
+      data: { ...input, updatedAt: new Date().toISOString() },
+    });
+    //
+    return ZProject.parse(updated);
+  });
+};
+
+const deleteProject = async (projectId: string, context: ProjectContext) => {
+  const exists = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: { organization: true, actors: true },
+  });
+  if (!exists) throw new Error('Project not found');
+
+  const resources = [projectResourceFactory(exists)];
+  const principal = await loadPrincipal(context, {}, resources);
+  const withActions = resources.map((r) => ({ resource: r, actions: ['delete'] }));
+  const { results } = await checkResourcesMapped({ principal, resources: withActions });
+  const perm = results[exists.id]?._actions || [];
+  if (!perm['delete']) throw new Error('Permission denied to delete this project');
+
+  await prisma.$transaction(async (tx) => {
+    const project = await tx.project.delete({
+      where: { id: projectId },
+      include: { roles: { include: { actors: true } } },
+    });
+
+    const roles = project.roles.map((r) => {
+      const permJSON = JSON.parse(JSON.stringify(r.permissions));
+      const permissions = Array.isArray(permJSON) ? permJSON : [];
+      return { ...r, permissions };
+    });
+
+    const tuples = buildProjectTuples({
+      ...project,
+      roles,
+      permissions: Object.values(PROJECT_ROLE_PERMISSION_KEYS),
+    });
+    await openfgaClient.deleteTuples(tuples);
+  });
+
+  return { id: projectId };
+};
+
+const getProjectById = async (projectId: string, ctx: ProjectContext) => {
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    include: {
+      lead: true,
+      types: true,
+      priorities: true,
+      statuses: true,
+      resolutions: true,
+      board: { select: { id: true } },
+    },
+  });
+  if (!project) throw new ProjectError('Project not found');
+
+  const canView = await openfgaClient.check({
+    user: `user:${ctx.actorId}`,
+    relation: 'read',
+    object: `proj:${projectId}`,
+  });
+  if (!canView) throw new ProjectError('Permission denied to view this project');
+  return ZProjectItem.parse({ ...project, boardId: project.board?.id });
+};
+
+const getProjectsFacets = async (
+  _projectId: string,
+  _options: { orgId?: string } = {},
+  context: ProjectContext,
+) => {
+  const { objects } = await openfgaClient.listObjects({
+    user: `user:${context.actorId}`,
+    type: 'proj',
+    relation: 'read',
+  });
+  const projectIds = objects.map((obj) => obj.replace('proj:', ''));
+  if (projectIds.length === 0) return {};
+
+  // const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
+  // const grouped = await prisma.project.groupBy({
+  //   where,
+  //   by: ['type', 'leadId'],
+  //   _count: { type: true, leadId: true },
+  // });
+};
+
+// Project Actor
+const listProjectActors = async (params: { projectId: string }) => {
+  const { projectId } = params;
+  const actors = await prisma.projectActor.findMany({
+    where: { projectId },
+    include: { role: true },
+    orderBy: { id: 'asc' },
+  });
+
+  // load actor
+  const userIds = actors.filter((a) => a.actorType === 'USER').map((a) => a.actorId);
+  const teamIds = actors.filter((a) => a.actorType === 'TEAM').map((a) => a.actorId);
+
+  const users = await prisma.user.findMany({ where: { id: { in: userIds } } });
+  const teams = await prisma.team.findMany({ where: { id: { in: teamIds } } });
+
+  const userMap = Object.fromEntries(users.map((u) => [u.id, u]));
+  const teamMap = Object.fromEntries(teams.map((t) => [t.id, t]));
+
+  const getActor = (actor: { actorType: string; actorId: string }) => {
+    if (actor.actorType === 'USER') return userMap[actor.actorId] || null;
+    if (actor.actorType === 'TEAM') return teamMap[actor.actorId] || null;
+    throw new Error('Unknown actor type ' + actor.actorType);
+  };
+
+  const data = actors.map((actor) => ({ ...actor, actor: getActor(actor) }));
+  return { data };
+};
+
+const addProjectActor = async (
+  input: { actorId: string; actorType: 'USER' | 'TEAM'; roleId: string; projectId: string },
+  context: ProjectContext,
+) => {
+  // ensure project exists and can be viewed by actor
+  await getProjectById(input.projectId, context);
+
+  return await prisma.$transaction(async (tx) => {
+    const exists = await tx.projectActor.findFirst({
+      where: { projectId: input.projectId, actorId: input.actorId, actorType: input.actorType },
+    });
+    if (exists) throw new ProjectError('Actor already a member of this project');
+    const actor = await tx.projectActor.create({
+      data: {
+        id: genProjectActorId(),
+        projectId: input.projectId,
+        actorId: input.actorId,
+        actorType: input.actorType,
+        roleId: input.roleId,
+      },
+    });
+    const tuples = buildProjectActorTuples(actor);
+    await openfgaClient.writeTuples(tuples);
+    return actor;
+  });
+};
+
+const removeActor = async (
+  params: { projectId: string; actorId: string },
+  context: ProjectContext,
+) => {
+  const { projectId, actorId } = params;
+  // ensure project exists and can be viewed by actor
+  await getProjectById(projectId, context);
+
+  return await prisma.$transaction(async (tx) => {
+    const exists = await tx.projectActor.findUnique({ where: { id: actorId } });
+    if (!exists) throw new ProjectError('Project member not found');
+    if (exists.projectId !== projectId)
+      throw new ProjectError('Project member does not belong to this project');
+
+    const actor = await tx.projectActor.delete({ where: { id: actorId } });
+    const tuples = buildProjectActorTuples(actor);
+    await openfgaClient.deleteTuples(tuples);
+    return actor;
+  });
+};
+
+const updateActor = async (
+  params: { projectId: string; actorId: string; roleId: string },
+  context: ProjectContext,
+) => {
+  const { projectId, actorId, roleId } = params;
+  await getProjectById(projectId, context);
+
+  return await prisma.$transaction(async (tx) => {
+    const exists = await tx.projectActor.findUnique({
+      where: { id: actorId },
+      include: { role: { include: { actors: true } } },
+    });
+    if (!exists) throw new ProjectError('Project member not found');
+    if (exists.projectId !== projectId)
+      throw new ProjectError('Project member does not belong to this project');
+
+    const actor = await tx.projectActor.update({
+      where: { id: actorId },
+      data: { roleId },
+      include: { role: { include: { actors: true } } },
+    });
+
+    const writeTuples = buildProjectActorTuples(actor);
+    const deleteTuples = buildProjectActorTuples(exists);
+    await openfgaClient.write({ writes: writeTuples, deletes: deleteTuples });
+
+    return actor;
+  });
+};
+
+const listMembers = async (params: { projectId: string }, context: ProjectContext) => {
+  const actors = await listProjectActors({ projectId: params.projectId });
+  const userIds = actors.data.filter((a) => a.actorType === 'USER').map((a) => a.actorId);
+  const teamIds = actors.data.filter((a) => a.actorType === 'TEAM').map((a) => a.actorId);
+  const teams = await prisma.team.findMany({ where: { id: { in: teamIds } } });
+  const teamMembers = await prisma.teamMember.findMany({
+    where: { teamId: { in: teamIds } },
+  });
+  const teamMemberUserIds = teamMembers.map((tm) => tm.userId);
+
+  const allUserIds = Array.from(
+    new Set([
+      ...userIds,
+      ...teamMemberUserIds,
+      // team lead + project lead,
+      ...teams.map((t) => t.leadId),
+      ...[context.actorId], // current user
+    ]),
+  );
+
+  const validUserIds = allUserIds.filter((id) => id !== null);
+  const users = await prisma.user.findMany({ where: { id: { in: validUserIds } } });
+  const result = { data: users };
+  return result;
+};
+
+const addStatus = async (
+  projectId: string,
+  input: z.infer<typeof ZIssueStatusCreateInput>,
+  context: { actorId: string },
+) => {
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) throw new ProjectError('Project not found');
+
+  const canEdit = await openfgaClient.check({
+    user: `user:${context.actorId}`,
+    relation: 'manage',
+    object: `proj:${projectId}`,
+  });
+  if (!canEdit.allowed) throw new ProjectError('Permission denied to add status');
+
+  const maxSeq = await prisma.issueStatus.aggregate({
+    where: { projectId },
+    _max: { sequence: true },
+  });
+  const nextSeq = (maxSeq._max.sequence ?? 0) + 1;
+
+  const status = await prisma.issueStatus.create({
+    data: {
+      id: genIssueStatusId(),
+      projectId,
+      name: input.name,
+      description: input.description,
+      color: input.color,
+      iconURL: input.iconURL,
+      category: input.category as IssueStatusCategory,
+      sequence: input.sequence ?? nextSeq,
+    },
+  });
+
+  return status;
+};
+
+export const projectsService = {
+  list: listProjects,
+  create: createProject,
+  update: updateProject,
+  delete: deleteProject,
+  getById: getProjectById,
+  getFacets: getProjectsFacets,
+
+  //
+  listActors: listProjectActors,
+  addActor: addProjectActor,
+  removeActor: removeActor,
+  updateActor: updateActor,
+
+  // -- remove after migration
+  listProjects,
+  getProjectById,
+  deleteProject,
+
+  listProjectActors,
+  addProjectActor,
+
+  // -- new
+  listMembers,
+
+  // -- field
+  listStatuses,
+  addStatus,
+};

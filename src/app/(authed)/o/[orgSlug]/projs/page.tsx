@@ -3,7 +3,7 @@ import { headers } from 'next/headers';
 
 import { auth } from '@/lib/auth';
 import { orgService } from '@/features/organization/server/org.service';
-import { projectsService } from '@/features/project_v3/server/projects.service';
+import { projectsService } from '@/features/project/server/projects.service';
 import { ProjectsTable } from '@/features/project/ui/table/projects-table';
 
 type PageProps = { params: Promise<{ orgSlug: string }> };

@@ -11,10 +11,10 @@ import {
   ZProjectActorUpdateInput,
   ZProjectRoleCreateInput,
 } from '@/contracts/project';
-import { projectsService } from '@/features/project_v3/server/projects.service';
-import { actorsService } from '@/features/project_v3/server/actors.service';
-import { rolesService } from '@/features/project_v3/server/roles.service';
-import { exportService } from '@/features/project_v3/server/export.service';
+import { projectsService } from '@/features/project/server/projects.service';
+import { actorsService } from '@/features/project/server/actors.service';
+import { rolesService } from '@/features/project/server/roles.service';
+import { exportService } from '@/features/project/server/export.service';
 import { searchProjects, ZProjectListInput } from '@/features/project/server/cqrs/search-projects';
 import { prisma } from '@/lib/prisma';
 import { labelsService } from '@/features/labels/server/labels.service';

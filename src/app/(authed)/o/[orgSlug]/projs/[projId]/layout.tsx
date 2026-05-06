@@ -3,8 +3,8 @@ import { headers } from 'next/headers';
 
 import { auth } from '@/lib/auth';
 import { orgService } from '@/features/organization/server/org.service';
-import { projectsService } from '@/features/project_v3/server/projects.service';
-import { ProjectDetailLayout } from '@/features/project_v3/ui/project-detail-layout';
+import { projectsService } from '@/features/project/server/projects.service';
+import { ProjectDetailLayout } from '@/features/project/ui/project-detail-layout';
 
 type LayoutProps = {
   params: Promise<{ orgSlug: string; projId: string }>;
