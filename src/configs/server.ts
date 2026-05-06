@@ -58,7 +58,7 @@ const rawConfig: ServerConfig = {
 
   jwt: { inviteSecret: env.INVITE_TOKEN_SECRET || 'dev-invite-secret' },
 
-  db: { url: env.DATABASE_URL },
+  db: {    url: env.DATABASE_URL,  },
   auth: {
     secret: env.AUTH_SECRET || 'dev-auth-secret',
     cookieName: env.AUTH_COOKIE_NAME || 'access_token',
@@ -75,8 +75,8 @@ const rawConfig: ServerConfig = {
   },
   cerbos: { apiURL: env.CERBOS_API_URL || 'http://localhost:3592' },
   openFGA: {
-    apiURL: env.OPENFGA_API_URL || 'http://localhost:8080',
-    storeID: env.OPENFGA_STORE_ID || '',
+    apiURL: env.FGA_API_URL || 'http://localhost:8080',
+    storeID: env.FGA_STORE_ID || '',
   },
   debezium: { apiURL: env.DEBEZIUM_HOST || 'http://localhost:8083' },
   elasticsearch: { apiURL: env.ELASTICSEARCH_NODE || 'http://localhost:9200' },
@@ -90,9 +90,9 @@ const rawConfig: ServerConfig = {
     clientId: 'insightimate-app',
   },
   minio: {
-    apiURL: env.MINIO_API_URL || 'http://localhost:9000',
-    accessKeyId: env.MINIO_ACCESS_KEY_ID || 'minioadmin',
-    secretAccessKey: env.MINIO_SECRET_ACCESS_KEY || 'minioadmin',
+    apiURL: env.AWS_S3_ENDPOINT_URL,
+    accessKeyId: env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
   },
   hf: {
     apiURL: env.HF_API_URL || 'https://api.huggingface.co',

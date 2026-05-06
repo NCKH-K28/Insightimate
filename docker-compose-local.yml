@@ -11,13 +11,15 @@ volumes:
   minio_data:
 
 services:
-  postgres:
+  insightimate-postgres:
     image: pgvector/pgvector:pg17
-    container_name: postgres
+    env_file:
+      - ./.env
+      - ./.env.local
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=postgres
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     command: >
       postgres -c wal_level=logical
                -c max_replication_slots=10
@@ -42,9 +44,9 @@ services:
       - '3592:3592' # HTTP (REST)
       - '3593:3593' # gRPC
     volumes:
-      - ./../../policies/cerbos/policies:/policies:ro
-      - ./../../policies/cerbos/schemas:/schemas:ro
-      - ./../../policies/cerbos/config/cerbos.yaml:/cerbos.yaml:ro
+      - ./policies/cerbos/policies:/policies:ro
+      - ./policies/cerbos/schemas:/schemas:ro
+      - ./policies/cerbos/config/cerbos.yaml:/cerbos.yaml:ro
     healthcheck:
       test: [ 'CMD', '/cerbos', 'healthcheck', '--kind=http', '--host-port=127.0.0.1:3592', '--no-tls' ]
       interval: 10s
@@ -52,13 +54,16 @@ services:
       retries: 5
     restart: unless-stopped
 
-  openfga_db:
+  insightimate-openfga-db:
     image: postgres:17
-    container_name: openfga_db
-    command: [ 'postgres', '-c', 'max_connections=100' ]
+    env_file:
+      - ./.env
+      - ./.env.local
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=${FGA_POSTGRES_USER}
+      - POSTGRES_PASSWORD=${FGA_POSTGRES_PASSWORD}
+      - POSTGRES_DB=${FGA_POSTGRES_DB}
+    command: [ 'postgres', '-c', 'max_connections=100' ]
     healthcheck:
       test: [ 'CMD-SHELL', 'pg_isready -U postgres' ]
       interval: 5s
@@ -67,29 +72,37 @@ services:
     restart: unless-stopped
     volumes:
       - openfga_db_data:/var/lib/postgresql/data
+    networks:
+      - insightimate_shared_network
 
-  migrate:
+  insightimate-migrate:
     image: openfga/openfga:latest
-    container_name: migrate
     depends_on:
-      openfga_db:
+      insightimate-openfga-db:
         condition: service_healthy
+    env_file:
+      - ./.env
+      - ./.env.local
     environment:
-      - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://postgres:password@openfga_db:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_ENGINE=${FGA_DATASTORE_ENGINE}
+      - OPENFGA_DATASTORE_URI=postgres://${FGA_POSTGRES_USER}:${FGA_POSTGRES_PASSWORD:-password}@insightimate-openfga-db:5432/${FGA_POSTGRES_DB}?sslmode=disable
     command: migrate
     restart: 'no'
+    networks:
+      - insightimate_shared_network
 
-  openfga:
+  insightimate-openfga:
     image: openfga/openfga:latest
-    container_name: openfga
     depends_on:
-      migrate:
+      insightimate-migrate:
         condition: service_completed_successfully
     command: run
+    env_file:
+      - ./.env
+      - ./.env.local
     environment:
-      - OPENFGA_DATASTORE_ENGINE=postgres
-      - OPENFGA_DATASTORE_URI=postgres://postgres:password@openfga_db:5432/postgres?sslmode=disable
+      - OPENFGA_DATASTORE_ENGINE=${FGA_DATASTORE_ENGINE}
+      - OPENFGA_DATASTORE_URI=postgres://${FGA_POSTGRES_USER}:${FGA_POSTGRES_PASSWORD:-password}@insightimate-openfga-db:5432/${FGA_POSTGRES_DB}?sslmode=disable
       - OPENFGA_DATASTORE_MAX_OPEN_CONNS=100
       - OPENFGA_PLAYGROUND_ENABLED=true
       - OPENFGA_PLAYGROUND_PORT=3333
@@ -110,14 +123,18 @@ services:
     #   timeout: 10s
     #   retries: 3
     restart: unless-stopped
+    networks:
+      - insightimate_shared_network
 
-  minio:
+  insightimate-minio:
     image: minio/minio:latest
-    container_name: minio
     command: server /data --console-address ":9001"
+    env_file:
+      - ./.env
+      - ./.env.local
     environment:
-      - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
     ports:
       - '9000:9000' # API
       - '9001:9001' # Console

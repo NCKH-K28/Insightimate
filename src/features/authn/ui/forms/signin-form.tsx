@@ -56,7 +56,7 @@ export function SignInForm(props: SignInFormProps) {
       } else if (from && from.startsWith('/')) {
         router.push(from);
       } else {
-        router.push('/orgs'); // Default dashboard page
+        router.push('/'); // AuthGuard will route to correct org or onboarding
       }
     },
   });

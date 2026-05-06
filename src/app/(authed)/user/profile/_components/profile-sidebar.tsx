@@ -1,10 +1,38 @@
+'use client';
+
 import React from 'react';
-import { User, Briefcase, MapPin, Mail, Phone, Users, Layout } from 'lucide-react';
+import { User, Briefcase, Mail, Phone, Users, Layout, Globe } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { useQuery } from '@tanstack/react-query';
+import { getMeQueryOptions, getMeProfileQueryOptions } from '@/features/user/api/actions';
+
+function computeProfileCompletion(user: any, profile: any): number {
+  const fields = [
+    user?.name,
+    user?.avatar || user?.image,
+    user?.displayName,
+    user?.firstName,
+    user?.lastName,
+    user?.coverImage,
+    user?.timezone && user.timezone !== 'UTC',
+    profile?.role,
+  ];
+  const filled = fields.filter(Boolean).length;
+  return Math.round((filled / fields.length) * 100);
+}
 
 export function ProfileSidebar() {
+  const { data: me } = useQuery(getMeQueryOptions());
+  const { data: profile } = useQuery(getMeProfileQueryOptions());
+
+  const displayName = me?.displayName || me?.name || 'User';
+  const email = me?.email || '';
+  const timezone = me?.timezone || 'UTC';
+  const role = profile?.role;
+  const completion = computeProfileCompletion(me, profile);
+
   return (
     <div className='space-y-6'>
       {/* Completion Card */}
@@ -14,8 +42,8 @@ export function ProfileSidebar() {
         </CardHeader>
         <CardContent>
           <div className='flex items-center gap-4 mb-2'>
-            <Progress value={82} className='h-2' />
-            <span className='text-sm font-medium text-muted-foreground'>82%</span>
+            <Progress value={completion} className='h-2' />
+            <span className='text-sm font-medium text-muted-foreground'>{completion}%</span>
           </div>
         </CardContent>
       </Card>
@@ -34,17 +62,15 @@ export function ProfileSidebar() {
 
             <div className='flex items-center gap-3 text-sm'>
               <User className='h-4 w-4 text-muted-foreground' />
-              <span>Ella Lauda</span>
+              <span>{displayName}</span>
             </div>
             <div className='flex items-center gap-3 text-sm'>
               <Briefcase className='h-4 w-4 text-muted-foreground' />
-              <span>No department</span>
+              <span>{role || 'No role set'}</span>
             </div>
             <div className='flex items-center gap-3 text-sm'>
-              <div className='h-4 w-4 flex items-center justify-center'>
-                <span className='text-muted-foreground text-[10px] font-bold'>~</span>
-              </div>
-              <span>Htmlstream</span>
+              <Globe className='h-4 w-4 text-muted-foreground' />
+              <span>{timezone}</span>
             </div>
           </div>
 
@@ -58,29 +84,7 @@ export function ProfileSidebar() {
 
             <div className='flex items-center gap-3 text-sm'>
               <Mail className='h-4 w-4 text-muted-foreground' />
-              <span>ella@site.com</span>
-            </div>
-            <div className='flex items-center gap-3 text-sm'>
-              <Phone className='h-4 w-4 text-muted-foreground' />
-              <span>+1(609) 972-22-22</span>
-            </div>
-          </div>
-
-          <Separator />
-
-          {/* Teams */}
-          <div className='space-y-3'>
-            <h4 className='text-xs font-semibold text-muted-foreground uppercase tracking-wider'>
-              Teams
-            </h4>
-
-            <div className='flex items-center gap-3 text-sm'>
-              <Users className='h-4 w-4 text-muted-foreground' />
-              <span>Member of 7 teams</span>
-            </div>
-            <div className='flex items-center gap-3 text-sm'>
-              <Layout className='h-4 w-4 text-muted-foreground' />
-              <span>Working on 8 projects</span>
+              <span>{email}</span>
             </div>
           </div>
         </CardContent>

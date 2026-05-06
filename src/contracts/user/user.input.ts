@@ -9,7 +9,12 @@ export const ZUserCreateInput = z.object({
 
 export const ZUserUpdateInput = z.object({
   name: ZUser.shape.name.optional(),
+  displayName: z.string().max(50).optional(),
+  firstName: z.string().max(50).optional(),
+  lastName: z.string().max(50).optional(),
   avatar: ZUser.shape.avatar.optional(),
+  coverImage: z.string().nullish(),
+  timezone: z.string().optional(),
 });
 
 export const ZChangePasswordInput = z.object({ oldPassword: ZPassword, newPassword: ZPassword });

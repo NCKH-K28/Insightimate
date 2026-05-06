@@ -1,12 +1,11 @@
+'use client';
+
 import React from 'react';
 import { ProfileHeader } from './_components/profile-header';
 import { ProfileSidebar } from './_components/profile-sidebar';
 import { ActivityStream } from './_components/activity-stream';
-import { ConnectionsCard } from './_components/connections-card';
-import { TeamsCard } from './_components/teams-card';
-import { ProjectsTable } from './_components/projects-table';
+import { ProfileEditForm } from './_components/profile-edit-form';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 
 export default function Page() {
   return (
@@ -23,25 +22,16 @@ export default function Page() {
             Profile
           </TabsTrigger>
           <TabsTrigger
-            value='teams'
+            value='activity'
             className='rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 pt-2 text-muted-foreground data-[state=active]:text-foreground'
           >
-            Teams
+            Activity
           </TabsTrigger>
           <TabsTrigger
-            value='projects'
-            className='rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 pt-2 text-muted-foreground data-[state=active]:text-foreground gap-2'
-          >
-            Projects
-            <Badge variant='secondary' className='h-5 px-1.5 rounded-full text-[10px]'>
-              3
-            </Badge>
-          </TabsTrigger>
-          <TabsTrigger
-            value='connections'
+            value='settings'
             className='rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent data-[state=active]:shadow-none px-0 pb-3 pt-2 text-muted-foreground data-[state=active]:text-foreground'
           >
-            Connections
+            Settings
           </TabsTrigger>
         </TabsList>
 
@@ -58,33 +48,21 @@ export default function Page() {
               <ActivityStream />
             </div>
           </div>
-
-          {/* Secondary Grid: Connections + Teams */}
-          <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
-            <ConnectionsCard />
-            <TeamsCard />
-          </div>
-
-          {/* Bottom Row: Projects */}
-          <div className='w-full'>
-            <ProjectsTable />
-          </div>
         </TabsContent>
 
-        {/* Placeholders for other tabs */}
-        <TabsContent value='teams'>
-          <div className='p-8 text-center text-muted-foreground border border-dashed rounded-lg'>
-            Teams Content Placeholder
-          </div>
+        <TabsContent
+          value='activity'
+          className='animate-in fade-in slide-in-from-bottom-2 duration-300'
+        >
+          <ActivityStream />
         </TabsContent>
-        <TabsContent value='projects'>
-          <div className='p-8 text-center text-muted-foreground border border-dashed rounded-lg'>
-            Projects Content Placeholder
-          </div>
-        </TabsContent>
-        <TabsContent value='connections'>
-          <div className='p-8 text-center text-muted-foreground border border-dashed rounded-lg'>
-            Connections Content Placeholder
+
+        <TabsContent
+          value='settings'
+          className='animate-in fade-in slide-in-from-bottom-2 duration-300'
+        >
+          <div className='max-w-2xl'>
+            <ProfileEditForm />
           </div>
         </TabsContent>
       </Tabs>

@@ -1,12 +1,14 @@
-import { prisma } from '@/lib/prisma';
 import { Hono } from 'hono';
 import { handle } from 'hono/vercel';
-import { ZOrgInviteItem } from '@/contracts/organization/organization.query';
 import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
+import { ZOrgInviteItem } from '@/contracts/organization/organization.query';
+import { ZUserUpdateInput, ZChangePasswordInput } from '@/contracts/user/user.input';
+import { ZProfileUpdateInput } from '@/contracts/user/profile';
+import { ZUser, ZUserPublic } from '@/contracts/user';
 import { orgInvitationService } from '@/features/organization/server/org-invitation.service';
 import { inviteToken } from '@/features/organization/server/invite-token';
-import { ZUserPublic } from '@/contracts/user';
+import { userService } from '@/features/user/server/user.service';
 import { authenticatedGuard, getUserAndThrow } from '@/lib/auth';
 
 const ZOrgInviteAcceptInput = z.object({ token: z.string().min(1, 'Token is required') });
@@ -15,28 +17,63 @@ const ZOrgInviteRejectInput = z.object({ token: z.string().min(1, 'Token is requ
 const meHono = new Hono().basePath('/api/v3/me');
 meHono.use(authenticatedGuard);
 
+// ─── User identity ───────────────────────────────────────────────────────────
+
 meHono.get('/', async (c) => {
   const user = await getUserAndThrow(c);
-  const result = ZUserPublic.parse(user);
+  const fullUser = await userService.getMe(user.id);
+  const result = ZUser.parse(fullUser);
   return c.json(result);
 });
 
-const ZMeUpdateInput = ZUserPublic.omit({ id: true, email: true });
-meHono.put('/', zValidator('json', ZMeUpdateInput), async (c) => {
+meHono.put('/', zValidator('json', ZUserUpdateInput), async (c) => {
   const user = await getUserAndThrow(c);
-  const input = ZMeUpdateInput.parse(await c.req.json());
-  const updatedUser = await prisma.user.update({ where: { id: user.id }, data: input });
-  const result = ZUserPublic.parse(updatedUser);
+  const input = ZUserUpdateInput.parse(await c.req.json());
+  const updatedUser = await userService.updateMe(user.id, input);
+  const result = ZUser.parse(updatedUser);
   return c.json(result);
 });
 
-meHono.patch('/', zValidator('json', ZMeUpdateInput), async (c) => {
+meHono.patch('/', zValidator('json', ZUserUpdateInput), async (c) => {
   const user = await getUserAndThrow(c);
-  const input = ZMeUpdateInput.parse(await c.req.json());
-  const updatedUser = await prisma.user.update({ where: { id: user.id }, data: input });
-  const result = ZUserPublic.parse(updatedUser);
+  const input = ZUserUpdateInput.parse(await c.req.json());
+  const updatedUser = await userService.updateMe(user.id, input);
+  const result = ZUser.parse(updatedUser);
   return c.json(result);
 });
+
+// ─── Profile (preferences/settings) ──────────────────────────────────────────
+
+meHono.get('/profile', async (c) => {
+  const user = await getUserAndThrow(c);
+  const profile = await userService.getProfile(user.id);
+  return c.json(profile);
+});
+
+meHono.patch('/profile', zValidator('json', ZProfileUpdateInput), async (c) => {
+  const user = await getUserAndThrow(c);
+  const input = ZProfileUpdateInput.parse(await c.req.json());
+  const profile = await userService.updateProfile(user.id, input);
+  return c.json(profile);
+});
+
+// ─── Password ────────────────────────────────────────────────────────────────
+
+meHono.put('/password', zValidator('json', ZChangePasswordInput), async (c) => {
+  const user = await getUserAndThrow(c);
+  const input = ZChangePasswordInput.parse(await c.req.json());
+  try {
+    await userService.changePassword(user.id, input, c.req.raw.headers);
+    return c.json({ ok: true });
+  } catch (error) {
+    return c.json(
+      { error: error instanceof Error ? error.message : 'Failed to change password' },
+      400,
+    );
+  }
+});
+
+// ─── Org invitations ─────────────────────────────────────────────────────────
 
 meHono.get('/orgs/invitees', async (c) => {
   const user = await getUserAndThrow(c);

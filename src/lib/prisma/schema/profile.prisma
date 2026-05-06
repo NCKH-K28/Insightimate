@@ -1,0 +1,27 @@
+model Profile {
+  id              String   @id @default(cuid())
+  userId          String   @unique @map("user_id")
+  user            User     @relation("UserProfile", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Preferences
+  theme           Json     @default("{}")
+  language        String   @default("en")
+  timezone        String   @default("UTC")
+  startOfWeek     Int      @default(0) @map("start_of_week") // 0=Sun, 1=Mon...
+
+  // Onboarding
+  isOnboarded     Boolean  @default(false) @map("is_onboarded")
+  onboardingStep  Json     @default("{}") @map("onboarding_step")
+
+  // Job / role context
+  role            String?
+
+  // Last visited org (for smart redirect after login)
+  lastOrgSlug     String?  @map("last_org_slug")
+
+  // Timestamps
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  @@map("profiles")
+}

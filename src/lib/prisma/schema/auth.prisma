@@ -5,6 +5,15 @@ model User {
   emailVerified           Boolean
   image                   String?
   avatar                  String?
+  displayName             String?         @map("display_name")
+  firstName               String?         @map("first_name")
+  lastName                String?         @map("last_name")
+  coverImage              String?         @map("cover_image")
+  mobileNumber            String?         @map("mobile_number")
+  timezone                String          @default("UTC")
+  isPasswordAutoset       Boolean         @default(false) @map("is_password_autoset")
+  lastLoginMedium         String          @default("email") @map("last_login_medium")
+  dateJoined              DateTime        @default(now()) @map("date_joined")
   createdAt               DateTime        @default(now()) @map("created_at")
   updatedAt               DateTime        @updatedAt @map("updated_at")
   accounts                Account[]
@@ -25,6 +34,7 @@ model User {
   actedNotifications      Notification[]           @relation("NotificationActor")
   receivedNotifications   Notification[]           @relation("NotificationReceiver")
   notificationPreference  NotificationPreference?
+  profile                 Profile?        @relation("UserProfile")
 
   @@map("users")
 }

@@ -130,7 +130,7 @@ const AuthGuard: ProxyChainHandler = {
         url.pathname = redirectTarget.split('?')[0]; // simple handling
         url.search = redirectTarget.includes('?') ? redirectTarget.split('?')[1] : '';
       } else {
-        url.pathname = '/orgs';
+        url.pathname = '/';
         url.search = '';
       }
       return NextResponse.redirect(url);
@@ -155,6 +155,6 @@ export function middleware(request: NextRequest, event: NextFetchEvent) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|json)).*)'],
   runtime: 'nodejs',
 };
