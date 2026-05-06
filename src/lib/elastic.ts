@@ -1,10 +1,10 @@
 import serverConfig from '@/configs/server';
-import { ClientOptions, Client } from '@elastic/elasticsearch';
+import { Client } from '@elastic/elasticsearch';
 import get from 'lodash/get';
 import set from 'lodash/set';
 
 const elasticConfig = serverConfig.elasticsearch;
-const DEFAULTS: ClientOptions = {
+const DEFAULTS = {
   node: elasticConfig.apiURL,
   headers: {
     accept: 'application/vnd.elasticsearch+json; compatible-with=8',

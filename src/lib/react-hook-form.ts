@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type AnyObj = Record<string, any>;
 
 function hasAnyDirtyFlag(dirty: any): boolean {

@@ -526,10 +526,16 @@ export const GanttColumn: FC<GanttColumnProps> = ({ index, isColumnSecondary }) 
   const [windowScroll] = useWindowScroll();
   const handleMouseEnter = () => setHovering(true);
   const handleMouseLeave = () => setHovering(false);
-  const top = useThrottle(
-    mousePosition.y - (mouseRef.current?.getBoundingClientRect().y ?? 0) - (windowScroll.y ?? 0),
-    10,
-  );
+  
+  const [rawTop, setRawTop] = useState(0);
+  useEffect(() => {
+    if (mouseRef.current) {
+      setRawTop(mousePosition.y - mouseRef.current.getBoundingClientRect().y - (windowScroll.y ?? 0));
+    }
+  }, [mousePosition.y, windowScroll.y, mouseRef]);
+
+  const top = useThrottle(rawTop, 10);
+
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: "This is a clickable column"
     // biome-ignore lint/nursery/noNoninteractiveElementInteractions: "This is a clickable column"
@@ -576,10 +582,15 @@ export const GanttCreateMarkerTrigger: FC<GanttCreateMarkerTriggerProps> = ({
   const gantt = useContext(GanttContext);
   const [mousePosition, mouseRef] = useMouse<HTMLDivElement>();
   const [windowScroll] = useWindowScroll();
-  const x = useThrottle(
-    mousePosition.x - (mouseRef.current?.getBoundingClientRect().x ?? 0) - (windowScroll.x ?? 0),
-    10,
-  );
+
+  const [rawX, setRawX] = useState(0);
+  useEffect(() => {
+    if (mouseRef.current) {
+      setRawX(mousePosition.x - mouseRef.current.getBoundingClientRect().x - (windowScroll.x ?? 0));
+    }
+  }, [mousePosition.x, windowScroll.x, mouseRef]);
+
+  const x = useThrottle(rawX, 10);
   const date = getDateByMousePosition(gantt, x);
   const handleClick = () => onCreateMarker(date);
   return (
@@ -1032,60 +1043,59 @@ export const GanttProvider: FC<GanttProviderProps> = ({
     };
   }, []);
   // Fix the useCallback to include all dependencies
-  const handleScroll = useCallback(
-    throttle(() => {
-      const scrollElement = scrollRef.current;
-      if (!scrollElement) {
-        return;
-      }
-      const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
-      setScrollX(scrollLeft);
-      if (scrollLeft === 0) {
-        // Extend timelineData to the past
-        const firstYear = timelineData[0]?.year;
-        if (!firstYear) {
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const handleScroll = useMemo(
+    () =>
+      // eslint-disable-next-line react-hooks/refs
+      throttle(() => {
+        const scrollElement = scrollRef.current;
+        if (!scrollElement) {
           return;
         }
-        const newTimelineData: TimelineData = [...timelineData];
-        newTimelineData.unshift({
-          year: firstYear - 1,
-          quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
-            months: new Array(3).fill(null).map((_, monthIndex) => {
-              const month = quarterIndex * 3 + monthIndex;
-              return {
-                days: getDaysInMonth(new Date(firstYear, month, 1)),
-              };
-            }),
-          })),
-        });
-        setTimelineData(newTimelineData);
-        // Scroll a bit forward so it's not at the very start
-        scrollElement.scrollLeft = scrollElement.clientWidth;
-        setScrollX(scrollElement.scrollLeft);
-      } else if (scrollLeft + clientWidth >= scrollWidth) {
-        // Extend timelineData to the future
-        const lastYear = timelineData.at(-1)?.year;
-        if (!lastYear) {
-          return;
+        const { scrollLeft, scrollWidth, clientWidth } = scrollElement;
+        setScrollX(scrollLeft);
+        if (scrollLeft === 0) {
+          setTimelineData((prevData) => {
+            const firstYear = prevData[0]?.year;
+            if (!firstYear) return prevData;
+            const newTimelineData: TimelineData = [...prevData];
+            newTimelineData.unshift({
+              year: firstYear - 1,
+              quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
+                months: new Array(3).fill(null).map((_, monthIndex) => {
+                  const month = quarterIndex * 3 + monthIndex;
+                  return {
+                    days: getDaysInMonth(new Date(firstYear, month, 1)),
+                  };
+                }),
+              })),
+            });
+            return newTimelineData;
+          });
+          scrollElement.scrollLeft = scrollElement.clientWidth;
+          setScrollX(scrollElement.scrollLeft);
+        } else if (scrollLeft + clientWidth >= scrollWidth) {
+          setTimelineData((prevData) => {
+            const lastYear = prevData.at(-1)?.year;
+            if (!lastYear) return prevData;
+            const newTimelineData: TimelineData = [...prevData];
+            newTimelineData.push({
+              year: lastYear + 1,
+              quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
+                months: new Array(3).fill(null).map((_, monthIndex) => {
+                  const month = quarterIndex * 3 + monthIndex;
+                  return {
+                    days: getDaysInMonth(new Date(lastYear, month, 1)),
+                  };
+                }),
+              })),
+            });
+            return newTimelineData;
+          });
+          scrollElement.scrollLeft = scrollElement.scrollWidth - scrollElement.clientWidth;
+          setScrollX(scrollElement.scrollLeft);
         }
-        const newTimelineData: TimelineData = [...timelineData];
-        newTimelineData.push({
-          year: lastYear + 1,
-          quarters: new Array(4).fill(null).map((_, quarterIndex) => ({
-            months: new Array(3).fill(null).map((_, monthIndex) => {
-              const month = quarterIndex * 3 + monthIndex;
-              return {
-                days: getDaysInMonth(new Date(lastYear, month, 1)),
-              };
-            }),
-          })),
-        });
-        setTimelineData(newTimelineData);
-        // Scroll a bit back so it's not at the very end
-        scrollElement.scrollLeft = scrollElement.scrollWidth - scrollElement.clientWidth;
-        setScrollX(scrollElement.scrollLeft);
-      }
-    }, 100),
+      }, 100),
     [],
   );
   useEffect(() => {

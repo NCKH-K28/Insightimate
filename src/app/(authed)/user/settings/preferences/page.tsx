@@ -93,7 +93,7 @@ export default function PreferencesSettingsPage() {
   const { data: profile, isLoading } = useQuery(getMeProfileQueryOptions());
 
   const form = useForm<ProfileUpdateInput>({
-    resolver: zodResolver(ZProfileUpdateInput),
+    resolver: zodResolver(ZProfileUpdateInput) as any,
     defaultValues: {
       language: profile?.language ?? 'en',
       timezone: profile?.timezone ?? 'UTC',

@@ -5,7 +5,7 @@ import set from 'lodash/set';
 const SET_SOCKET_IO_CLIENT = '__socketIOClient__';
 
 const getSocketClient = (): Socket => {
-  const globalAny: any = globalThis as any;
+  const globalAny = globalThis as unknown as { __socketIOClient__: Socket | undefined };
   const client = get(globalAny, SET_SOCKET_IO_CLIENT);
   if (client) return client;
   const newClient = io({

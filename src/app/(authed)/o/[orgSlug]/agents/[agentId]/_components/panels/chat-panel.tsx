@@ -18,8 +18,6 @@ import { AppMessage } from '@/features/agents/types/chat';
 type ChatPanelProps = { params: { agentId: string; projectId?: string } };
 
 export function ChatPanel({ params }: ChatPanelProps) {
-  const extsRef = useRef(outputExtensions);
-
   const { messages, sendUserMessage, isLoading, error } = useAgentChat(
     params.agentId,
     params.projectId,
@@ -27,7 +25,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
 
   // Editor ẩn để convert markdown -> HTML (nếu bạn muốn giữ markdown)
   const markdownEditor = useEditor({
-    extensions: extsRef.current,
+    extensions: outputExtensions,
     immediatelyRender: false,
   });
 
@@ -69,7 +67,7 @@ export function ChatPanel({ params }: ChatPanelProps) {
 
     // 2) Nếu có doc -> render bằng Tiptap
     if (m.doc && isTiptapJSONContent(m.doc)) {
-      const html = generateHTML(m.doc, extsRef.current);
+      const html = generateHTML(m.doc, outputExtensions);
       return renderHTML(html);
     }
 

@@ -1,4 +1,4 @@
-import { FileText, Image as ImageIcon, CheckCircle, CreditCard, Layout } from 'lucide-react';
+import { Image as ImageIcon, CheckCircle, CreditCard, Layout } from 'lucide-react'; // Some of these might be used later
 
 export interface Activity {
   id: string;

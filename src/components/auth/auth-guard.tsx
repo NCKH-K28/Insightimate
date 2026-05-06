@@ -51,44 +51,32 @@ export function AuthGuard({ children }: AuthGuardProps) {
 
     // No session — redirect to signin (fallback; middleware handles this primarily)
     if (!session?.user) {
-      setIsRedirecting(true);
+      setTimeout(() => setIsRedirecting(true), 0);
       router.replace(`/signin?from=${encodeURIComponent(pathname ?? '/')}`);
       return;
     }
 
     // Not onboarded — force onboarding (unless already there)
     if (profile && !profile.isOnboarded && pathname !== '/onboarding') {
-      setIsRedirecting(true);
+      setTimeout(() => setIsRedirecting(true), 0);
       router.replace('/onboarding');
       return;
     }
 
     // Already onboarded but on /onboarding — redirect away
     if (profile?.isOnboarded && pathname === '/onboarding') {
-      setIsRedirecting(true);
-      const target = getRedirectTarget();
+      setTimeout(() => setIsRedirecting(true), 0);
+      const orgs = Array.isArray(orgsResponse) ? orgsResponse : [];
+      let target = '/orgs';
+      if (profile?.lastOrgSlug && orgs.some((o: any) => o.slug === profile.lastOrgSlug)) {
+        target = `/o/${profile.lastOrgSlug}`;
+      } else if (orgs.length > 0) {
+        target = `/o/${orgs[0].slug}`;
+      }
       router.replace(target);
       return;
     }
-  }, [isLoading, session, profile, orgsResponse, pathname, isRedirecting]);
-
-  function getRedirectTarget(): string {
-    const orgs = Array.isArray(orgsResponse) ? orgsResponse : [];
-
-    // Try lastOrgSlug first
-    if (profile?.lastOrgSlug) {
-      const isValid = orgs.some((o: any) => o.slug === profile.lastOrgSlug);
-      if (isValid) return `/o/${profile.lastOrgSlug}`;
-    }
-
-    // Fall back to first org
-    if (orgs.length > 0) {
-      return `/o/${orgs[0].slug}`;
-    }
-
-    // No orgs — go to org list (which has a create button)
-    return '/orgs';
-  }
+  }, [isLoading, session, profile, orgsResponse, pathname, isRedirecting, router]);
 
   // Show loading spinner while determining auth state
   if (isLoading || isRedirecting) {

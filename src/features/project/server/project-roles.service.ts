@@ -32,7 +32,7 @@ const jsonValueToObject = (value: any) => {
 
 // === Write
 const createProjectRole = async (input: ProjectRoleCreateInput, ctx: { actorId: string }) => {
-  await projectsService.getProjectById(input.projectId, ctx); // ensure project exists and actor has access
+  await projectsService.getById(input.projectId, ctx); // ensure project exists and actor has access
   return await prisma.$transaction(async (tx) => {
     const created = await tx.projectRole.create({
       data: projectRoleFactory(input),
@@ -132,7 +132,7 @@ const removeMemberFromProjectRole = async (
 
 // === Read
 const listProjectRoles = async (projectId: string, ctx: { actorId: string }) => {
-  await projectsService.getProjectById(projectId, ctx); // get and throw if not found or no access
+  await projectsService.getById(projectId, ctx); // get and throw if not found or no access
 
   const roles = await prisma.projectRole.findMany({
     where: { projectId },
@@ -145,12 +145,12 @@ const listProjectRoles = async (projectId: string, ctx: { actorId: string }) => 
 const getProjectRoleById = async (roleId: string, ctx: { actorId: string }) => {
   const exist = await prisma.projectRole.findUnique({ where: { id: roleId } });
   if (!exist) throw new Error('Role not found');
-  await projectsService.getProjectById(exist.projectId, ctx); // get and throw if not found or no access
+  await projectsService.getById(exist.projectId, ctx); // get and throw if not found or no access
   return ZProjectRole.parse(exist);
 };
 
 const listProjectActors = async (projectId: string, ctx: { actorId: string }) => {
-  await projectsService.getProjectById(projectId, ctx);
+  await projectsService.getById(projectId, ctx);
   const actors = await prisma.projectActor.findMany({ where: { projectId } });
   const data = actors;
   return { data, meta: { total: actors.length } };

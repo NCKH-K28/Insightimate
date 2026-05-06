@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest, NextFetchEvent } from 'next/server';
 import { getSessionCookie } from 'better-auth/cookies';
-import serverConfig from './configs/server';
+
 
 /** =========================
  *  Proxy-style interfaces
@@ -53,7 +53,7 @@ export async function proxy(p: ProxyPipeline, ctx: ProxyContext): Promise<NextRe
 
 // ---- Side-effects: ping once per runtime instance ----
 let didPingDebezium = false;
-const PingDebezium: ProxySideEffectHandler = {
+const _PingDebezium: ProxySideEffectHandler = {
   name: 'PingDebezium',
   async run({ request }) {
     const pingPath = '/api/system/debezium';
@@ -70,7 +70,7 @@ const PingDebezium: ProxySideEffectHandler = {
 };
 
 let didPingSocket = false;
-const PingSocket: ProxySideEffectHandler = {
+const _PingSocket: ProxySideEffectHandler = {
   name: 'PingSocket',
   async run({ request }) {
     const pingPath = '/api/socket';

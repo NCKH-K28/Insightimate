@@ -21,8 +21,8 @@ import {
   DEFAULT_PRIORITIES,
   DEFAULT_STATUSES,
   DEFAULT_TYPES,
-} from '@/features/project/contants/default-project';
-import { getDefaultRoles } from '@/features/project/contants/default-roles';
+} from '@/features/project/constants/default-project';
+import { getDefaultRoles } from '@/features/project/constants/default-roles';
 
 const ZCreateFormData = ZProjectCreateInput;
 type CreateFormData = z.infer<typeof ZCreateFormData>;

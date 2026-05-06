@@ -35,7 +35,7 @@ export type Context = z.infer<typeof ZContext>;
 export type ProjectImportState = z.infer<typeof ZProjectImportState>;
 
 import { focusAtom } from 'jotai-optics';
-import { defaultProject } from '../contants';
+import { defaultProject } from '../constants';
 
 export const projectImportStateAtom = atom<ProjectImportState>({
   estimationTabs: [{ tabId: 'tab-0', tabName: 'Estimation' }],

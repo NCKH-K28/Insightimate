@@ -15,7 +15,7 @@ export const ZProfile = z.object({
   role: z.string().nullish(),
   lastOrgSlug: z.string().nullish(),
   isOnboarded: z.boolean().default(false),
-  onboardingStep: ZOnboardingStep.default({}),
+  onboardingStep: ZOnboardingStep.default({ profileComplete: false, orgCreateOrJoin: false }),
 });
 
 export const ZProfileUpdateInput = ZProfile.omit({ id: true, userId: true }).partial();

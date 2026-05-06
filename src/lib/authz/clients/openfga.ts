@@ -45,11 +45,13 @@ export async function clearAllTuples(fga: OpenFgaClient) {
   let continuationToken: string | undefined;
 
   do {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const res: any = await fga.read(
       {}, // read all tuples
       { pageSize: 100, continuationToken },
     );
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const tuples = (res.tuples ?? []) as Array<{ key: any }>;
     const nextToken = res.continuation_token as string | undefined;
 
@@ -69,7 +71,7 @@ export async function clearAllTuples(fga: OpenFgaClient) {
   } while (continuationToken);
 }
 
-const clearStores = async () => {
+const _clearStores = async () => {
   const { stores } = await openfgaClient.listStores();
   // delete all stores
   for (const store of stores) {
@@ -79,7 +81,7 @@ const clearStores = async () => {
 };
 
 const base = new OpenFgaClient({ apiUrl: fgaConfig.apiURL });
-const createStore = async () => {
+const _createStore = async () => {
   const store = await base.createStore({ name: `dev-store-v1` });
   console.log(`Created OpenFGA store: ${store.id} - ${store.name}`);
   const model = await loadAuthorizationModel();
@@ -88,7 +90,7 @@ const createStore = async () => {
   return store;
 };
 
-const healthCheck = async () => {
+const _healthCheck = async () => {
   // await clearStores();
   // const store = await createStore();
   // console.log(`Using OpenFGA store ID: ${store.id}`);

@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 
 const dbUrl = process.env.DATABASE_URL;
 const getGlobalPrisma = () => {
-  const globalForPrisma = globalThis as unknown as any;
+  const globalForPrisma = globalThis as unknown as { prisma: PrismaClient | undefined };
   const { prisma } = globalForPrisma;
   if (prisma) return prisma as typeof client;
 
