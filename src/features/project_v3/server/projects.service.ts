@@ -474,6 +474,47 @@ const deleteStatus = async (projectId: string, statusId: string, ctx: ProjectCon
   return { message: 'Issue status deleted successfully' };
 };
 
+const listTypes = async (projectId: string, ctx: ProjectContext) => {
+  await getProjectById(projectId, ctx); // Auth check
+  const types = await prisma.issueType.findMany({
+    where: { projectId },
+    orderBy: { sequence: 'asc' },
+  });
+  return { items: types, total: types.length };
+};
+
+const createType = async (projectId: string, input: any, ctx: ProjectContext) => {
+  await updateProject(projectId, {}, ctx); // Auth check: requires update permission
+  const id = input?.id ?? genIssueTypeId();
+  const { name, description, iconURL, color, sequence } = input;
+  const newType = await prisma.issueType.create({
+    data: {
+      id,
+      projectId,
+      name,
+      description,
+      iconURL,
+      color,
+      sequence: sequence ?? 0,
+      hierarchy: 0,
+    },
+  });
+  return newType;
+};
+
+const deleteType = async (projectId: string, typeId: string, ctx: ProjectContext) => {
+  await updateProject(projectId, {}, ctx); // Auth check: requires update permission
+  
+  // Protect against deleting the last type
+  const typeCount = await prisma.issueType.count({ where: { projectId } });
+  if (typeCount <= 1) {
+    throw new ProjectError('CANNOT_DELETE_LAST_TYPE', 'Cannot delete the last issue type for the project');
+  }
+
+  await prisma.issueType.delete({ where: { id: typeId, projectId } });
+  return { message: 'Issue type deleted successfully' };
+};
+
 // =============================== ARCHIVE / UNARCHIVE
 
 const archive = async (projectId: string, ctx: ProjectContext) => {
@@ -594,6 +635,9 @@ export const projectsService = {
   listStatuses,
   createStatus,
   deleteStatus,
+  listTypes,
+  createType,
+  deleteType,
   archive,
   unarchive,
   addFavorite,

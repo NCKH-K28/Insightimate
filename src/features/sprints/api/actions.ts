@@ -17,6 +17,7 @@ export const sprintDetailQueryOptions = (sprintId: string) =>
     queryKey: ['sprint', sprintId],
     queryFn: () => sprintApi.get({ sprintId }, {}),
     staleTime: 1000 * 30, // 30s
+    select: (res: any) => res,
   });
 
 /** Fetch issues belonging to a sprint */
@@ -34,6 +35,7 @@ export const sprintSummaryQueryOptions = (sprintId: string) =>
     queryKey: ['sprint-summary', sprintId],
     queryFn: () => sprintApi.summary({ sprintId }, {}),
     staleTime: 1000 * 60, // 60s
+    select: (res: any) => res,
   });
 
 /** Fetch burndown/burnup reports */
@@ -45,6 +47,7 @@ export const sprintReportsQueryOptions = (
     queryKey: ['sprint-reports', sprintId, type],
     queryFn: () => sprintApi.reports({ sprintId }, { params: { type } }),
     staleTime: 1000 * 60, // 60s
+    select: (res: any) => res,
   });
 
 /** Fetch sprint analytics (distributions + burndown) */
@@ -53,6 +56,7 @@ export const sprintAnalyticsQueryOptions = (sprintId: string) =>
     queryKey: ['sprint-analytics', sprintId],
     queryFn: () => sprintApi.analytics({ sprintId }, {}),
     staleTime: 1000 * 60, // 60s
+    select: (res: any) => res,
   });
 
 /** Fetch user preferences for a sprint */
@@ -61,6 +65,7 @@ export const sprintPrefsQueryOptions = (sprintId: string) =>
     queryKey: ['sprint-prefs', sprintId],
     queryFn: () => sprintApi.getPreferences({ sprintId }, {}),
     staleTime: Infinity,
+    select: (res: any) => res,
   });
 
 /** List sprints by board or project */

@@ -53,6 +53,7 @@ const PROJECT_ERROR_CODE_MAP: Record<ProjectErrorCode, ContentfulStatusCode> = {
   PROJECT_ALREADY_EXISTS: 409,
   PROJECT_PERMISSION_DENIED: 403,
   PROJECT_INVALID_INPUT: 400,
+  CANNOT_DELETE_LAST_TYPE: 400,
 };
 
 export const httpExceptionFilterHono: ErrorHandler = async (e, c) => {

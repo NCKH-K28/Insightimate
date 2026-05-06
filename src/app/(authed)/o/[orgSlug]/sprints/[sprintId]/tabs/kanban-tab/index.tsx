@@ -34,22 +34,28 @@ const sanitizeIssue = (issue: BoardIssueItem): ItemData => ({
   assignee: issue.assignee
     ? { ...issue.assignee, avatar: issue.assignee.avatar ?? undefined }
     : undefined,
-  type: {
-    ...issue.type,
-    color: issue.type.color ?? undefined,
-    iconURL: issue.type.iconURL ?? undefined,
-  },
-  priority: {
-    ...issue.priority,
-    color: issue.priority.color ?? undefined,
-    iconURL: issue.priority.iconURL ?? undefined,
-  },
-  status: {
-    ...issue.status,
-    color: issue.status.color ?? undefined,
-    iconURL: issue.status.iconURL ?? undefined,
-  },
-});
+  type: issue.type
+    ? {
+        ...issue.type,
+        color: issue.type.color ?? undefined,
+        iconURL: issue.type.iconURL ?? undefined,
+      }
+    : undefined,
+  priority: issue.priority
+    ? {
+        ...issue.priority,
+        color: issue.priority.color ?? undefined,
+        iconURL: issue.priority.iconURL ?? undefined,
+      }
+    : undefined,
+  status: issue.status
+    ? {
+        ...issue.status,
+        color: issue.status.color ?? undefined,
+        iconURL: issue.status.iconURL ?? undefined,
+      }
+    : undefined,
+}) as ItemData;
 
 const buildBoard = (columns: BoardColumnItem[], issues: BoardIssueItem[]) => {
   const toColumnIdMap = new Map<string, string>(

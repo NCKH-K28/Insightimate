@@ -21,8 +21,8 @@ import { UserInvite } from '@/features/user/ui/user-invite';
 
 type TeamShareProps = { teamId: string };
 export function TeamShare({ teamId }: TeamShareProps) {
-  const params = useParams<{ workspaceId: string }>();
-  const orgId = params?.workspaceId || '';
+  const params = useParams<{ orgSlug: string }>();
+  const orgId = params?.orgSlug || '';
 
   const { data: team } = useSuspenseQuery(getTeamQueryOptions(orgId, teamId));
 

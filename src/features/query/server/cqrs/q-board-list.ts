@@ -24,10 +24,10 @@ export type BoardListOutput = z.infer<typeof ZBoardListOutput>;
 const allowedProjects = async (actorId: string): Promise<string[]> => {
   const { objects } = await openfgaClient.listObjects({
     user: `user:${actorId}`,
-    relation: 'can_view',
-    type: 'project',
+    relation: 'read',
+    type: 'proj',
   });
-  return objects.map((obj) => obj.replace('project:', ''));
+  return objects.map((obj) => obj.replace('proj:', ''));
 };
 
 export const listBoards = async (input: BoardListInput, context: { actorId: string }) => {

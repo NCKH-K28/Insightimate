@@ -22,12 +22,12 @@ const ZFormData = ZTeamCreateInput;
 type FormData = z.infer<typeof ZFormData>;
 
 type CreateTeamFormProps = {
-  params: { workspaceId: string };
+  params: { orgId: string };
   onSubmit?: (data: FormData) => void | Promise<void>;
 };
 
 export const CreateTeamForm = ({ params, onSubmit }: CreateTeamFormProps) => {
-  const createTeam = useMutation(createTeamMutationOptions(params.workspaceId));
+  const createTeam = useMutation(createTeamMutationOptions(params.orgId));
 
   const form = useForm<FormData>({
     resolver: zodResolver(ZFormData),

@@ -163,10 +163,10 @@ const listProjects = async (
   const { filter } = params;
   const { objects } = await openfgaClient.listObjects({
     user: `user:${context.actorId}`,
-    type: 'project',
-    relation: 'can_view',
+    type: 'proj',
+    relation: 'read',
   });
-  const projectIds = objects.map((obj) => obj.replace('project:', ''));
+  const projectIds = objects.map((obj) => obj.replace('proj:', ''));
   if (projectIds.length === 0) return ZProjectListRes.parse({ data: [], meta: { total: 0 } });
 
   const where: Prisma.ProjectWhereInput = { id: { in: projectIds } };
@@ -354,8 +354,8 @@ const getProjectById = async (projectId: string, ctx: ProjectContext) => {
 
   const canView = await openfgaClient.check({
     user: `user:${ctx.actorId}`,
-    relation: 'can_view',
-    object: `project:${projectId}`,
+    relation: 'read',
+    object: `proj:${projectId}`,
   });
   if (!canView) throw new ProjectError('Permission denied to view this project');
   return ZProjectItem.parse({ ...project, boardId: project.board?.id });
@@ -368,10 +368,10 @@ const getProjectsFacets = async (
 ) => {
   const { objects } = await openfgaClient.listObjects({
     user: `user:${context.actorId}`,
-    type: 'project',
-    relation: 'can_view',
+    type: 'proj',
+    relation: 'read',
   });
-  const projectIds = objects.map((obj) => obj.replace('project:', ''));
+  const projectIds = objects.map((obj) => obj.replace('proj:', ''));
   if (projectIds.length === 0) return {};
 
   // const where: Prisma.ProjectWhereInput = { id: { in: projectIds }, ...options };
@@ -525,8 +525,8 @@ const addStatus = async (
 
   const canEdit = await openfgaClient.check({
     user: `user:${context.actorId}`,
-    relation: 'can_edit',
-    object: `project:${projectId}`,
+    relation: 'manage',
+    object: `proj:${projectId}`,
   });
   if (!canEdit.allowed) throw new ProjectError('Permission denied to add status');
 

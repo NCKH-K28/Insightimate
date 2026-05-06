@@ -8,7 +8,7 @@ const ranker = LexRank.create({ precision: 10, initialRank: 1, stepSize: 1 });
 const getLastIssue = async (parentId: string | null, parentField: 'sprintId' | 'columnId') => {
   const issue = await prisma.boardIssue.findFirst({
     where: { [parentField]: parentId },
-    orderBy: { rank: 'desc', issueId: 'desc' },
+    orderBy: [{ rank: 'desc' }, { issueId: 'desc' }],
   });
   return issue;
 };
@@ -16,7 +16,7 @@ const getLastIssue = async (parentId: string | null, parentField: 'sprintId' | '
 const getFirstIssue = async (parentId: string | null, parentField: 'sprintId' | 'columnId') => {
   const issue = await prisma.boardIssue.findFirst({
     where: { [parentField]: parentId },
-    orderBy: { rank: 'asc', issueId: 'asc' },
+    orderBy: [{ rank: 'asc' }, { issueId: 'asc' }],
   });
   return issue;
 };
@@ -28,7 +28,7 @@ const getAfterIssue = async (
 ) => {
   const issue = await prisma.boardIssue.findFirst({
     where: { [parentField]: parentId, rank: { gt: rank } },
-    orderBy: { rank: 'asc', issueId: 'asc' },
+    orderBy: [{ rank: 'asc' }, { issueId: 'asc' }],
   });
   return issue;
 };
@@ -40,7 +40,7 @@ const getBeforeIssue = async (
 ) => {
   const issue = await prisma.boardIssue.findFirst({
     where: { [parentField]: parentId, rank: { lt: rank } },
-    orderBy: { rank: 'desc', issueId: 'desc' },
+    orderBy: [{ rank: 'desc' }, { issueId: 'desc' }],
   });
   return issue;
 };
@@ -52,7 +52,7 @@ const getIssueRank = async (
 ) => {
   const issue = await prisma.boardIssue.findFirst({
     where: { issueId, [parentField]: parentId },
-    orderBy: { rank: 'asc', issueId: 'asc' },
+    orderBy: [{ rank: 'asc' }, { issueId: 'asc' }],
   });
   return issue?.rank;
 };

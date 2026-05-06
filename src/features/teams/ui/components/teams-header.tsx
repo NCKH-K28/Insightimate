@@ -1,7 +1,7 @@
 import { UsersRoundIcon } from 'lucide-react';
 import { CreateTeamBtn } from '../buttons/create-team-btn';
 
-type TeamsHeaderProps = { params: { workspaceId: string } };
+type TeamsHeaderProps = { params: { orgId: string } };
 export const TeamsHeader = ({ params }: TeamsHeaderProps) => {
   return (
     <div className='flex items-end justify-between'>

@@ -11,8 +11,8 @@ import { Button } from '@/components/ui/button';
 
 const TeamLinks = (props: { teamId: string }) => {
   const pathname = usePathname();
-  const params = useParams<{ workspaceId: string }>();
-  const orgId = params?.workspaceId || '';
+  const params = useParams<{ orgSlug: string }>();
+  const orgId = params?.orgSlug || '';
   if (!pathname) throw new Error('Pathname is undefined');
 
   const { data: team } = useSuspenseQuery(getTeamQueryOptions(orgId, props.teamId));

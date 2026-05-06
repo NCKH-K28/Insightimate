@@ -9,7 +9,7 @@ export type TeamServiceContext = { actorId: string; orgId: string };
 
 const genTeamId = () => `team_${createId()}`;
 
-const ensureTeamAccess = async (teamId: string, actorId: string, relation: 'can_view' | 'can_edit' | 'can_delete') => {
+const ensureTeamAccess = async (teamId: string, actorId: string, relation: 'read' | 'manage') => {
   const check = await openfgaClient.check({
     user: `user:${actorId}`,
     object: `team:${teamId}`,
@@ -30,7 +30,7 @@ const listTeams = async (input: unknown, context: TeamServiceContext) => {
   const { objects } = await openfgaClient.listObjects({
     type: 'team',
     user: `user:${context.actorId}`,
-    relation: 'can_view',
+    relation: 'read',
   });
   const teamIds = objects.map((obj) => obj.replace('team:', ''));
   if (teamIds.length === 0) return { data: [], meta: { total: 0 } };
@@ -93,7 +93,7 @@ const getTeamById = async (
       : undefined,
   });
   if (!team) throw new Error('Team not found');
-  await ensureTeamAccess(teamId, context.actorId, 'can_view');
+  await ensureTeamAccess(teamId, context.actorId, 'read');
 
   return mapPrismaTeamToZTeamItem(team);
 };
@@ -102,7 +102,7 @@ const deleteTeamById = async (teamId: string, context: TeamServiceContext) => {
   const teamInfo = await prisma.team.findUnique({ where: { id: teamId }, include: { memberships: true } });
   if (!teamInfo || teamInfo.orgId !== context.orgId) throw new Error('Team not found');
   
-  await ensureTeamAccess(teamId, context.actorId, 'can_delete');
+  await ensureTeamAccess(teamId, context.actorId, 'manage');
   
   return prisma.$transaction(async (tx) => {
     const team = await tx.team.delete({ where: { id: teamId }, include: { memberships: true } });
@@ -119,7 +119,7 @@ const deleteTeamById = async (teamId: string, context: TeamServiceContext) => {
 
 const updateTeam = async (teamId: string, input: TeamUpdateInput, context: TeamServiceContext) => {
   await getTeamById(teamId, context);
-  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+  await ensureTeamAccess(teamId, context.actorId, 'manage');
 
   return prisma.$transaction(async (tx) => {
     const updated = await tx.team.update({ where: { id: teamId }, data: { ...input } });
@@ -148,7 +148,7 @@ const addMember = async (
   context: TeamServiceContext,
 ) => {
   await getTeamById(teamId, context);
-  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+  await ensureTeamAccess(teamId, context.actorId, 'manage');
 
   return prisma.$transaction(async (tx) => {
     const member = await tx.teamMember.create({
@@ -169,7 +169,7 @@ const addMembers = async (
   context: TeamServiceContext,
 ) => {
   await getTeamById(teamId, context);
-  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+  await ensureTeamAccess(teamId, context.actorId, 'manage');
 
   return prisma.$transaction(async (tx) => {
     const members = await Promise.all(
@@ -194,7 +194,7 @@ const removeMember = async (
   context: TeamServiceContext,
 ) => {
   await getTeamById(teamId, context, { include: { members: false } });
-  await ensureTeamAccess(teamId, context.actorId, 'can_edit');
+  await ensureTeamAccess(teamId, context.actorId, 'manage');
 
   return prisma.$transaction(async (tx) => {
     const member = await tx.teamMember.findUnique({

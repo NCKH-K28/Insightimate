@@ -70,7 +70,7 @@ const PrjEndpoints = {
   fields: {
     statuses: `${PrjItem}/issue-statuses`, // Updated to use new endpoint
     priorities: `${PrjItem}/fields/priorities`,
-    types: `${PrjItem}/fields/types`,
+    types: `${PrjItem}/issue-types`,
   },
   summary: {
     get: `${PrjItem}/summary`,
@@ -143,7 +143,9 @@ export const projectApi = {
       list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.priorities, ctx),
     },
     types: {
-      list: (ctx: PrjCtx) => baseApi.get<{ data: any[] }>(PrjEndpoints.fields.types, ctx),
+      list: (ctx: PrjCtx) => baseApi.get<{ items: any[]; total: number }>(PrjEndpoints.fields.types, ctx),
+      create: (ctx: PrjCtx, data: any) => baseApi.post(PrjEndpoints.fields.types, data, ctx),
+      delete: (ctx: PrjCtx, typeId: string) => baseApi.delete(`${PrjEndpoints.fields.types}?typeId=${typeId}`, ctx),
     },
   },
 

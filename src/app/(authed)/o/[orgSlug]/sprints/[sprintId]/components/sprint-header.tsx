@@ -119,13 +119,13 @@ function SprintHeader({ params }: SprintHeaderProps) {
   }, []);
 
   // ── Style maps ────────────────────────────────────────────────────────
-  const stateColors = {
+  const stateColors: Record<string, string> = {
     FUTURE: 'bg-slate-100 text-slate-700 border-slate-200',
     ACTIVE: 'bg-blue-100 text-blue-700 border-blue-200',
     CLOSED: 'bg-green-100 text-green-700 border-green-200',
   };
 
-  const stateIcons = {
+  const stateIcons: Record<string, React.ReactNode> = {
     FUTURE: <Clock className='h-3 w-3 mr-1' />,
     ACTIVE: <Play className='h-3 w-3 mr-1' />,
     CLOSED: <CheckCircle2 className='h-3 w-3 mr-1' />,

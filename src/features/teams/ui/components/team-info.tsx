@@ -28,8 +28,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { useParams } from 'next/navigation';
 
 export const TeamInfo = (props: { teamId: string }) => {
-  const params = useParams<{ workspaceId: string }>();
-  const orgId = params?.workspaceId || '';
+  const params = useParams<{ orgSlug: string }>();
+  const orgId = params?.orgSlug || '';
 
   const { data: team } = useQuery(getTeamQueryOptions(orgId, props.teamId));
   const updateTeam = useMutation(updateTeamMutationOptions(orgId, props.teamId));

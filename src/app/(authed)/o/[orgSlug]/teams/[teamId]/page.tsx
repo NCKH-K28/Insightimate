@@ -8,13 +8,13 @@ import TeamLinks from '@/features/teams/ui/components/team-links';
 import { TeamShare } from '@/features/teams/ui/components/team-share';
 
 export default function TeamPage() {
-  const params = useParams<{ teamId: string }>();
-  if (!params) throw new Error('TeamPage must be used within a route with teamId param');
-  const { teamId } = params;
+  const params = useParams<{ orgSlug: string; teamId: string }>();
+  if (!params) throw new Error('TeamPage must be used within a route with teamId and orgSlug param');
+  const { teamId, orgSlug } = params;
 
   return (
     <div className={'flex flex-col gap-6 overflow-y-auto h-full'}>
-      <TeamHeader params={{ workspaceId: '', teamId }} />
+      <TeamHeader params={{ orgId: orgSlug, teamId }} />
       <div
         className={cn(
           // 'size-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8',

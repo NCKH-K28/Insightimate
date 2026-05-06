@@ -193,6 +193,30 @@ export const listProjectStatusesQueryOptions = (params: { projId: string }) => {
   });
 };
 
+export const listProjectFieldTypesQueryOptions = (params: { projId: string }) => {
+  return queryOptions({
+    queryKey: ['projects', params.projId, 'fields', 'types'],
+    queryFn: async () => projectApi.fields.types.list(params),
+    staleTime: 1000 * 60 * 5,
+  });
+};
+
+export const createProjectWorkTypeMutationOptions = (params: { projId: string }) => {
+  return mutationOptions({
+    mutationKey: ['projects', params.projId, 'fields', 'types', 'create'],
+    mutationFn: (data: any) => projectApi.fields.types.create(params, data),
+    meta: { invalidateQueries: [['projects', params.projId, 'fields', 'types']] },
+  });
+};
+
+export const deleteProjectWorkTypeMutationOptions = (params: { projId: string }) => {
+  return mutationOptions({
+    mutationKey: ['projects', params.projId, 'fields', 'types', 'delete'],
+    mutationFn: (typeId: string) => projectApi.fields.types.delete(params, typeId),
+    meta: { invalidateQueries: [['projects', params.projId, 'fields', 'types']] },
+  });
+};
+
 export const fetchProjectSummaryQueryOptions = (params: { projId: string }) => {
   return queryOptions({
     queryKey: ['projects', params.projId, 'summary'],

@@ -48,6 +48,14 @@ const orgsHono = new Hono().basePath('/api/v3/orgs');
 orgsHono.use(authenticatedGuard);
 orgsHono.onError(httpExceptionFilterHono);
 
+const resolveOrgId = async (id: string, actorId: string) => {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+  const isCuid = /^[a-z0-9]{24,32}$/i.test(id);
+  if (isUuid || isCuid) return id;
+  const org = await getOrg({ id, by: 'slug' }, { actorId });
+  return org.id;
+};
+
 // == api/v3/orgs ==
 orgsHono.get('/', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
@@ -189,14 +197,16 @@ orgsHono.delete('/:orgId/members/:userId', async (c) => {
 // ========================== TEAMS APIs ==========================
 orgsHono.get('/:orgId/teams', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId } = c.req.param();
+  const { orgId: rawOrgId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   const result = await teamsService.listTeams(null, { actorId, orgId });
   return c.json(result);
 });
 
 orgsHono.post('/:orgId/teams', zValidator('json', ZTeamCreateInput), async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId } = c.req.param();
+  const { orgId: rawOrgId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   const input = c.req.valid('json');
   const result = await teamsService.createTeam(input, { actorId, orgId });
   return c.json(result, { status: 201 });
@@ -204,7 +214,8 @@ orgsHono.post('/:orgId/teams', zValidator('json', ZTeamCreateInput), async (c) =
 
 orgsHono.get('/:orgId/teams/:teamId', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId } = c.req.param();
+  const { orgId: rawOrgId, teamId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   const result = await teamsService.getTeamById(
     teamId,
     { actorId, orgId },
@@ -215,7 +226,8 @@ orgsHono.get('/:orgId/teams/:teamId', async (c) => {
 
 orgsHono.patch('/:orgId/teams/:teamId', zValidator('json', ZTeamUpdateInput), async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId } = c.req.param();
+  const { orgId: rawOrgId, teamId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   const input = c.req.valid('json');
   const result = await teamsService.updateTeam(teamId, input, { actorId, orgId });
   return c.json(result);
@@ -223,14 +235,16 @@ orgsHono.patch('/:orgId/teams/:teamId', zValidator('json', ZTeamUpdateInput), as
 
 orgsHono.delete('/:orgId/teams/:teamId', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId } = c.req.param();
+  const { orgId: rawOrgId, teamId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   await teamsService.deleteTeamById(teamId, { actorId, orgId });
   return c.json({ id: teamId });
 });
 
 orgsHono.get('/:orgId/teams/:teamId/members', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId } = c.req.param();
+  const { orgId: rawOrgId, teamId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   const result = await teamsService.getTeamById(
     teamId,
     { actorId, orgId },
@@ -246,7 +260,8 @@ orgsHono.post(
   zValidator('json', ZTeamMemberAddInput),
   async (c) => {
     const { id: actorId } = await getUserAndThrow(c);
-    const { orgId, teamId } = c.req.param();
+    const { orgId: rawOrgId, teamId } = c.req.param();
+    const orgId = await resolveOrgId(rawOrgId, actorId);
     const { userIds } = c.req.valid('json');
     const result = await teamsService.addMembers(teamId, userIds, { actorId, orgId });
     return c.json(result, { status: 201 });
@@ -255,7 +270,8 @@ orgsHono.post(
 
 orgsHono.delete('/:orgId/teams/:teamId/members/:userId', async (c) => {
   const { id: actorId } = await getUserAndThrow(c);
-  const { orgId, teamId, userId } = c.req.param();
+  const { orgId: rawOrgId, teamId, userId } = c.req.param();
+  const orgId = await resolveOrgId(rawOrgId, actorId);
   await teamsService.removeMember(teamId, userId, { actorId, orgId });
   return c.json({ ok: true });
 });

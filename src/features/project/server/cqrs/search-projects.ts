@@ -33,10 +33,10 @@ export type ProjectListOutput = z.infer<typeof ZProjectListOutput>;
 const listProjectObjects = async (actorId: string) => {
   const { objects } = await openfgaClient.listObjects({
     user: `user:${actorId}`,
-    type: 'project',
-    relation: 'can_view',
+    type: 'proj',
+    relation: 'read',
   });
-  return objects.map((obj) => obj.replace('project:', ''));
+  return objects.map((obj) => obj.replace('proj:', ''));
 };
 
 type ProjectContext = { actorId: string };

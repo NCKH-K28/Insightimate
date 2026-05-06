@@ -78,13 +78,13 @@ describe('teamsService', () => {
   });
 
   describe('getTeamById', () => {
-    it('should return team if user has can_view', async () => {
+    it('should return team if user has read', async () => {
       vi.mocked(prisma.team.findUnique).mockResolvedValue(mockTeam as any);
       vi.mocked(openfgaClient.check).mockResolvedValue({ allowed: true } as any);
       
       const result = await teamsService.getTeamById('team-1', mockCtx);
       expect(result.id).toBe('team-1');
-      expect(openfgaClient.check).toHaveBeenCalledWith(expect.objectContaining({ relation: 'can_view', object: 'team:team-1' }));
+      expect(openfgaClient.check).toHaveBeenCalledWith(expect.objectContaining({ relation: 'read', object: 'team:team-1' }));
     });
 
     it('should throw if team not found or wrong org', async () => {

@@ -40,8 +40,8 @@ export const projectToSource = (project: { id: string; name: string; avatar?: st
 const checkProjectAccess = async (actorId: string, projectId: string) => {
   const check = await openfgaClient.check({
     user: `user:${actorId}`,
-    relation: 'can_view',
-    object: `project:${projectId}`,
+    relation: 'read',
+    object: `proj:${projectId}`,
   });
   return check.allowed;
 };

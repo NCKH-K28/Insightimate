@@ -6,7 +6,7 @@ import React from 'react';
 import { CreateTeamForm } from '../forms/create-team-form';
 
 type CreateTeamDialogProps = {
-  params: { workspaceId: string };
+  params: { orgId: string };
   label?: string;
   renderLabel?: () => React.ReactNode;
 };

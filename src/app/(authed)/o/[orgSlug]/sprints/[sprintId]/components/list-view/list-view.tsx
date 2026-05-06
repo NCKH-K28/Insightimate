@@ -206,8 +206,8 @@ export function ListView({
   const types = useMemo(() => {
     const map = new Map<string, { id: string; name: string; iconURL?: string | null }>();
     issues.forEach((si) => {
-      const typeId = si.type.id;
-      if (!map.has(typeId)) {
+      const typeId = si.type?.id;
+      if (typeId && !map.has(typeId)) {
         map.set(typeId, si.type);
       }
     });
@@ -217,9 +217,11 @@ export function ListView({
   const issuesByType = useMemo(() => {
     const map = new Map<string, BoardIssueItem[]>();
     issues.forEach((si) => {
-      const typeId = si.type.id;
-      if (!map.has(typeId)) map.set(typeId, []);
-      map.get(typeId)!.push(si);
+      const typeId = si.type?.id;
+      if (typeId) {
+        if (!map.has(typeId)) map.set(typeId, []);
+        map.get(typeId)!.push(si);
+      }
     });
     return map;
   }, [issues]);

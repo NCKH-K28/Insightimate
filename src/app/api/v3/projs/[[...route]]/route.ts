@@ -348,6 +348,37 @@ projsHono.delete('/:projId/issue-statuses', async (c) => {
   return c.json(result);
 });
 
+// ========================== PROJECT ISSUE TYPES APIs ==========================
+
+// GET /api/v3/projs/:projId/issue-types - List issue types
+projsHono.get('/:projId/issue-types', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const result = await projectsService.listTypes(projId, { actorId: auth.id });
+  return c.json(result);
+});
+
+// POST /api/v3/projs/:projId/issue-types - Create issue type
+projsHono.post('/:projId/issue-types', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const input = await c.req.json();
+  const result = await projectsService.createType(projId, input, { actorId: auth.id });
+  return c.json(result, 201);
+});
+
+// DELETE /api/v3/projs/:projId/issue-types - Delete issue type
+projsHono.delete('/:projId/issue-types', async (c) => {
+  const auth = await getUserAndThrow(c);
+  const { projId } = c.req.param();
+  const typeId = c.req.query('typeId');
+  if (!typeId) {
+    return c.json({ error: 'Type ID is required' }, 400);
+  }
+  const result = await projectsService.deleteType(projId, typeId, { actorId: auth.id });
+  return c.json(result);
+});
+
 // ========================== PROJECT MEMBERS APIs ==========================
 
 // GET /api/v3/projs/:projId/members - List members in project

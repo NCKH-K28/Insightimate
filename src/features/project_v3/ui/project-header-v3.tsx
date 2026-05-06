@@ -5,7 +5,7 @@ import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type ProjectHeaderV3Props = {
@@ -45,9 +45,14 @@ export function ProjectHeaderV3({ project, orgSlug }: ProjectHeaderV3Props) {
         </div>
 
         <div className='ml-auto flex items-center gap-2'>
-          <span className='text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded'>
+          <span className='text-xs text-muted-foreground font-mono bg-muted px-2 py-1 rounded hidden sm:inline-block'>
             {project.key}
           </span>
+          <Button variant='ghost' size='icon' className='h-8 w-8 text-muted-foreground' asChild>
+            <Link href={`/o/${orgSlug}/projs/${project.id}/settings`} title="Project Settings">
+              <Settings className='h-4 w-4' />
+            </Link>
+          </Button>
         </div>
       </div>
       <Separator />

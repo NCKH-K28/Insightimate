@@ -9,8 +9,8 @@ import { TeamActions } from '@/features/teams/ui/components/team-actions';
 import { usePathname, useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
-type TeamHeaderProps = { params: { workspaceId: string; teamId: string } };
-const TeamHeader = ({ params: { workspaceId: orgId, teamId } }: TeamHeaderProps) => {
+type TeamHeaderProps = { params: { orgId: string; teamId: string } };
+const TeamHeader = ({ params: { orgId, teamId } }: TeamHeaderProps) => {
   const pathname = usePathname();
   if (!pathname) throw new Error('pathname is undefined');
   const router = useRouter();

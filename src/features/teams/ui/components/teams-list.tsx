@@ -20,7 +20,7 @@ import {
 import { MoreVertical, Edit, UserPlus, Settings, LogOut, Trash2 } from 'lucide-react';
 import { CreateTeamBtn } from '../buttons/create-team-btn';
 
-export type TeamListProps = { params: { workspaceId: string } };
+export type TeamListProps = { params: { orgId: string } };
 
 type VisibleMembersProps = { members: Array<{ id: string; name: string; avatar?: string | null }> };
 export const VisibleMembers = ({ members }: VisibleMembersProps) => {
@@ -99,9 +99,7 @@ export const TeamActions = ({ teamId, teamBasePath }: TeamActionsProps) => {
   );
 };
 
-const EmptyState = () => {
-  const params = useParams<{ workspaceId: string }>();
-  if (!params) throw new Error('EmptyState must be used within a route with workspaceId param');
+const EmptyState = ({ params }: { params: { orgId: string } }) => {
 
   return (
     <div className='flex flex-col items-center justify-center py-20 px-4'>
@@ -147,7 +145,7 @@ export const TeamsList = ({ params }: TeamListProps) => {
     return basePath + '/teams';
   }, [pathname]);
 
-  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions(params.workspaceId));
+  const { data: teams } = useSuspenseQuery(listTeamsQueryOptions(params.orgId));
 
   const getInitials = (name: string) => {
     return name
@@ -166,7 +164,7 @@ export const TeamsList = ({ params }: TeamListProps) => {
     });
   };
 
-  if (teams.length === 0) return <EmptyState />;
+  if (teams.length === 0) return <EmptyState params={params} />;
   return (
     <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5'>
       {teams.map((team) => (

@@ -110,7 +110,7 @@ function ActivityTabContent({
   params: { orgSlug: string; sprintId: string };
 }) {
   const { data: org } = useQuery(getOrgQueryOptions({ id: params.orgSlug, by: 'slug' }));
-  const orgId = (org as any)?.id as string | undefined;
+  const orgId = (org as any)?.data?.id ?? (org as any)?.id;
 
   if (!orgId) {
     return (

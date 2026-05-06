@@ -19,7 +19,9 @@ type UpdateProjectFormProps = {
   onSuccess?: () => void;
 };
 export const UpdateProjectForm = (props: UpdateProjectFormProps) => {
-  const updateProject = useMutation(updateProjectMutationOptions({ projId: props.params.projectId }));
+  const updateProject = useMutation(
+    updateProjectMutationOptions({ projId: props.params.projectId }),
+  );
 
   const getDirtyValues = () => {
     const dirtyFields = form.formState.dirtyFields;
@@ -45,12 +47,7 @@ export const UpdateProjectForm = (props: UpdateProjectFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={handleSubmit} className={cn('container mx-auto max-w-2xl', 'space-y-6')}>
-        <ProjectInfo
-          form={form}
-          disableds={{
-            key: true,
-          }}
-        />
+        <ProjectInfo form={form} disableds={{ key: true }} />
 
         <div className='flex items-center justify-end gap-2'>
           <Button hidden type='button' variant='outline'>

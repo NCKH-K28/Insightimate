@@ -20,9 +20,9 @@ export default function TeamsPage() {
       }
     >
       <div className='space-y-4'>
-        <TeamsHeader params={{ workspaceId: params.orgSlug }} />
+        <TeamsHeader params={{ orgId: params.orgSlug }} />
         <Separator />
-        <TeamsList params={{ workspaceId: params.orgSlug }} />
+        <TeamsList params={{ orgId: params.orgSlug }} />
       </div>
     </Suspense>
   );
