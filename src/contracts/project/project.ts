@@ -51,6 +51,7 @@ export const ZProjectKey = z
   );
 
 export const ZProjectType = z.enum(['SOFTWARE']);
+export const ZProjectNetwork = z.enum(['SECRET', 'PUBLIC']);
 
 export const ZProject = z.object({
   id: ZIdString,
@@ -59,6 +60,8 @@ export const ZProject = z.object({
 
   // Nếu backend cho phép null/empty, để nullish trong core entity (contract boundary)
   avatar: z.string().trim().nullish(),
+  coverImage: z.string().trim().nullish(),
+  logoProps: z.record(z.unknown()).nullish(),
 
   name: z.string().trim().min(1, 'Name is required'),
   description: z.string().trim().nullish(),
@@ -66,6 +69,18 @@ export const ZProject = z.object({
   leadId: ZIdString,
   orgId: ZIdString,
   boardId: ZIdString.nullish(),
+
+  // Feature toggles
+  sprintView: z.boolean().default(true),
+  boardView: z.boolean().default(true),
+  pageView: z.boolean().default(false),
+
+  // Automations
+  archiveIn: z.number().int().min(0).max(12).default(0),
+  closeIn: z.number().int().min(0).max(12).default(0),
+
+  // Network visibility
+  network: ZProjectNetwork.default('PUBLIC'),
 
   createdAt: isoString,
   updatedAt: isoString,
@@ -94,6 +109,7 @@ export type ProjectRole = z.infer<typeof ZProjectRole>;
 export type ProjectRolePermissionKey = z.infer<typeof ZProjectRolePermissionKey>;
 export type ProjectLead = z.infer<typeof ZProjectLead>;
 export type ProjectType = z.infer<typeof ZProjectType>;
+export type ProjectNetwork = z.infer<typeof ZProjectNetwork>;
 
 export type ProjectTypeFacet = z.infer<typeof ZProjectTypeFacet>;
 export type ProjectLeadFacet = z.infer<typeof ZProjectLeadFacet>;

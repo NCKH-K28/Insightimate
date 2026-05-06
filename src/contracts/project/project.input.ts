@@ -1,6 +1,6 @@
 // ============================ project.input.ts ============================
 import { z } from 'zod';
-import { ZProject, ZProjectRole } from './project';
+import { ZProject, ZProjectRole, ZProjectNetwork } from './project';
 import {
   ZIssuePriority as ZIssuePriorityCore,
   ZIssueStatus as ZIssueStatusCore,
@@ -72,6 +72,14 @@ export const ZProjectUpdateInput = z.object({
   name: ZProject.shape.name.optional(),
   description: ZProject.shape.description.optional(),
   avatar: ZProject.shape.avatar.optional(),
+  coverImage: ZProject.shape.coverImage.optional(),
+  logoProps: ZProject.shape.logoProps.optional(),
+  sprintView: z.boolean().optional(),
+  boardView: z.boolean().optional(),
+  pageView: z.boolean().optional(),
+  archiveIn: z.number().int().min(0).max(12).optional(),
+  closeIn: z.number().int().min(0).max(12).optional(),
+  network: ZProjectNetwork.optional(),
 });
 
 export type ProjectCreateInput = z.infer<typeof ZProjectCreateInput>;

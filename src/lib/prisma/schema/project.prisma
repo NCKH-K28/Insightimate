@@ -7,7 +7,15 @@ model Project {
   type           ProjectType       @default(SOFTWARE)
   description    String?
   avatar         String?
+  coverImage     String?           @map("cover_image")
+  logoProps      Json?             @map("logo_props")
   archived       Boolean           @default(false)
+  network        ProjectNetwork    @default(PUBLIC)
+  sprintView     Boolean           @default(true)  @map("sprint_view")
+  boardView      Boolean           @default(true)  @map("board_view")
+  pageView       Boolean           @default(false) @map("page_view")
+  archiveIn      Int               @default(0)     @map("archive_in")
+  closeIn        Int               @default(0)     @map("close_in")
   createdAt      DateTime          @default(now()) @map("created_at")
   updatedAt      DateTime          @updatedAt @map("updated_at")
   issueCounter   Int               @default(0) @map("issue_counter")
@@ -83,4 +91,9 @@ enum ProjectType {
 enum ActorType {
   USER
   TEAM
+}
+
+enum ProjectNetwork {
+  SECRET
+  PUBLIC
 }
