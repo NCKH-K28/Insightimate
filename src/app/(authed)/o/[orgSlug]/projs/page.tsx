@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { auth } from '@/lib/auth';
 import { orgService } from '@/features/organization/server/org.service';
 import { projectsService } from '@/features/project/server/projects.service';
-import { ProjectsTable } from '@/features/project/ui/table/projects-table';
+import { ProjectsListPage } from '@/features/project/ui/projects-list-page';
 
 type PageProps = { params: Promise<{ orgSlug: string }> };
 
@@ -24,13 +24,11 @@ export default async function Page({ params }: PageProps) {
   );
 
   return (
-    <div className='container mx-auto py-6 space-y-6'>
-      <div>
-        <h1 className='text-2xl font-bold tracking-tight'>Projects</h1>
-        <p className='text-muted-foreground'>Manage your organization&apos;s projects</p>
-      </div>
-
-      <ProjectsTable initialData={result.data} orgId={org.id} context={{ userId: actorId }} />
-    </div>
+    <ProjectsListPage
+      initialData={result.data}
+      orgId={org.id}
+      orgSlug={orgSlug}
+      context={{ userId: actorId }}
+    />
   );
 }

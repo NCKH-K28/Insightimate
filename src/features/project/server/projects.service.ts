@@ -25,7 +25,7 @@ import {
   genProjectRoleId,
 } from '@/features/project/configs/id-generators';
 import { projectResourceFactory, loadPrincipal } from '../utils/authz';
-import { IssueStatusCategory } from '@/contracts/issues';
+
 import { buildProjectTuples } from '@/lib/authz/tuple-factory';
 import { ProjectError } from '@/lib/http/errors';
 import { emitActivity } from '@/features/activity/server/emit-activity';
@@ -625,6 +625,60 @@ const listFavorites = async (ctx: ProjectContext) => {
   return { data: favorites };
 };
 
+// =============================== IDENTIFIER CHECK
+
+const isKeyAvailable = async (orgId: string, key: string): Promise<{ available: boolean }> => {
+  const existing = await prisma.project.findUnique({
+    where: { orgId_key: { orgId, key } },
+    select: { id: true },
+  });
+  return { available: !existing };
+};
+
+// =============================== SUMMARY / ANALYTICS
+
+const getSummary = async (projectId: string, ctx: ProjectContext) => {
+  await getProjectById(projectId, ctx); // Auth check
+
+  const statuses = await prisma.issueStatus.findMany({
+    where: { projectId },
+    select: { id: true, category: true },
+  });
+
+  const statusMap = new Map(statuses.map((s) => [s.id, s.category]));
+
+  const [totalIssues, byStatus, memberCount] = await Promise.all([
+    prisma.issue.count({ where: { projectId } }),
+    prisma.issue.groupBy({
+      by: ['statusId'],
+      where: { projectId },
+      _count: { _all: true },
+    }),
+    prisma.projectActor.count({ where: { projectId } }),
+  ]);
+
+  const categoryCounts: Record<string, number> = {
+    TODO: 0,
+    IN_PROGRESS: 0,
+    DONE: 0,
+  };
+
+  for (const row of byStatus) {
+    const category = statusMap.get(row.statusId);
+    if (category && category in categoryCounts) {
+      categoryCounts[category] += row._count._all;
+    }
+  }
+
+  return {
+    totalIssues,
+    todoIssues: categoryCounts.TODO,
+    inProgressIssues: categoryCounts.IN_PROGRESS,
+    completedIssues: categoryCounts.DONE,
+    memberCount,
+  };
+};
+
 export const projectsService = {
   list: listProjects,
   create: createProject,
@@ -643,4 +697,6 @@ export const projectsService = {
   addFavorite,
   removeFavorite,
   listFavorites,
+  isKeyAvailable,
+  getSummary,
 };

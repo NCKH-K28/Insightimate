@@ -30,6 +30,7 @@ const PrjEndpoints = {
   delete: PrjItem,
   update: PrjItem,
   getFacets: `${BasePrj}/facets`,
+  checkKey: `${BasePrj}/check-key`,
 
   issue: {
     list: PrjIssues,
@@ -88,6 +89,8 @@ export const projectApi = {
   create: (data: ProjectCreateInput) => baseApi.post<ProjectItem>(PrjEndpoints.create, data),
   getFacets: (params?: ProjectQueryParams) =>
     baseApi.get<ProjectFacets>(PrjEndpoints.getFacets, undefined, { params }),
+  checkKeyAvailability: (orgId: string, key: string) =>
+    baseApi.get<{ available: boolean }>(PrjEndpoints.checkKey, undefined, { params: { orgId, key } }),
   get: (ctx: PrjCtx) => baseApi.get<ProjectItem>(PrjEndpoints.get, ctx),
   delete: (ctx: PrjCtx) => baseApi.delete(PrjEndpoints.delete, ctx),
   update: (ctx: PrjCtx, data: any) => baseApi.patch<ProjectItem>(PrjEndpoints.update, data, ctx),

@@ -29,6 +29,8 @@ import { MemberSettings } from '@/features/project/ui/components/member-settings
 import { PermissionSettings } from '@/features/project/ui/components/permission-settings';
 import { StatusSettings } from '@/features/project/ui/components/status-settings';
 import { WorkTypeSettings } from '@/features/project/ui/components/worktype-settings';
+import { FeaturesSettings } from '@/features/project/ui/components/features-settings';
+import { AutomationsSettings } from '@/features/project/ui/components/automations-settings';
 
 export default function ProjectSettingsPage() {
   const router = useRouter();
@@ -90,6 +92,18 @@ export default function ProjectSettingsPage() {
             className='rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2'
           >
             Work Types
+          </TabsTrigger>
+          <TabsTrigger
+            value='features'
+            className='rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2'
+          >
+            Features
+          </TabsTrigger>
+          <TabsTrigger
+            value='automations'
+            className='rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-4 py-2'
+          >
+            Automations
           </TabsTrigger>
         </TabsList>
 
@@ -162,6 +176,14 @@ export default function ProjectSettingsPage() {
 
           <TabsContent value='worktypes'>
             <WorkTypeSettings projectId={projId} />
+          </TabsContent>
+
+          <TabsContent value='features'>
+            <FeaturesSettings projectId={projId} />
+          </TabsContent>
+
+          <TabsContent value='automations'>
+            <AutomationsSettings projectId={projId} />
           </TabsContent>
         </div>
       </Tabs>

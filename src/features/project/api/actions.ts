@@ -224,3 +224,12 @@ export const fetchProjectSummaryQueryOptions = (params: { projId: string }) => {
     staleTime: 1000 * 60 * 1,
   });
 };
+
+export const checkKeyAvailabilityQueryOptions = (params: { orgId: string; key: string }) => {
+  return queryOptions({
+    queryKey: ['projects', 'check-key', params],
+    queryFn: async () => projectApi.checkKeyAvailability(params.orgId, params.key),
+    enabled: params.key.length >= 2,
+    staleTime: 1000 * 30,
+  });
+};

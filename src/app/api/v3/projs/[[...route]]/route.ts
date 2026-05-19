@@ -67,6 +67,21 @@ projsHono.get('/facets', zValidator('query', ZFacetsQuery), async (c) => {
   return c.json(result);
 });
 
+// ========================== IDENTIFIER CHECK API ==========================
+
+// GET /api/v3/projs/check-key - Check if project key is available
+const ZCheckKeyQuery = z.object({
+  orgId: z.string().min(1),
+  key: z.string().min(1),
+});
+
+projsHono.get('/check-key', zValidator('query', ZCheckKeyQuery), async (c) => {
+  await getUserAndThrow(c);
+  const { orgId, key } = c.req.valid('query');
+  const result = await projectsService.isKeyAvailable(orgId, key.toUpperCase());
+  return c.json(result);
+});
+
 // ========================== SEARCH API ==========================
 
 // GET /api/v3/projs/search - Search projects
